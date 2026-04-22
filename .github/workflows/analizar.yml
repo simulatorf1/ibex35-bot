@@ -2,10 +2,10 @@ name: Analizar IBEX35
 
 on:
   schedule:
-    - cron: '0 8 * * *'   # 8:00 AM
-    - cron: '0 12 * * *'  # 12:00 PM
-    - cron: '0 16 * * *'  # 16:00 PM
-  workflow_dispatch:       # Permite ejecutar manualmente
+    - cron: '0 8 * * *'
+    - cron: '0 12 * * *'
+    - cron: '0 16 * * *'
+  workflow_dispatch:
 
 jobs:
   analizar:
@@ -28,9 +28,6 @@ jobs:
       env:
         SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
         SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       run: |
         python analizador_ibex.py
-    
-    - name: Mostrar resultado
-      run: |
-        echo "✅ Análisis completado a las $(date)"
