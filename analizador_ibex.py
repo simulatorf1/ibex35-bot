@@ -177,11 +177,12 @@ def detectar_pinchos(ticker):
         print(f"  Error detectando pinchos: {e}")
         return [], []
 
-def detectar_huecos(ticker):
+def detectar_gaps(ticker):
     """
-    Detecta huecos (gaps) en las últimas 90 velas
-    Hueco alcista: apertura > cierre anterior
-    Hueco bajista: apertura < cierre anterior
+    Detecta gaps REALES comparando máximos y mínimos entre velas consecutivas
+    Gap alcista: min_actual > max_anterior (hueco sin cotizar al alza)
+    Gap bajista: max_actual < min_anterior (hueco sin cotizar a la baja)
+    Determina si el gap está cerrado (abierto/cerrado)
     """
     try:
         stock = yf.Ticker(ticker)
@@ -190,40 +191,91 @@ def detectar_huecos(ticker):
         if hist.empty or len(hist) < 5:
             return [], []
         
-        huecos_alcistas = []
-        huecos_bajistas = []
+        UMBRAL_PORCENTAJE = 0.01  # 1% mínimo para considerar un gap relevante
+        
+        gaps_alcistas = []
+        gaps_bajistas = []
+        
+        # Convertir fechas a lista para búsqueda posterior
+        fechas = hist.index.tolist()
         
         for i in range(1, len(hist)):
-            cierre_anterior = hist.iloc[i-1]['Close']
-            apertura_actual = hist.iloc[i]['Open']
+            max_anterior = hist.iloc[i-1]['High']
+            min_anterior = hist.iloc[i-1]['Low']
+            min_actual = hist.iloc[i]['Low']
+            max_actual = hist.iloc[i]['High']
             fecha_actual = hist.index[i].strftime('%d/%m/%Y')
+            fecha_anterior = hist.index[i-1].strftime('%d/%m/%Y')
             
-            # Hueco alcista (abre por encima del cierre anterior)
-            if apertura_actual > cierre_anterior:
-                diferencia = apertura_actual - cierre_anterior
-                porcentaje = (diferencia / cierre_anterior) * 100
-                huecos_alcistas.append({
-                    "fecha": fecha_actual,
-                    "desde": round(cierre_anterior, 3),
-                    "hasta": round(apertura_actual, 3),
-                    "porcentaje": round(porcentaje, 2)
-                })
+            # ============================================
+            # GAP ALCISTA (min_actual > max_anterior)
+            # ============================================
+            if min_actual > max_anterior:
+                diferencia = min_actual - max_anterior
+                porcentaje = (diferencia / max_anterior) * 100
+                
+                # Solo considerar gaps relevantes (>1%)
+                if porcentaje >= UMBRAL_PORCENTAJE * 100:
+                    # Verificar si el gap se ha cerrado
+                    cerrado = False
+                    fecha_cierre = None
+                    
+                    # Buscar en velas posteriores si el precio entró en el rango
+                    for j in range(i+1, len(hist)):
+                        precio_min = hist.iloc[j]['Low']
+                        precio_max = hist.iloc[j]['High']
+                        
+                        # Si alguna vela toca el rango del gap
+                        if precio_min <= max_anterior or precio_max >= min_actual:
+                            cerrado = True
+                            fecha_cierre = hist.index[j].strftime('%d/%m/%Y')
+                            break
+                    
+                    gaps_alcistas.append({
+                        "fecha": fecha_actual,
+                        "fecha_anterior": fecha_anterior,
+                        "desde": round(max_anterior, 3),
+                        "hasta": round(min_actual, 3),
+                        "porcentaje": round(porcentaje, 2),
+                        "estado": "cerrado" if cerrado else "abierto",
+                        "fecha_cierre": fecha_cierre if cerrado else None
+                    })
             
-            # Hueco bajista (abre por debajo del cierre anterior)
-            elif apertura_actual < cierre_anterior:
-                diferencia = cierre_anterior - apertura_actual
-                porcentaje = (diferencia / cierre_anterior) * 100
-                huecos_bajistas.append({
-                    "fecha": fecha_actual,
-                    "desde": round(cierre_anterior, 3),
-                    "hasta": round(apertura_actual, 3),
-                    "porcentaje": round(porcentaje, 2)
-                })
+            # ============================================
+            # GAP BAJISTA (max_actual < min_anterior)
+            # ============================================
+            elif max_actual < min_anterior:
+                diferencia = min_anterior - max_actual
+                porcentaje = (diferencia / min_anterior) * 100
+                
+                if porcentaje >= UMBRAL_PORCENTAJE * 100:
+                    # Verificar si el gap se ha cerrado
+                    cerrado = False
+                    fecha_cierre = None
+                    
+                    for j in range(i+1, len(hist)):
+                        precio_min = hist.iloc[j]['Low']
+                        precio_max = hist.iloc[j]['High']
+                        
+                        if precio_max >= min_anterior or precio_min <= max_actual:
+                            cerrado = True
+                            fecha_cierre = hist.index[j].strftime('%d/%m/%Y')
+                            break
+                    
+                    gaps_bajistas.append({
+                        "fecha": fecha_actual,
+                        "fecha_anterior": fecha_anterior,
+                        "desde": round(min_anterior, 3),
+                        "hasta": round(max_actual, 3),
+                        "porcentaje": round(porcentaje, 2),
+                        "estado": "cerrado" if cerrado else "abierto",
+                        "fecha_cierre": fecha_cierre if cerrado else None
+                    })
         
-        return huecos_alcistas, huecos_bajistas
+        return gaps_alcistas, gaps_bajistas
     
     except Exception as e:
-        print(f"  Error detectando huecos: {e}")
+        print(f"  Error detectando gaps: {e}")
         return [], []
 
 def identificar_niveles(ticker, precio_actual):
@@ -388,8 +440,8 @@ def analizar_todo():
         # Detectar pinchos
         pinchos_alcistas, pinchos_bajistas = detectar_pinchos(ticker)
         
-        # Detectar huecos
-        huecos_alcistas, huecos_bajistas = detectar_huecos(ticker)
+        # Detectar gaps REALES
+        gaps_alcistas, gaps_bajistas = detectar_gaps(ticker)
         
         # Identificar niveles
         soportes, resistencias = identificar_niveles(ticker, precio_actual)
@@ -400,24 +452,32 @@ def analizar_todo():
         print(f"  📊 SMI HORARIO: {smi_horario}")
         
         # ============================================
-        # MOSTRAR HUECOS (GAPS)
+        # MOSTRAR GAPS REALES
         # ============================================
-        print(f"\n  📊 HUECOS (GAPS) DETECTADOS:")
+        print(f"\n  📊 GAPS REALES (huecos sin cotizar):")
         print(f"  {'='*50}")
         
-        print(f"  📈 Huecos alcistas (abre por encima):")
-        if huecos_alcistas:
-            for h in huecos_alcistas:
-                print(f"     {h['fecha']} - {h['desde']}€ → {h['hasta']}€ ({h['porcentaje']}%)")
-            print(f"     Total: {len(huecos_alcistas)} huecos alcistas")
+        print(f"  📈 Gaps alcistas (min_actual > max_anterior):")
+        if gaps_alcistas:
+            for g in gaps_alcistas:
+                estado = "✅ CERRADO" if g["estado"] == "cerrado" else "⚠️ ABIERTO"
+                if g["estado"] == "cerrado":
+                    print(f"     {g['fecha']} - {g['desde']}€ → {g['hasta']}€ ({g['porcentaje']}%) - {estado} (cerró el {g['fecha_cierre']})")
+                else:
+                    print(f"     {g['fecha']} - {g['desde']}€ → {g['hasta']}€ ({g['porcentaje']}%) - {estado}")
+            print(f"     Total: {len(gaps_alcistas)} gaps alcistas")
         else:
             print(f"     0")
         
-        print(f"\n  📉 Huecos bajistas (abre por debajo):")
-        if huecos_bajistas:
-            for h in huecos_bajistas:
-                print(f"     {h['fecha']} - {h['desde']}€ → {h['hasta']}€ ({h['porcentaje']}%)")
-            print(f"     Total: {len(huecos_bajistas)} huecos bajistas")
+        print(f"\n  📉 Gaps bajistas (max_actual < min_anterior):")
+        if gaps_bajistas:
+            for g in gaps_bajistas:
+                estado = "✅ CERRADO" if g["estado"] == "cerrado" else "⚠️ ABIERTO"
+                if g["estado"] == "cerrado":
+                    print(f"     {g['fecha']} - {g['desde']}€ → {g['hasta']}€ ({g['porcentaje']}%) - {estado} (cerró el {g['fecha_cierre']})")
+                else:
+                    print(f"     {g['fecha']} - {g['desde']}€ → {g['hasta']}€ ({g['porcentaje']}%) - {estado}")
+            print(f"     Total: {len(gaps_bajistas)} gaps bajistas")
         else:
             print(f"     0")
         
