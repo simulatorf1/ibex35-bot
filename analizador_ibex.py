@@ -129,6 +129,54 @@ def obtener_smi_horario_semanal(ticker):
         print(f"  Error horario/semanal: {e}")
         return None, None
 
+def detectar_pinchos(ticker):
+    """
+    Detecta pinchos alcistas y bajistas en las últimas 90 velas
+    Pincho alcista: (cierre - mínimo) / mínimo > 0.05 (recuperación >5%)
+    Pincho bajista: (máximo - cierre) / cierre > 0.05 (caída >5%)
+    """
+    try:
+        stock = yf.Ticker(ticker)
+        hist = stock.history(period="90d", interval="1d")
+        
+        if hist.empty or len(hist) < 10:
+            return [], []
+        
+        UMBRAL = 0.05  # 5%
+        
+        pinchos_alcistas = []
+        pinchos_bajistas = []
+        
+        for idx, row in hist.iterrows():
+            minimo = row['Low']
+            maximo = row['High']
+            cierre = row['Close']
+            fecha = idx.strftime('%d/%m/%Y')
+            
+            # Pincho alcista (recuperación desde mínimo)
+            recuperacion = (cierre - minimo) / minimo
+            if recuperacion > UMBRAL:
+                pinchos_alcistas.append({
+                    "fecha": fecha,
+                    "precio": round(minimo, 3),
+                    "porcentaje": round(recuperacion * 100, 2)
+                })
+            
+            # Pincho bajista (caída desde máximo)
+            caida = (maximo - cierre) / cierre
+            if caida > UMBRAL:
+                pinchos_bajistas.append({
+                    "fecha": fecha,
+                    "precio": round(maximo, 3),
+                    "porcentaje": round(caida * 100, 2)
+                })
+        
+        return pinchos_alcistas, pinchos_bajistas
+    
+    except Exception as e:
+        print(f"  Error detectando pinchos: {e}")
+        return [], []
+
 def identificar_niveles(ticker, precio_actual):
     """
     Identifica SOPORTES y RESISTENCIAS con tolerancia 0.6%
@@ -178,14 +226,13 @@ def identificar_niveles(ticker, precio_actual):
                 
                 for j in range(len(precios)):
                     if not usado[j]:
-                        # Comprobar si está dentro de la tolerancia
                         for precio_grupo in grupo:
                             if abs(precios[j] - precio_grupo) / precio_grupo < TOLERANCIA:
                                 grupo.append(precios[j])
                                 usado[j] = True
                                 break
                 
-                if len(grupo) >= 2:  # Solo grupos con al menos 2 toques
+                if len(grupo) >= 2:
                     grupos.append({
                         "minimo": min(grupo),
                         "maximo": max(grupo),
@@ -193,13 +240,9 @@ def identificar_niveles(ticker, precio_actual):
                         "precios": grupo
                     })
             
-            # Ordenar por número de toques (de mayor a menor)
             grupos.sort(key=lambda x: x["toques"], reverse=True)
             return grupos
         
-        # ============================================
-        # AGRUPAR MÁXIMOS POR ZONAS (tolerancia 0.6%)
-        # ============================================
         grupos_minimos = agrupar_por_zona(minimos)
         grupos_maximos = agrupar_por_zona(maximos)
         
@@ -208,7 +251,7 @@ def identificar_niveles(ticker, precio_actual):
         # ============================================
         soportes = []
         for g in grupos_minimos:
-            if g["maximo"] < precio_actual:  # El grupo está por debajo del precio actual
+            if g["maximo"] < precio_actual:
                 soportes.append({
                     "minimo": g["minimo"],
                     "maximo": g["maximo"],
@@ -218,7 +261,7 @@ def identificar_niveles(ticker, precio_actual):
         
         resistencias = []
         for g in grupos_maximos:
-            if g["minimo"] > precio_actual:  # El grupo está por encima del precio actual
+            if g["minimo"] > precio_actual:
                 resistencias.append({
                     "minimo": g["minimo"],
                     "maximo": g["maximo"],
@@ -226,10 +269,7 @@ def identificar_niveles(ticker, precio_actual):
                     "rango": f"{g['minimo']}-{g['maximo']}"
                 })
         
-        # Ordenar soportes: primero los más cercanos (máximo más alto)
         soportes.sort(key=lambda x: x["maximo"], reverse=True)
-        
-        # Ordenar resistencias: primero las más cercanas (mínimo más bajo)
         resistencias.sort(key=lambda x: x["minimo"])
         
         return soportes, resistencias
@@ -296,7 +336,10 @@ def analizar_todo():
         # Obtener SMI horario y semanal
         smi_horario, smi_semanal = obtener_smi_horario_semanal(ticker)
         
-        # Identificar TODOS los niveles
+        # Detectar pinchos
+        pinchos_alcistas, pinchos_bajistas = detectar_pinchos(ticker)
+        
+        # Identificar niveles
         soportes, resistencias = identificar_niveles(ticker, precio_actual)
         
         print(f"\n  💰 Precio actual: {precio_actual}€")
@@ -305,19 +348,36 @@ def analizar_todo():
         print(f"  📊 SMI HORARIO: {smi_horario}")
         
         # ============================================
-        # SELECCIONAR LOS NIVELES MÁS RELEVANTES
+        # MOSTRAR PINCHOS
         # ============================================
-        # Para resistencias: las de más toques (relevancia)
+        print(f"\n  📊 PINCHOS DESTACADOS (recuperación/caída >5%):")
+        print(f"  {'='*50}")
+        
+        print(f"  🔺 Pinchos alcistas (giro desde mínimo):")
+        if pinchos_alcistas:
+            for p in pinchos_alcistas:
+                print(f"     {p['fecha']} - giró en {p['precio']}€ (recuperó {p['porcentaje']}%)")
+            print(f"     Total: {len(pinchos_alcistas)} pinchos alcistas")
+        else:
+            print(f"     0")
+        
+        print(f"\n  🔻 Pinchos bajistas (giro desde máximo):")
+        if pinchos_bajistas:
+            for p in pinchos_bajistas:
+                print(f"     {p['fecha']} - giró en {p['precio']}€ (cayó {p['porcentaje']}%)")
+            print(f"     Total: {len(pinchos_bajistas)} pinchos bajistas")
+        else:
+            print(f"     0")
+        
+        # ============================================
+        # MOSTRAR NIVELES MÁS RELEVANTES
+        # ============================================
         resistencias_por_toques = sorted(resistencias, key=lambda x: x["toques"], reverse=True)
         top_2_resistencias = resistencias_por_toques[:2]
         
-        # Para soportes: los de más toques (relevancia)
         soportes_por_toques = sorted(soportes, key=lambda x: x["toques"], reverse=True)
         top_2_soportes = soportes_por_toques[:2]
         
-        # ============================================
-        # MOSTRAR NIVELES MÁS RELEVANTES (PARA TODOS)
-        # ============================================
         print(f"\n  📊 NIVELES MÁS RELEVANTES (rango real, sin promedios):")
         print(f"  {'='*50}")
         
@@ -338,20 +398,14 @@ def analizar_todo():
             print(f"     ❌ No hay soportes con suficientes toques")
         
         # ============================================
-        # CONDICIÓN 1: SMI en sobreventa
+        # CONDICIÓN DE COMPRA
         # ============================================
         if smi_rapido is not None and smi_rapido < -40:
             print(f"  ✅ Condición 1: SMI en sobreventa")
             
-            # ============================================
-            # CONDICIÓN 2: Giro positivo
-            # ============================================
             if giro_positivo:
                 print(f"  ✅ Condición 2: Giro positivo")
                 
-                # ============================================
-                # CONDICIÓN 3: Buscar resistencia válida
-                # ============================================
                 resistencia_valida = None
                 for r in resistencias:
                     recorrido = ((r["minimo"] - precio_actual) / precio_actual) * 100
