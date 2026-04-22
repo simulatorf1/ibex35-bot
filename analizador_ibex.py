@@ -125,9 +125,14 @@ def guardar_recomendacion(ticker, nombre, precio, smi_h, smi_d, smi_s, recomenda
         print(f"❌ Error guardando {nombre}: {e}")
 
 def analizar_todo():
-    """Analiza todas las empresas del IBEX35"""
+    """Analiza todas las empresas del IBEX35 con lógica multitemporal"""
     print(f"🚀 Iniciando análisis - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 50)
+    print("📊 LÓGICA: El DIARIO marca si hay COMPRA, el HORARIO el momento exacto")
+    print("=" * 50)
+    
+    contador_compras = 0
+    contador_compras_perfectas = 0
     
     for ticker, nombre in EMPRESAS:
         print(f"\n📊 Analizando: {nombre} ({ticker})")
@@ -140,36 +145,61 @@ def analizar_todo():
             if precio_actual is None:
                 print(f"  ⚠️ No se pudo obtener precio, saltando...")
                 continue
-        except:
-            print(f"  ⚠️ Error obteniendo precio, saltando...")
+        except Exception as e:
+            print(f"  ⚠️ Error obteniendo precio: {e}")
             continue
         
         # Obtener SMI en los 3 timeframes
-        smi_horario = obtener_smi_timeframe(ticker, "1h", "7d")      # Horario (últimos 7 días)
-        smi_diario = obtener_smi_timeframe(ticker, "1d", "90d")      # Diario (últimos 90 días)
-        smi_semanal = obtener_smi_timeframe(ticker, "1wk", "1y")     # Semanal (último año)
+        smi_horario = obtener_smi_timeframe(ticker, "1h", "7d")
+        smi_diario = obtener_smi_timeframe(ticker, "1d", "90d")
+        smi_semanal = obtener_smi_timeframe(ticker, "1wk", "1y")
         
         print(f"  💰 Precio: {precio_actual}€")
-        print(f"  📊 SMI Horario: {smi_horario}")
-        print(f"  📊 SMI Diario: {smi_diario}")
-        print(f"  📊 SMI Semanal: {smi_semanal}")
+        print(f"  📊 SMI DIARIO (tendencia): {smi_diario}")
+        print(f"  📊 SMI HORARIO (momento): {smi_horario}")
+        print(f"  📊 SMI Semanal (contexto): {smi_semanal}")
         
-        # LÓGICA DE COMPRA: SMI horario < -40 (sobreventa)
-        if smi_horario is not None and smi_horario < -40:
-            recomendacion = "COMPRA"
-            precio_objetivo = round(precio_actual * 1.05, 3)  # Objetivo +5%
-            print(f"  🟢 ¡SEÑAL DE COMPRA! SMI horario en {smi_horario}")
-            guardar_recomendacion(ticker, nombre, precio_actual, 
-                                  smi_horario, smi_diario, smi_semanal,
-                                  recomendacion, precio_objetivo)
+        # ============================================
+        # LÓGICA CORRECTA: El DIARIO manda
+        # ============================================
+        
+        # PRIMERO: ¿El DIARIO da señal de compra?
+        if smi_diario is not None and smi_diario < -40:
+            
+            # SEGUNDO: ¿El HORARIO también da señal?
+            if smi_horario is not None and smi_horario < -40:
+                # ¡COMPRA PERFECTA! Ambos timeframes coinciden
+                recomendacion = "COMPRA PERFECTA"
+                precio_objetivo = round(precio_actual * 1.05, 3)
+                print(f"  🟢🟢 ¡COMPRA PERFECTA! Diario={smi_diario}, Horario={smi_horario}")
+                guardar_recomendacion(ticker, nombre, precio_actual, 
+                                      smi_horario, smi_diario, smi_semanal,
+                                      recomendacion, precio_objetivo)
+                contador_compras_perfectas += 1
+                contador_compras += 1
+                
+            else:
+                # COMPRA NORMAL: El diario da señal pero el horario aún no
+                recomendacion = "COMPRA (esperar momento)"
+                precio_objetivo = round(precio_actual * 1.05, 3)
+                print(f"  🟢 COMPRA (momento no perfecto). Diario={smi_diario}, Horario={smi_horario}")
+                guardar_recomendacion(ticker, nombre, precio_actual, 
+                                      smi_horario, smi_diario, smi_semanal,
+                                      recomendacion, precio_objetivo)
+                contador_compras += 1
         else:
-            print(f"  ⚪ Sin señal de compra (SMI horario: {smi_horario})")
+            print(f"  ⚪ Sin señal de compra (SMI Diario: {smi_diario} - necesita < -40)")
         
-        # Esperar 1 segundo entre empresas para no saturar Yahoo Finance
-        time.sleep(1)
+        # Esperar para no saturar Yahoo Finance
+        time.sleep(0.5)
     
     print("\n" + "=" * 50)
-    print("✅ Análisis completado")
+    print(f"✅ Análisis completado")
+    print(f"📈 Total señales de COMPRA: {contador_compras}")
+    print(f"🎯 De ellas, COMPRAS PERFECTAS (momento exacto): {contador_compras_perfectas}")
+    
+    if contador_compras == 0:
+        print("📭 No hay señales de compra en este momento. Vuelve a consultar más tarde.")
 
 if __name__ == "__main__":
     analizar_todo()
