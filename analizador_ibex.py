@@ -12,6 +12,11 @@ import os
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 
+if not SUPABASE_URL or not SUPABASE_KEY:
+    print("❌ Error: No se encontraron las variables SUPABASE_URL o SUPABASE_KEY")
+    print("Asegúrate de configurarlas en GitHub Secrets")
+    exit(1)
+    
 # Conectar a Supabase
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
