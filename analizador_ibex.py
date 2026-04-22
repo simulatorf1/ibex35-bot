@@ -129,10 +129,10 @@ def obtener_smi_horario_semanal(ticker):
         print(f"  Error horario/semanal: {e}")
         return None, None
 
-def identificar_todos_los_niveles(ticker, precio_actual):
+def identificar_niveles(ticker, precio_actual):
     """
-    Identifica TODOS los niveles importantes (soportes y resistencias)
-    basados en MÁXIMOS y MÍNIMOS de CADA VELA en los últimos 90 días
+    Identifica SOPORTES y RESISTENCIAS con tolerancia del 0.3%
+    Solo muestra niveles con al menos 2 toques
     """
     try:
         stock = yf.Ticker(ticker)
@@ -141,53 +141,50 @@ def identificar_todos_los_niveles(ticker, precio_actual):
         if hist.empty or len(hist) < 20:
             return [], []
         
+        TOLERANCIA = 0.003  # 0.3%
+        MIN_TOQUES = 2      # Mínimo 2 toques para considerar un nivel
+        
         volumen_promedio = hist['Volume'].tail(30).mean()
         
         # ============================================
-        # RECOPILAR TODOS LOS MÁXIMOS (resistencias potenciales)
+        # RECOPILAR TODOS LOS MÁXIMOS
         # ============================================
-        maximos_con_datos = []
+        maximos = []
         for i in range(len(hist)):
             fila = hist.iloc[i]
             maximo = round(fila['High'], 3)
             cierre = round(fila['Close'], 3)
             volumen = fila['Volume']
             
-            # Rechazo: cierre al menos 2% por debajo del máximo
             rechazo = (maximo - cierre) / maximo > 0.02
             
-            maximos_con_datos.append({
+            maximos.append({
                 "precio": maximo,
-                "fecha": fila.name,
                 "rechazo": rechazo,
                 "volumen": volumen
             })
         
         # ============================================
-        # RECOPILAR TODOS LOS MÍNIMOS (soportes potenciales)
+        # RECOPILAR TODOS LOS MÍNIMOS
         # ============================================
-        minimos_con_datos = []
+        minimos = []
         for i in range(len(hist)):
             fila = hist.iloc[i]
             minimo = round(fila['Low'], 3)
             cierre = round(fila['Close'], 3)
             volumen = fila['Volume']
             
-            # Rebote: cierre al menos 2% por encima del mínimo
             rebote = (cierre - minimo) / minimo > 0.02
             
-            minimos_con_datos.append({
+            minimos.append({
                 "precio": minimo,
-                "fecha": fila.name,
                 "rebote": rebote,
                 "volumen": volumen
             })
         
         # ============================================
-        # AGRUPAR POR ZONAS (tolerancia ±2%)
+        # AGRUPAR POR ZONAS CON TOLERANCIA 0.3%
         # ============================================
-        TOLERANCIA = 0.02  # 2%
-        
         def agrupar_por_zona(datos, es_maximo):
             zonas = {}
             for d in datos:
@@ -201,10 +198,13 @@ def identificar_todos_los_niveles(ticker, precio_actual):
                 if not encontrado:
                     zonas[precio] = [d]
             
-            # Calcular estadísticas de cada zona
+            # Calcular estadísticas
             resultados = []
             for precio, toques in zonas.items():
                 toques_count = len(toques)
+                
+                if toques_count < MIN_TOQUES:
+                    continue
                 
                 if es_maximo:
                     rechazos = sum(1 for t in toques if t["rechazo"])
@@ -212,12 +212,14 @@ def identificar_todos_los_niveles(ticker, precio_actual):
                     
                     # Fuerza (0-100)
                     fuerza = 30
-                    if toques_count >= 4:
-                        fuerza = 80
-                    elif toques_count == 3:
-                        fuerza = 65
-                    elif toques_count == 2:
-                        fuerza = 50
+                    if toques_count >= 5:
+                        fuerza = 90
+                    elif toques_count >= 4:
+                        fuerza = 75
+                    elif toques_count >= 3:
+                        fuerza = 60
+                    elif toques_count >= 2:
+                        fuerza = 45
                     
                     if rechazos >= 2:
                         fuerza = min(100, fuerza + 15)
@@ -235,12 +237,14 @@ def identificar_todos_los_niveles(ticker, precio_actual):
                     volumen_total = sum(t["volumen"] for t in toques)
                     
                     fuerza = 30
-                    if toques_count >= 4:
-                        fuerza = 80
-                    elif toques_count == 3:
-                        fuerza = 65
-                    elif toques_count == 2:
-                        fuerza = 50
+                    if toques_count >= 5:
+                        fuerza = 90
+                    elif toques_count >= 4:
+                        fuerza = 75
+                    elif toques_count >= 3:
+                        fuerza = 60
+                    elif toques_count >= 2:
+                        fuerza = 45
                     
                     if rebotes >= 2:
                         fuerza = min(100, fuerza + 15)
@@ -256,75 +260,26 @@ def identificar_todos_los_niveles(ticker, precio_actual):
             
             return resultados
         
-        todas_resistencias = agrupar_por_zona(maximos_con_datos, es_maximo=True)
-        todos_soportes = agrupar_por_zona(minimos_con_datos, es_maximo=False)
+        todas_resistencias = agrupar_por_zona(maximos, es_maximo=True)
+        todos_soportes = agrupar_por_zona(minimos, es_maximo=False)
         
         # ============================================
-        # FILTRAR POR PRECIO ACTUAL
+        # CLASIFICAR POR PRECIO ACTUAL
         # ============================================
-        resistencias_arriba = [r for r in todas_resistencias if r["precio"] > precio_actual]
-        soportes_abajo = [s for s in todos_soportes if s["precio"] < precio_actual]
+        resistencias = [r for r in todas_resistencias if r["precio"] > precio_actual]
+        soportes = [s for s in todos_soportes if s["precio"] < precio_actual]
         
         # Ordenar
-        resistencias_arriba.sort(key=lambda x: x["precio"])  # de más cercana a más lejana
-        soportes_abajo.sort(key=lambda x: x["precio"], reverse=True)  # de más cercano a más lejano
+        resistencias.sort(key=lambda x: x["precio"])  # de más cercana a más lejana
+        soportes.sort(key=lambda x: x["precio"], reverse=True)  # de más cercano a más lejano
         
-        # ============================================
-        # CONVERTIR RESISTENCIAS SUPERADAS EN SOPORTES
-        # ============================================
-        for r in resistencias_arriba[:]:
-            # Ver si esta resistencia fue superada alguna vez
-            precio_r = r["precio"]
-            superada = False
-            for i in range(len(hist)):
-                if hist.iloc[i]['Close'] > precio_r:
-                    superada = True
-                    break
-            
-            if superada:
-                # Mover a soportes
-                soportes_abajo.append({
-                    "precio": precio_r,
-                    "toques": r["toques"],
-                    "rebotes": r.get("rechazos", 0),
-                    "fuerza": r["fuerza"] * 0.8,
-                    "nota": "ANTIGUA RESISTENCIA"
-                })
-                resistencias_arriba.remove(r)
-        
-        # Reordenar soportes después de añadir los convertidos
-        soportes_abajo.sort(key=lambda x: x["precio"], reverse=True)
-        
-        # Mostrar TODOS los niveles encontrados
-        print(f"\n  📊 NIVELES ENCONTRADOS (últimos 90 días):")
-        print(f"  {'='*50}")
-        
-        print(f"  📉 SOPORTES (por debajo de {precio_actual}€):")
-        for s in soportes_abajo:
-            nota = s.get("nota", "")
-            print(f"     💪 {s['precio']}€ - {s['toques']} toques, fuerza: {s['fuerza']} {nota}")
-        
-        print(f"\n  📈 RESISTENCIAS (por encima de {precio_actual}€):")
-        for r in resistencias_arriba:
-            print(f"     💪 {r['precio']}€ - {r['toques']} toques, fuerza: {r['fuerza']}")
-        
-        # Resistencia principal (la más cercana con fuerza suficiente)
-        resistencia_principal = None
-        for r in resistencias_arriba:
-            if r["fuerza"] >= 40:  # Solo resistencias con fuerza mínima
-                distancia = ((r["precio"] - precio_actual) / precio_actual) * 100
-                if distancia >= 2:  # Al menos 2% de recorrido
-                    resistencia_principal = r["precio"]
-                    break
-        
-        return soportes_abajo, resistencias_arriba, resistencia_principal
+        return soportes, resistencias
     
     except Exception as e:
         print(f"  Error identificando niveles: {e}")
-        return [], [], None
+        return [], []
 
-def guardar_recomendacion(ticker, nombre, precio, smi_h, smi_rapido, smi_w, 
-                          recomendacion, precio_obj):
+def guardar_recomendacion(ticker, nombre, precio, smi_h, smi_rapido, smi_w, recomendacion, precio_obj):
     """Guarda la recomendación en Supabase"""
     try:
         fecha_actual = datetime.now(timezone.utc).isoformat()
@@ -343,8 +298,6 @@ def guardar_recomendacion(ticker, nombre, precio, smi_h, smi_rapido, smi_w,
         
         supabase.table("recomendaciones").insert(data).execute()
         
-        print(f"  💾 Guardado: {nombre}")
-        
     except Exception as e:
         print(f"  ❌ Error guardando: {e}")
 
@@ -355,7 +308,7 @@ def analizar_todo():
     print("📊 CONDICIONES PARA COMPRA:")
     print("   1. SMI RÁPIDO < -40 (sobreventa)")
     print("   2. SMI RÁPIDO con GIRO POSITIVO (pendiente > 0)")
-    print("   3. Resistencia válida a más del 2% del precio actual")
+    print("   3. Resistencia válida a más del 3% del precio actual")
     print("=" * 70)
     
     contador_compras = 0
@@ -384,13 +337,31 @@ def analizar_todo():
         # Obtener SMI horario y semanal
         smi_horario, smi_semanal = obtener_smi_horario_semanal(ticker)
         
-        # Identificar TODOS los niveles importantes
-        soportes, resistencias, resistencia_principal = identificar_todos_los_niveles(ticker, precio_actual)
+        # Identificar TODOS los niveles
+        soportes, resistencias = identificar_niveles(ticker, precio_actual)
         
         print(f"\n  💰 Precio actual: {precio_actual}€")
         print(f"  📊 SMI RÁPIDO: {smi_rapido}")
         print(f"  📊 Pendiente: {pendiente} (Giro: {'✅' if giro_positivo else '❌'})")
         print(f"  📊 SMI HORARIO: {smi_horario}")
+        
+        # Mostrar TODOS los niveles encontrados
+        print(f"\n  📊 NIVELES ENCONTRADOS (tolerancia 0.3%, mínimo {2} toques):")
+        print(f"  {'='*50}")
+        
+        print(f"  📉 SOPORTES (por debajo de {precio_actual}€):")
+        if soportes:
+            for s in soportes:
+                print(f"     💪 {s['precio']}€ - {s['toques']} toques, fuerza: {s['fuerza']}")
+        else:
+            print(f"     ❌ No hay soportes claros")
+        
+        print(f"\n  📈 RESISTENCIAS (por encima de {precio_actual}€):")
+        if resistencias:
+            for r in resistencias:
+                print(f"     💪 {r['precio']}€ - {r['toques']} toques, fuerza: {r['fuerza']}")
+        else:
+            print(f"     ❌ No hay resistencias claras")
         
         # ============================================
         # CONDICIÓN 1: SMI en sobreventa
@@ -405,40 +376,39 @@ def analizar_todo():
                 print(f"  ✅ Condición 2: Giro positivo")
                 
                 # ============================================
-                # CONDICIÓN 3: Resistencia válida
+                # CONDICIÓN 3: Buscar resistencia válida (más cercana con recorrido >= 3%)
                 # ============================================
-                if resistencia_principal:
-                    recorrido = ((resistencia_principal - precio_actual) / precio_actual) * 100
-                    print(f"  📊 Resistencia principal: {resistencia_principal}€ (recorrido: {recorrido:.2f}%)")
+                resistencia_valida = None
+                for r in resistencias:
+                    recorrido = ((r["precio"] - precio_actual) / precio_actual) * 100
+                    if recorrido >= 3:
+                        resistencia_valida = r["precio"]
+                        print(f"  📊 Resistencia válida: {resistencia_valida}€ (recorrido: {recorrido:.2f}%)")
+                        break
+                
+                if resistencia_valida:
+                    print(f"  ✅ Condición 3: Resistencia válida encontrada")
                     
-                    if recorrido >= 2:
-                        print(f"  ✅ Condición 3: Recorrido suficiente")
-                        
-                        if smi_horario is not None and smi_horario < -40:
-                            recomendacion = "COMPRA PERFECTA"
-                            print(f"  🟢🟢 ¡COMPRA PERFECTA!")
-                            guardar_recomendacion(ticker, nombre, precio_actual, 
-                                                  smi_horario, smi_rapido, smi_semanal,
-                                                  recomendacion, resistencia_principal)
-                            contador_compras_perfectas += 1
-                            contador_compras += 1
-                        else:
-                            recomendacion = "COMPRA (esperar momento)"
-                            print(f"  🟢 ¡COMPRA!")
-                            guardar_recomendacion(ticker, nombre, precio_actual, 
-                                                  smi_horario, smi_rapido, smi_semanal,
-                                                  recomendacion, resistencia_principal)
-                            contador_compras += 1
-                    else:
-                        print(f"  ❌ Condición 3: Recorrido insuficiente")
+                    if smi_horario is not None and smi_horario < -40:
+                        recomendacion = "COMPRA PERFECTA"
+                        print(f"  🟢🟢 ¡COMPRA PERFECTA!")
                         guardar_recomendacion(ticker, nombre, precio_actual, 
                                               smi_horario, smi_rapido, smi_semanal,
-                                              "SIN COMPRA (recorrido insuficiente)", None)
+                                              recomendacion, resistencia_valida)
+                        contador_compras_perfectas += 1
+                        contador_compras += 1
+                    else:
+                        recomendacion = "COMPRA (esperar momento)"
+                        print(f"  🟢 ¡COMPRA!")
+                        guardar_recomendacion(ticker, nombre, precio_actual, 
+                                              smi_horario, smi_rapido, smi_semanal,
+                                              recomendacion, resistencia_valida)
+                        contador_compras += 1
                 else:
-                    print(f"  ❌ Condición 3: No hay resistencia válida")
+                    print(f"  ❌ Condición 3: No hay resistencia válida (recorrido < 3%)")
                     guardar_recomendacion(ticker, nombre, precio_actual, 
                                           smi_horario, smi_rapido, smi_semanal,
-                                          "SIN COMPRA (sin resistencia)", None)
+                                          "SIN COMPRA (sin resistencia válida)", None)
             else:
                 print(f"  ❌ Condición 2: SMI sin giro positivo")
                 guardar_recomendacion(ticker, nombre, precio_actual, 
