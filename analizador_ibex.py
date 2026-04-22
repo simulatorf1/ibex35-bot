@@ -363,6 +363,48 @@ def analizar_todo():
             print(f"     ❌ No hay resistencias claras")
         
         # ============================================
+        # SELECCIONAR LAS 2 RESISTENCIAS MÁS RELEVANTES (MÁS TOQUES)
+        # ============================================
+        if resistencias:
+            # Ordenar por número de toques (de mayor a menor)
+            resistencias_por_toques = sorted(resistencias, key=lambda x: x["toques"], reverse=True)
+            top_2_resistencias = resistencias_por_toques[:2]
+        else:
+            top_2_resistencias = []
+        
+        # ============================================
+        # SELECCIONAR LOS 2 SOPORTES MÁS RELEVANTES (MÁS TOQUES)
+        # ============================================
+        if soportes:
+            # Ordenar por número de toques (de mayor a menor)
+            soportes_por_toques = sorted(soportes, key=lambda x: x["toques"], reverse=True)
+            top_2_soportes = soportes_por_toques[:2]
+        else:
+            top_2_soportes = []
+        
+        # ============================================
+        # MOSTRAR RESUMEN DE NIVELES RELEVANTES (PARA TODOS LOS VALORES)
+        # ============================================
+        print(f"\n  📊 NIVELES MÁS RELEVANTES (por número de toques):")
+        print(f"  {'='*50}")
+        
+        print(f"  📈 TOP 2 RESISTENCIAS (por encima):")
+        if top_2_resistencias:
+            for r in top_2_resistencias:
+                recorrido = ((r["precio"] - precio_actual) / precio_actual) * 100
+                print(f"     💪 {r['precio']}€ - {r['toques']} toques (recorrido: {recorrido:.2f}%)")
+        else:
+            print(f"     ❌ No hay resistencias con suficientes toques")
+        
+        print(f"\n  📉 TOP 2 SOPORTES (por debajo):")
+        if top_2_soportes:
+            for s in top_2_soportes:
+                distancia = ((precio_actual - s["precio"]) / precio_actual) * 100
+                print(f"     💪 {s['precio']}€ - {s['toques']} toques (distancia: {distancia:.2f}%)")
+        else:
+            print(f"     ❌ No hay soportes con suficientes toques")
+        
+        # ============================================
         # CONDICIÓN 1: SMI en sobreventa
         # ============================================
         if smi_rapido is not None and smi_rapido < -40:
@@ -375,7 +417,7 @@ def analizar_todo():
                 print(f"  ✅ Condición 2: Giro positivo")
                 
                 # ============================================
-                # CONDICIÓN 3: Buscar resistencia válida (más cercana con recorrido >= 3%)
+                # CONDICIÓN 3: Buscar resistencia válida (la más cercana con recorrido >= 3%)
                 # ============================================
                 resistencia_valida = None
                 for r in resistencias:
@@ -387,38 +429,6 @@ def analizar_todo():
                 
                 if resistencia_valida:
                     print(f"  ✅ Condición 3: Resistencia válida encontrada")
-                    
-                    # Mostrar siguientes 2 resistencias y siguientes 2 soportes
-                    print(f"\n  📊 SIGUIENTES NIVELES:")
-                    
-                    # Siguientes 2 resistencias (después de la válida)
-                    idx_resistencia = None
-                    for i, r in enumerate(resistencias):
-                        if r["precio"] == resistencia_valida:
-                            idx_resistencia = i
-                            break
-                    
-                    if idx_resistencia is not None:
-                        siguientes_resistencias = resistencias[idx_resistencia+1:idx_resistencia+3]
-                        if siguientes_resistencias:
-                            print(f"     📈 Siguientes resistencias:")
-                            for r in siguientes_resistencias:
-                                recorrido_sig = ((r["precio"] - precio_actual) / precio_actual) * 100
-                                print(f"        💪 {r['precio']}€ (recorrido: {recorrido_sig:.2f}%, toques: {r['toques']})")
-                        else:
-                            print(f"     📈 Siguientes resistencias: No hay más")
-                    
-                    # Siguientes 2 soportes (los más cercanos por debajo)
-                    siguientes_soportes = soportes[:2]
-                    if siguientes_soportes:
-                        print(f"     📉 Siguientes soportes:")
-                        for s in siguientes_soportes:
-                            distancia_sop = ((precio_actual - s["precio"]) / precio_actual) * 100
-                            print(f"        💪 {s['precio']}€ (distancia: {distancia_sop:.2f}%, toques: {s['toques']})")
-                    else:
-                        print(f"     📉 Siguientes soportes: No hay")
-                    
-                    print(f"")
                     
                     if smi_horario is not None and smi_horario < -40:
                         recomendacion = "COMPRA PERFECTA"
