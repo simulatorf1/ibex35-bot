@@ -163,9 +163,6 @@ def calcular_niveles_importantes(ticker, precio_actual):
             factor_actualidad = max(0, 1 - (antiguedad_dias / 365))
             
             # Puntuación de fuerza (0 a 100)
-            # - Cada toque suma hasta 40 puntos (máx 8 toques = 40)
-            # - Volumen: hasta 30 puntos (si volumen > 10M)
-            # - Actualidad: hasta 30 puntos
             puntuacion_toques = min(40, toques * 5)
             puntuacion_volumen = min(30, volumen_promedio / 10000000 * 30)
             puntuacion_actualidad = factor_actualidad * 30
@@ -254,8 +251,8 @@ def calcular_precio_objetivo(ticker, precio_actual, smi_diario):
     
     return round(precio_objetivo, 3)
 
-def guardar_recomendacion(ticker, nombre, precio, smi_h, smi_d, smi_s, recomendacion, precio_obj, niveles_info=None):
-    """Guarda una recomendación en Supabase"""
+def guardar_recomendacion(ticker, nombre, precio, smi_h, smi_d, smi_s, recomendacion, precio_obj):
+    """Guarda TODAS las empresas (con o sin compra) en Supabase"""
     try:
         data = {
             "fecha": datetime.now().isoformat(),
@@ -266,25 +263,31 @@ def guardar_recomendacion(ticker, nombre, precio, smi_h, smi_d, smi_s, recomenda
             "smi_diario": smi_d,
             "smi_semanal": smi_s,
             "recomendacion": recomendacion,
-            "precio_objetivo": precio_obj
+            "precio_objetivo": precio_obj if precio_obj else None
         }
         
         supabase.table("recomendaciones").insert(data).execute()
-        print(f"✅ Guardado: {nombre} - {recomendacion} (Objetivo: {precio_obj}€)")
+        
+        if "COMPRA" in recomendacion:
+            print(f"  ✅ Guardado: {nombre} - {recomendacion} (Objetivo: {precio_obj}€)")
+        else:
+            print(f"  💾 Guardado: {nombre} - {recomendacion}")
         
     except Exception as e:
-        print(f"❌ Error guardando {nombre}: {e}")
+        print(f"  ❌ Error guardando {nombre}: {e}")
 
 def analizar_todo():
-    """Analiza todas las empresas del IBEX35 con lógica multitemporal"""
+    """Analiza todas las empresas del IBEX35 y guarda TODAS en Supabase"""
     print(f"🚀 Iniciando análisis - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print("=" * 50)
+    print("=" * 60)
     print("📊 LÓGICA: El DIARIO marca si hay COMPRA, el HORARIO el momento exacto")
     print("📊 PRECIO OBJETIVO: Basado en SOPORTES/RESISTENCIAS con VOLUMEN")
-    print("=" * 50)
+    print("📊 SE GUARDAN TODAS LAS EMPRESAS (con o sin señal)")
+    print("=" * 60)
     
     contador_compras = 0
     contador_compras_perfectas = 0
+    contador_sin_compra = 0
     
     for ticker, nombre in EMPRESAS:
         print(f"\n📊 Analizando: {nombre} ({ticker})")
@@ -295,10 +298,13 @@ def analizar_todo():
             info = stock.info
             precio_actual = info.get("currentPrice", info.get("regularMarketPrice"))
             if precio_actual is None:
-                print(f"  ⚠️ No se pudo obtener precio, saltando...")
+                print(f"  ⚠️ No se pudo obtener precio, guardando sin precio...")
+                # Guardar igualmente con precio None
+                guardar_recomendacion(ticker, nombre, None, None, None, None, "SIN DATOS", None)
                 continue
         except Exception as e:
             print(f"  ⚠️ Error obteniendo precio: {e}")
+            guardar_recomendacion(ticker, nombre, None, None, None, None, "ERROR", None)
             continue
         
         # Obtener SMI en los 3 timeframes
@@ -312,7 +318,7 @@ def analizar_todo():
         print(f"  📊 SMI Semanal (contexto): {smi_semanal}")
         
         # ============================================
-        # LÓGICA CORRECTA: El DIARIO manda
+        # LÓGICA: El DIARIO manda
         # ============================================
         
         # PRIMERO: ¿El DIARIO da señal de compra?
@@ -324,7 +330,6 @@ def analizar_todo():
             
             # SEGUNDO: ¿El HORARIO también da señal?
             if smi_horario is not None and smi_horario < -40:
-                # ¡COMPRA PERFECTA! Ambos timeframes coinciden
                 recomendacion = "COMPRA PERFECTA"
                 print(f"  🟢🟢 ¡COMPRA PERFECTA! Diario={smi_diario}, Horario={smi_horario}")
                 guardar_recomendacion(ticker, nombre, precio_actual, 
@@ -332,9 +337,7 @@ def analizar_todo():
                                       recomendacion, precio_objetivo)
                 contador_compras_perfectas += 1
                 contador_compras += 1
-                
             else:
-                # COMPRA NORMAL: El diario da señal pero el horario aún no
                 recomendacion = "COMPRA (esperar momento)"
                 print(f"  🟢 COMPRA (momento no perfecto). Diario={smi_diario}, Horario={smi_horario}")
                 guardar_recomendacion(ticker, nombre, precio_actual, 
@@ -342,18 +345,28 @@ def analizar_todo():
                                       recomendacion, precio_objetivo)
                 contador_compras += 1
         else:
-            print(f"  ⚪ Sin señal de compra (SMI Diario: {smi_diario} - necesita < -40)")
+            recomendacion = "SIN COMPRA"
+            print(f"  ⚪ SIN COMPRA (SMI Diario: {smi_diario} - necesita < -40)")
+            guardar_recomendacion(ticker, nombre, precio_actual, 
+                                  smi_horario, smi_diario, smi_semanal,
+                                  recomendacion, None)
+            contador_sin_compra += 1
         
         # Esperar para no saturar Yahoo Finance
-        time.sleep(1)
+        time.sleep(0.5)
     
-    print("\n" + "=" * 50)
+    print("\n" + "=" * 60)
     print(f"✅ Análisis completado")
-    print(f"📈 Total señales de COMPRA: {contador_compras}")
-    print(f"🎯 De ellas, COMPRAS PERFECTAS (momento exacto): {contador_compras_perfectas}")
+    print(f"📈 Total EMPRESAS analizadas: {len(EMPRESAS)}")
+    print(f"🟢 Señales de COMPRA: {contador_compras}")
+    print(f"🎯 De ellas, COMPRAS PERFECTAS: {contador_compras_perfectas}")
+    print(f"⚪ Sin señal de compra: {contador_sin_compra}")
+    print("=" * 60)
     
     if contador_compras == 0:
         print("📭 No hay señales de compra en este momento. Vuelve a consultar más tarde.")
+    else:
+        print(f"💡 Recomendación: Revisa las {contador_compras} empresas con señal de COMPRA en la web.")
 
 if __name__ == "__main__":
     analizar_todo()
