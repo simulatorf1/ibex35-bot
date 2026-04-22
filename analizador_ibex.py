@@ -131,8 +131,9 @@ def obtener_smi_horario_semanal(ticker):
 
 def identificar_niveles(ticker, precio_actual):
     """
-    Identifica SOPORTES y RESISTENCIAS con tolerancia del 0.6%
-    Solo muestra niveles con al menos 2 toques
+    Identifica SOPORTES y RESISTENCIAS con tolerancia 0.6%
+    Muestra el RANGO REAL (mínimo y máximo de la zona)
+    Cuenta toques reales
     """
     try:
         stock = yf.Ticker(ticker)
@@ -142,135 +143,94 @@ def identificar_niveles(ticker, precio_actual):
             return [], []
         
         TOLERANCIA = 0.006  # 0.6%
-        MIN_TOQUES = 2      # Mínimo 2 toques para considerar un nivel
-        
-        volumen_promedio = hist['Volume'].tail(30).mean()
         
         # ============================================
-        # RECOPILAR TODOS LOS MÁXIMOS
-        # ============================================
-        maximos = []
-        for i in range(len(hist)):
-            fila = hist.iloc[i]
-            maximo = round(fila['High'], 3)
-            cierre = round(fila['Close'], 3)
-            volumen = fila['Volume']
-            
-            rechazo = (maximo - cierre) / maximo > 0.02
-            
-            maximos.append({
-                "precio": maximo,
-                "rechazo": rechazo,
-                "volumen": volumen
-            })
-        
-        # ============================================
-        # RECOPILAR TODOS LOS MÍNIMOS
+        # RECOPILAR TODOS LOS MÍNIMOS (para soportes)
         # ============================================
         minimos = []
         for i in range(len(hist)):
             fila = hist.iloc[i]
             minimo = round(fila['Low'], 3)
-            cierre = round(fila['Close'], 3)
-            volumen = fila['Volume']
-            
-            rebote = (cierre - minimo) / minimo > 0.02
-            
-            minimos.append({
-                "precio": minimo,
-                "rebote": rebote,
-                "volumen": volumen
-            })
+            minimos.append(minimo)
         
         # ============================================
-        # AGRUPAR POR ZONAS CON TOLERANCIA 0.6%
+        # RECOPILAR TODOS LOS MÁXIMOS (para resistencias)
         # ============================================
-        def agrupar_por_zona(datos, es_maximo):
-            zonas = {}
-            for d in datos:
-                precio = d["precio"]
-                encontrado = False
-                for zona_precio in list(zonas.keys()):
-                    if abs(precio - zona_precio) / zona_precio < TOLERANCIA:
-                        zonas[zona_precio].append(d)
-                        encontrado = True
-                        break
-                if not encontrado:
-                    zonas[precio] = [d]
+        maximos = []
+        for i in range(len(hist)):
+            fila = hist.iloc[i]
+            maximo = round(fila['High'], 3)
+            maximos.append(maximo)
+        
+        # ============================================
+        # AGRUPAR MÍNIMOS POR ZONAS (tolerancia 0.6%)
+        # ============================================
+        def agrupar_por_zona(precios):
+            grupos = []
+            usado = [False] * len(precios)
             
-            # Calcular estadísticas
-            resultados = []
-            for precio, toques in zonas.items():
-                toques_count = len(toques)
-                
-                if toques_count < MIN_TOQUES:
+            for i in range(len(precios)):
+                if usado[i]:
                     continue
                 
-                if es_maximo:
-                    rechazos = sum(1 for t in toques if t["rechazo"])
-                    volumen_total = sum(t["volumen"] for t in toques)
-                    
-                    fuerza = 30
-                    if toques_count >= 5:
-                        fuerza = 90
-                    elif toques_count >= 4:
-                        fuerza = 75
-                    elif toques_count >= 3:
-                        fuerza = 60
-                    elif toques_count >= 2:
-                        fuerza = 45
-                    
-                    if rechazos >= 2:
-                        fuerza = min(100, fuerza + 15)
-                    if volumen_total / toques_count > volumen_promedio:
-                        fuerza = min(100, fuerza + 10)
-                    
-                    resultados.append({
-                        "precio": precio,
-                        "toques": toques_count,
-                        "rechazos": rechazos,
-                        "fuerza": fuerza
-                    })
-                else:
-                    rebotes = sum(1 for t in toques if t["rebote"])
-                    volumen_total = sum(t["volumen"] for t in toques)
-                    
-                    fuerza = 30
-                    if toques_count >= 5:
-                        fuerza = 90
-                    elif toques_count >= 4:
-                        fuerza = 75
-                    elif toques_count >= 3:
-                        fuerza = 60
-                    elif toques_count >= 2:
-                        fuerza = 45
-                    
-                    if rebotes >= 2:
-                        fuerza = min(100, fuerza + 15)
-                    if volumen_total / toques_count > volumen_promedio:
-                        fuerza = min(100, fuerza + 10)
-                    
-                    resultados.append({
-                        "precio": precio,
-                        "toques": toques_count,
-                        "rebotes": rebotes,
-                        "fuerza": fuerza
+                grupo = [precios[i]]
+                usado[i] = True
+                
+                for j in range(len(precios)):
+                    if not usado[j]:
+                        # Comprobar si está dentro de la tolerancia
+                        for precio_grupo in grupo:
+                            if abs(precios[j] - precio_grupo) / precio_grupo < TOLERANCIA:
+                                grupo.append(precios[j])
+                                usado[j] = True
+                                break
+                
+                if len(grupo) >= 2:  # Solo grupos con al menos 2 toques
+                    grupos.append({
+                        "minimo": min(grupo),
+                        "maximo": max(grupo),
+                        "toques": len(grupo),
+                        "precios": grupo
                     })
             
-            return resultados
+            # Ordenar por número de toques (de mayor a menor)
+            grupos.sort(key=lambda x: x["toques"], reverse=True)
+            return grupos
         
-        todas_resistencias = agrupar_por_zona(maximos, es_maximo=True)
-        todos_soportes = agrupar_por_zona(minimos, es_maximo=False)
+        # ============================================
+        # AGRUPAR MÁXIMOS POR ZONAS (tolerancia 0.6%)
+        # ============================================
+        grupos_minimos = agrupar_por_zona(minimos)
+        grupos_maximos = agrupar_por_zona(maximos)
         
         # ============================================
         # CLASIFICAR POR PRECIO ACTUAL
         # ============================================
-        resistencias = [r for r in todas_resistencias if r["precio"] > precio_actual]
-        soportes = [s for s in todos_soportes if s["precio"] < precio_actual]
+        soportes = []
+        for g in grupos_minimos:
+            if g["maximo"] < precio_actual:  # El grupo está por debajo del precio actual
+                soportes.append({
+                    "minimo": g["minimo"],
+                    "maximo": g["maximo"],
+                    "toques": g["toques"],
+                    "rango": f"{g['minimo']}-{g['maximo']}"
+                })
         
-        # Ordenar
-        resistencias.sort(key=lambda x: x["precio"])  # de más cercana a más lejana
-        soportes.sort(key=lambda x: x["precio"], reverse=True)  # de más cercano a más lejano
+        resistencias = []
+        for g in grupos_maximos:
+            if g["minimo"] > precio_actual:  # El grupo está por encima del precio actual
+                resistencias.append({
+                    "minimo": g["minimo"],
+                    "maximo": g["maximo"],
+                    "toques": g["toques"],
+                    "rango": f"{g['minimo']}-{g['maximo']}"
+                })
+        
+        # Ordenar soportes: primero los más cercanos (máximo más alto)
+        soportes.sort(key=lambda x: x["maximo"], reverse=True)
+        
+        # Ordenar resistencias: primero las más cercanas (mínimo más bajo)
+        resistencias.sort(key=lambda x: x["minimo"])
         
         return soportes, resistencias
     
@@ -344,63 +304,36 @@ def analizar_todo():
         print(f"  📊 Pendiente: {pendiente} (Giro: {'✅' if giro_positivo else '❌'})")
         print(f"  📊 SMI HORARIO: {smi_horario}")
         
-        # Mostrar TODOS los niveles encontrados
-        print(f"\n  📊 NIVELES ENCONTRADOS (tolerancia 0.6%, mínimo 2 toques):")
+        # ============================================
+        # SELECCIONAR LOS NIVELES MÁS RELEVANTES
+        # ============================================
+        # Para resistencias: las de más toques (relevancia)
+        resistencias_por_toques = sorted(resistencias, key=lambda x: x["toques"], reverse=True)
+        top_2_resistencias = resistencias_por_toques[:2]
+        
+        # Para soportes: los de más toques (relevancia)
+        soportes_por_toques = sorted(soportes, key=lambda x: x["toques"], reverse=True)
+        top_2_soportes = soportes_por_toques[:2]
+        
+        # ============================================
+        # MOSTRAR NIVELES MÁS RELEVANTES (PARA TODOS)
+        # ============================================
+        print(f"\n  📊 NIVELES MÁS RELEVANTES (rango real, sin promedios):")
         print(f"  {'='*50}")
         
-        print(f"  📉 SOPORTES (por debajo de {precio_actual}€):")
-        if soportes:
-            for s in soportes:
-                print(f"     💪 {s['precio']}€ - {s['toques']} toques, fuerza: {s['fuerza']}")
-        else:
-            print(f"     ❌ No hay soportes claros")
-        
-        print(f"\n  📈 RESISTENCIAS (por encima de {precio_actual}€):")
-        if resistencias:
-            for r in resistencias:
-                print(f"     💪 {r['precio']}€ - {r['toques']} toques, fuerza: {r['fuerza']}")
-        else:
-            print(f"     ❌ No hay resistencias claras")
-        
-        # ============================================
-        # SELECCIONAR LAS 2 RESISTENCIAS MÁS RELEVANTES (MÁS TOQUES)
-        # ============================================
-        if resistencias:
-            # Ordenar por número de toques (de mayor a menor)
-            resistencias_por_toques = sorted(resistencias, key=lambda x: x["toques"], reverse=True)
-            top_2_resistencias = resistencias_por_toques[:2]
-        else:
-            top_2_resistencias = []
-        
-        # ============================================
-        # SELECCIONAR LOS 2 SOPORTES MÁS RELEVANTES (MÁS TOQUES)
-        # ============================================
-        if soportes:
-            # Ordenar por número de toques (de mayor a menor)
-            soportes_por_toques = sorted(soportes, key=lambda x: x["toques"], reverse=True)
-            top_2_soportes = soportes_por_toques[:2]
-        else:
-            top_2_soportes = []
-        
-        # ============================================
-        # MOSTRAR RESUMEN DE NIVELES RELEVANTES (PARA TODOS LOS VALORES)
-        # ============================================
-        print(f"\n  📊 NIVELES MÁS RELEVANTES (por número de toques):")
-        print(f"  {'='*50}")
-        
-        print(f"  📈 TOP 2 RESISTENCIAS (por encima):")
+        print(f"  📈 RESISTENCIAS (por encima):")
         if top_2_resistencias:
             for r in top_2_resistencias:
-                recorrido = ((r["precio"] - precio_actual) / precio_actual) * 100
-                print(f"     💪 {r['precio']}€ - {r['toques']} toques (recorrido: {recorrido:.2f}%)")
+                recorrido = ((r["minimo"] - precio_actual) / precio_actual) * 100
+                print(f"     💪 {r['rango']}€ - {r['toques']} toques (recorrido: {recorrido:.2f}%)")
         else:
             print(f"     ❌ No hay resistencias con suficientes toques")
         
-        print(f"\n  📉 TOP 2 SOPORTES (por debajo):")
+        print(f"\n  📉 SOPORTES (por debajo):")
         if top_2_soportes:
             for s in top_2_soportes:
-                distancia = ((precio_actual - s["precio"]) / precio_actual) * 100
-                print(f"     💪 {s['precio']}€ - {s['toques']} toques (distancia: {distancia:.2f}%)")
+                distancia = ((precio_actual - s["maximo"]) / precio_actual) * 100
+                print(f"     💪 {s['rango']}€ - {s['toques']} toques (distancia: {distancia:.2f}%)")
         else:
             print(f"     ❌ No hay soportes con suficientes toques")
         
@@ -417,14 +350,14 @@ def analizar_todo():
                 print(f"  ✅ Condición 2: Giro positivo")
                 
                 # ============================================
-                # CONDICIÓN 3: Buscar resistencia válida (la más cercana con recorrido >= 3%)
+                # CONDICIÓN 3: Buscar resistencia válida
                 # ============================================
                 resistencia_valida = None
                 for r in resistencias:
-                    recorrido = ((r["precio"] - precio_actual) / precio_actual) * 100
+                    recorrido = ((r["minimo"] - precio_actual) / precio_actual) * 100
                     if recorrido >= 3:
-                        resistencia_valida = r["precio"]
-                        print(f"  📊 Resistencia válida: {resistencia_valida}€ (recorrido: {recorrido:.2f}%)")
+                        resistencia_valida = r["minimo"]
+                        print(f"  📊 Resistencia válida: {r['rango']}€ (recorrido: {recorrido:.2f}%)")
                         break
                 
                 if resistencia_valida:
