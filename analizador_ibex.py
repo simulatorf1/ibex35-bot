@@ -177,6 +177,55 @@ def detectar_pinchos(ticker):
         print(f"  Error detectando pinchos: {e}")
         return [], []
 
+def detectar_huecos(ticker):
+    """
+    Detecta huecos (gaps) en las últimas 90 velas
+    Hueco alcista: apertura > cierre anterior
+    Hueco bajista: apertura < cierre anterior
+    """
+    try:
+        stock = yf.Ticker(ticker)
+        hist = stock.history(period="90d", interval="1d")
+        
+        if hist.empty or len(hist) < 5:
+            return [], []
+        
+        huecos_alcistas = []
+        huecos_bajistas = []
+        
+        for i in range(1, len(hist)):
+            cierre_anterior = hist.iloc[i-1]['Close']
+            apertura_actual = hist.iloc[i]['Open']
+            fecha_actual = hist.index[i].strftime('%d/%m/%Y')
+            
+            # Hueco alcista (abre por encima del cierre anterior)
+            if apertura_actual > cierre_anterior:
+                diferencia = apertura_actual - cierre_anterior
+                porcentaje = (diferencia / cierre_anterior) * 100
+                huecos_alcistas.append({
+                    "fecha": fecha_actual,
+                    "desde": round(cierre_anterior, 3),
+                    "hasta": round(apertura_actual, 3),
+                    "porcentaje": round(porcentaje, 2)
+                })
+            
+            # Hueco bajista (abre por debajo del cierre anterior)
+            elif apertura_actual < cierre_anterior:
+                diferencia = cierre_anterior - apertura_actual
+                porcentaje = (diferencia / cierre_anterior) * 100
+                huecos_bajistas.append({
+                    "fecha": fecha_actual,
+                    "desde": round(cierre_anterior, 3),
+                    "hasta": round(apertura_actual, 3),
+                    "porcentaje": round(porcentaje, 2)
+                })
+        
+        return huecos_alcistas, huecos_bajistas
+    
+    except Exception as e:
+        print(f"  Error detectando huecos: {e}")
+        return [], []
+
 def identificar_niveles(ticker, precio_actual):
     """
     Identifica SOPORTES y RESISTENCIAS con tolerancia 0.6%
@@ -339,6 +388,9 @@ def analizar_todo():
         # Detectar pinchos
         pinchos_alcistas, pinchos_bajistas = detectar_pinchos(ticker)
         
+        # Detectar huecos
+        huecos_alcistas, huecos_bajistas = detectar_huecos(ticker)
+        
         # Identificar niveles
         soportes, resistencias = identificar_niveles(ticker, precio_actual)
         
@@ -346,6 +398,28 @@ def analizar_todo():
         print(f"  📊 SMI RÁPIDO: {smi_rapido}")
         print(f"  📊 Pendiente: {pendiente} (Giro: {'✅' if giro_positivo else '❌'})")
         print(f"  📊 SMI HORARIO: {smi_horario}")
+        
+        # ============================================
+        # MOSTRAR HUECOS (GAPS)
+        # ============================================
+        print(f"\n  📊 HUECOS (GAPS) DETECTADOS:")
+        print(f"  {'='*50}")
+        
+        print(f"  📈 Huecos alcistas (abre por encima):")
+        if huecos_alcistas:
+            for h in huecos_alcistas:
+                print(f"     {h['fecha']} - {h['desde']}€ → {h['hasta']}€ ({h['porcentaje']}%)")
+            print(f"     Total: {len(huecos_alcistas)} huecos alcistas")
+        else:
+            print(f"     0")
+        
+        print(f"\n  📉 Huecos bajistas (abre por debajo):")
+        if huecos_bajistas:
+            for h in huecos_bajistas:
+                print(f"     {h['fecha']} - {h['desde']}€ → {h['hasta']}€ ({h['porcentaje']}%)")
+            print(f"     Total: {len(huecos_bajistas)} huecos bajistas")
+        else:
+            print(f"     0")
         
         # ============================================
         # MOSTRAR PINCHOS
