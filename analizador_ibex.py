@@ -2,7 +2,7 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 from supabase import create_client, Client
-from datetime import datetime
+from datetime import datetime, timezone
 import time
 import os
 
@@ -52,7 +52,7 @@ EMPRESAS = [
     ("PHM.MC", "PharmaMar"),
     ("TRE.MC", "Técnicas Reunidas"),
     ("SAB.MC", "Banco Sabadell"),
-    ("BKT.MC", "Bankinter"),
+    ("BKIA.MC", "Bankinter"),
 ]
 
 def calcular_smi(high, low, close):
@@ -104,19 +104,22 @@ def calcular_niveles_importantes(ticker, precio_actual):
     Calcula soportes y resistencias IMPORTANTES basados en:
     - Múltiples toques del mismo precio
     - Volumen negociado en esos niveles
-    - Período de tiempo (más antiguo = menos relevante)
     """
     try:
-        # Usar 1 año de datos diarios para tener suficiente historia
+        # Usar 1 año de datos diarios
         stock = yf.Ticker(ticker)
         hist = stock.history(period="1y", interval="1d")
         
         if hist.empty or len(hist) < 30:
             print(f"    ⚠️ Datos insuficientes, usando método simple")
-            # Método simple: soporte y resistencia basados en mínimos/máximos recientes
-            ultimos_30 = hist.tail(30)
-            soporte_simple = round(ultimos_30['Low'].min(), 3)
-            resistencia_simple = round(ultimos_30['High'].max(), 3)
+            if len(hist) > 0:
+                ultimos_30 = hist.tail(min(30, len(hist)))
+                soporte_simple = round(ultimos_30['Low'].min(), 3)
+                resistencia_simple = round(ultimos_30['High'].max(), 3)
+            else:
+                soporte_simple = round(precio_actual * 0.95, 3)
+                resistencia_simple = round(precio_actual * 1.05, 3)
+            
             return {
                 "soportes": [{"precio": soporte_simple, "fuerza": 50}],
                 "resistencias": [{"precio": resistencia_simple, "fuerza": 50}],
@@ -127,14 +130,13 @@ def calcular_niveles_importantes(ticker, precio_actual):
         # Diccionario para almacenar niveles
         niveles = {}
         
-        # Recorrer cada vela para identificar niveles clave
+        # Recorrer cada vela
         for idx, row in hist.iterrows():
             alto = round(row['High'], 3)
             bajo = round(row['Low'], 3)
             cierre = round(row['Close'], 3)
             volumen = row['Volume']
             
-            # Considerar máximos, mínimos y cierres
             precios_a_considerar = [alto, bajo, cierre]
             
             for precio in precios_a_considerar:
@@ -150,7 +152,7 @@ def calcular_niveles_importantes(ticker, precio_actual):
                 if idx > niveles[precio]["ultima_fecha"]:
                     niveles[precio]["ultima_fecha"] = idx
         
-        # Calcular fuerza de cada nivel y separar soportes/resistencias
+        # Calcular fuerza de cada nivel
         niveles_con_fuerza = []
         hoy = datetime.now()
         
@@ -158,9 +160,14 @@ def calcular_niveles_importantes(ticker, precio_actual):
             toques = datos["toques"]
             volumen_promedio = datos["volumen_total"] / toques
             
-            # Antigüedad (días desde el último toque)
-            antiguedad_dias = (hoy - datos["ultima_fecha"]).days if datos["ultima_fecha"] else 365
-            factor_actualidad = max(0, 1 - (antiguedad_dias / 365))
+            # Calcular antigüedad (convertir a timezone-aware)
+            ultima_fecha = datos["ultima_fecha"]
+            if ultima_fecha.tzinfo is None:
+                # Si no tiene zona horaria, asumir UTC
+                ultima_fecha = ultima_fecha.replace(tzinfo=timezone.utc)
+            
+            dias_diferencia = (hoy - ultima_fecha).days
+            factor_actualidad = max(0, 1 - (dias_diferencia / 365))
             
             # Puntuación de fuerza (0 a 100)
             puntuacion_toques = min(40, toques * 5)
@@ -172,33 +179,29 @@ def calcular_niveles_importantes(ticker, precio_actual):
             niveles_con_fuerza.append({
                 "precio": precio,
                 "fuerza": fuerza,
-                "toques": toques,
-                "volumen_promedio": volumen_promedio
+                "toques": toques
             })
         
-        # Separar soportes (precio < actual) y resistencias (precio > actual)
+        # Separar soportes y resistencias
         soportes = [n for n in niveles_con_fuerza if n["precio"] < precio_actual]
         resistencias = [n for n in niveles_con_fuerza if n["precio"] > precio_actual]
         
-        # Ordenar por precio
-        soportes.sort(key=lambda x: x["precio"], reverse=True)  # Los más cercanos primero
-        resistencias.sort(key=lambda x: x["precio"])  # Los más cercanos primero
+        # Ordenar
+        soportes.sort(key=lambda x: x["precio"], reverse=True)
+        resistencias.sort(key=lambda x: x["precio"])
         
-        # Tomar los 5 más cercanos de cada lado
+        # Tomar los 5 más cercanos
         soportes_cercanos = soportes[:5]
         resistencias_cercanas = resistencias[:5]
         
-        # Identificar el más fuerte de cada lado
+        # Identificar el más fuerte
         soporte_fuerte = max(soportes_cercanos, key=lambda x: x["fuerza"]) if soportes_cercanos else None
         resistencia_fuerte = max(resistencias_cercanas, key=lambda x: x["fuerza"]) if resistencias_cercanas else None
         
-        # Si no hay soporte o resistencia, calcular con método simple
         if not soporte_fuerte:
-            ultimos_30 = hist.tail(30)
-            soporte_fuerte = {"precio": round(ultimos_30['Low'].min(), 3), "fuerza": 50}
+            soporte_fuerte = {"precio": round(precio_actual * 0.95, 3), "fuerza": 50}
         if not resistencia_fuerte:
-            ultimos_30 = hist.tail(30)
-            resistencia_fuerte = {"precio": round(ultimos_30['High'].max(), 3), "fuerza": 50}
+            resistencia_fuerte = {"precio": round(precio_actual * 1.05, 3), "fuerza": 50}
         
         return {
             "soportes": soportes_cercanos,
@@ -210,52 +213,44 @@ def calcular_niveles_importantes(ticker, precio_actual):
         }
     
     except Exception as e:
-        print(f"  ⚠️ Error calculando niveles para {ticker}: {e}")
+        print(f"    ⚠️ Error calculando niveles para {ticker}: {e}")
         return None
 
 def calcular_precio_objetivo(ticker, precio_actual, smi_diario):
-    """Calcula precio objetivo basado en soportes/resistencias y tendencia del SMI"""
+    """Calcula precio objetivo basado en soportes/resistencias"""
     
     niveles = calcular_niveles_importantes(ticker, precio_actual)
     
     if not niveles:
-        # Si falla, usar +5% como respaldo
         return round(precio_actual * 1.05, 3)
     
     # Determinar dirección según el SMI diario
     if smi_diario is not None and smi_diario < -40:
-        # En sobreventa → tendencia alcista potencial → objetivo = resistencia
         precio_objetivo = niveles["resistencia_fuerte"]
-        print(f"    🎯 Objetivo basado en RESISTENCIA: {precio_objetivo}€ (fuerza: {niveles['fuerza_resistencia']})")
+        print(f"    🎯 Objetivo: RESISTENCIA {precio_objetivo}€")
     elif smi_diario is not None and smi_diario > 40:
-        # En sobrecompra → tendencia bajista potencial → objetivo = soporte
         precio_objetivo = niveles["soporte_fuerte"]
-        print(f"    🎯 Objetivo basado en SOPORTE: {precio_objetivo}€ (fuerza: {niveles['fuerza_soporte']})")
+        print(f"    🎯 Objetivo: SOPORTE {precio_objetivo}€")
     else:
-        # Zona neutral → usar el nivel más cercano
-        distancia_soporte = precio_actual - niveles["soporte_fuerte"] if niveles["soporte_fuerte"] else float('inf')
-        distancia_resistencia = niveles["resistencia_fuerte"] - precio_actual if niveles["resistencia_fuerte"] else float('inf')
+        # Usar el nivel más cercano
+        distancia_soporte = precio_actual - niveles["soporte_fuerte"]
+        distancia_resistencia = niveles["resistencia_fuerte"] - precio_actual
         
         if distancia_resistencia < distancia_soporte:
             precio_objetivo = niveles["resistencia_fuerte"]
-            print(f"    🎯 Objetivo basado en RESISTENCIA cercana: {precio_objetivo}€")
         else:
             precio_objetivo = niveles["soporte_fuerte"]
-            print(f"    🎯 Objetivo basado en SOPORTE cercano: {precio_objetivo}€")
-    
-    # Mostrar niveles encontrados
-    if niveles["soportes"]:
-        print(f"    📉 Soportes detectados: {[s['precio'] for s in niveles['soportes'][:3]]}")
-    if niveles["resistencias"]:
-        print(f"    📈 Resistencias detectadas: {[r['precio'] for r in niveles['resistencias'][:3]]}")
     
     return round(precio_objetivo, 3)
 
 def guardar_recomendacion(ticker, nombre, precio, smi_h, smi_d, smi_s, recomendacion, precio_obj):
-    """Guarda TODAS las empresas (con o sin compra) en Supabase"""
+    """Guarda TODAS las empresas en Supabase"""
     try:
+        # Usar UTC para evitar problemas de zona horaria
+        fecha_actual = datetime.now(timezone.utc).isoformat()
+        
         data = {
-            "fecha": datetime.now().isoformat(),
+            "fecha": fecha_actual,
             "ticker": ticker,
             "nombre_empresa": nombre,
             "precio_cierre": precio,
@@ -277,12 +272,12 @@ def guardar_recomendacion(ticker, nombre, precio, smi_h, smi_d, smi_s, recomenda
         print(f"  ❌ Error guardando {nombre}: {e}")
 
 def analizar_todo():
-    """Analiza todas las empresas del IBEX35 y guarda TODAS en Supabase"""
-    print(f"🚀 Iniciando análisis - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    """Analiza todas las empresas y guarda TODAS en Supabase"""
+    print(f"🚀 Iniciando análisis - {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}")
     print("=" * 60)
-    print("📊 LÓGICA: El DIARIO marca si hay COMPRA, el HORARIO el momento exacto")
-    print("📊 PRECIO OBJETIVO: Basado en SOPORTES/RESISTENCIAS con VOLUMEN")
-    print("📊 SE GUARDAN TODAS LAS EMPRESAS (con o sin señal)")
+    print("📊 LÓGICA: El DIARIO marca si hay COMPRA")
+    print("📊 PRECIO OBJETIVO: Basado en SOPORTES/RESISTENCIAS")
+    print("📊 SE GUARDAN TODAS LAS EMPRESAS")
     print("=" * 60)
     
     contador_compras = 0
@@ -298,8 +293,7 @@ def analizar_todo():
             info = stock.info
             precio_actual = info.get("currentPrice", info.get("regularMarketPrice"))
             if precio_actual is None:
-                print(f"  ⚠️ No se pudo obtener precio, guardando sin precio...")
-                # Guardar igualmente con precio None
+                print(f"  ⚠️ No se pudo obtener precio")
                 guardar_recomendacion(ticker, nombre, None, None, None, None, "SIN DATOS", None)
                 continue
         except Exception as e:
@@ -307,31 +301,25 @@ def analizar_todo():
             guardar_recomendacion(ticker, nombre, None, None, None, None, "ERROR", None)
             continue
         
-        # Obtener SMI en los 3 timeframes
+        # Obtener SMI
         smi_horario = obtener_smi_timeframe(ticker, "1h", "7d")
         smi_diario = obtener_smi_timeframe(ticker, "1d", "90d")
         smi_semanal = obtener_smi_timeframe(ticker, "1wk", "1y")
         
         print(f"  💰 Precio: {precio_actual}€")
-        print(f"  📊 SMI DIARIO (tendencia): {smi_diario}")
-        print(f"  📊 SMI HORARIO (momento): {smi_horario}")
-        print(f"  📊 SMI Semanal (contexto): {smi_semanal}")
+        print(f"  📊 SMI DIARIO: {smi_diario}")
+        print(f"  📊 SMI HORARIO: {smi_horario}")
+        print(f"  📊 SMI Semanal: {smi_semanal}")
         
-        # ============================================
-        # LÓGICA: El DIARIO manda
-        # ============================================
-        
-        # PRIMERO: ¿El DIARIO da señal de compra?
+        # LÓGICA DE COMPRA
         if smi_diario is not None and smi_diario < -40:
             
-            # Calcular precio objetivo con soportes/resistencias
-            print(f"  🔍 Calculando precio objetivo con soportes/resistencias...")
+            print(f"  🔍 Calculando precio objetivo...")
             precio_objetivo = calcular_precio_objetivo(ticker, precio_actual, smi_diario)
             
-            # SEGUNDO: ¿El HORARIO también da señal?
             if smi_horario is not None and smi_horario < -40:
                 recomendacion = "COMPRA PERFECTA"
-                print(f"  🟢🟢 ¡COMPRA PERFECTA! Diario={smi_diario}, Horario={smi_horario}")
+                print(f"  🟢🟢 ¡COMPRA PERFECTA!")
                 guardar_recomendacion(ticker, nombre, precio_actual, 
                                       smi_horario, smi_diario, smi_semanal,
                                       recomendacion, precio_objetivo)
@@ -339,34 +327,28 @@ def analizar_todo():
                 contador_compras += 1
             else:
                 recomendacion = "COMPRA (esperar momento)"
-                print(f"  🟢 COMPRA (momento no perfecto). Diario={smi_diario}, Horario={smi_horario}")
+                print(f"  🟢 COMPRA (esperar momento)")
                 guardar_recomendacion(ticker, nombre, precio_actual, 
                                       smi_horario, smi_diario, smi_semanal,
                                       recomendacion, precio_objetivo)
                 contador_compras += 1
         else:
             recomendacion = "SIN COMPRA"
-            print(f"  ⚪ SIN COMPRA (SMI Diario: {smi_diario} - necesita < -40)")
+            print(f"  ⚪ SIN COMPRA")
             guardar_recomendacion(ticker, nombre, precio_actual, 
                                   smi_horario, smi_diario, smi_semanal,
                                   recomendacion, None)
             contador_sin_compra += 1
         
-        # Esperar para no saturar Yahoo Finance
         time.sleep(0.5)
     
     print("\n" + "=" * 60)
     print(f"✅ Análisis completado")
-    print(f"📈 Total EMPRESAS analizadas: {len(EMPRESAS)}")
-    print(f"🟢 Señales de COMPRA: {contador_compras}")
-    print(f"🎯 De ellas, COMPRAS PERFECTAS: {contador_compras_perfectas}")
-    print(f"⚪ Sin señal de compra: {contador_sin_compra}")
+    print(f"📈 Total empresas: {len(EMPRESAS)}")
+    print(f"🟢 COMPRAS: {contador_compras}")
+    print(f"🎯 COMPRAS PERFECTAS: {contador_compras_perfectas}")
+    print(f"⚪ SIN COMPRA: {contador_sin_compra}")
     print("=" * 60)
-    
-    if contador_compras == 0:
-        print("📭 No hay señales de compra en este momento. Vuelve a consultar más tarde.")
-    else:
-        print(f"💡 Recomendación: Revisa las {contador_compras} empresas con señal de COMPRA en la web.")
 
 if __name__ == "__main__":
     analizar_todo()
