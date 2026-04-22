@@ -19,7 +19,7 @@ if not SUPABASE_URL or not SUPABASE_KEY:
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # ============================================
-# LISTA DE EMPRESAS DEL IBEX35
+# LISTA DE EMPRESAS DEL IBEX35 (TICKERS CORRECTOS)
 # ============================================
 EMPRESAS = [
     ("SAN.MC", "Banco Santander"),
@@ -50,7 +50,7 @@ EMPRESAS = [
     ("PHM.MC", "PharmaMar"),
     ("TRE.MC", "Técnicas Reunidas"),
     ("SAB.MC", "Banco Sabadell"),
-    ("BKIA.MC", "Bankinter"),
+    ("BKT.MC", "Bankinter"),  # ← CORREGIDO
 ]
 
 def calcular_smi(high, low, close):
@@ -96,110 +96,219 @@ def obtener_smi_timeframe(ticker, intervalo, periodo):
         print(f"  Error SMI: {e}")
         return None
 
-def calcular_soportes_resistencias(ticker, precio_actual):
+def calcular_volumen_promedio(hist, dias=30):
+    """Calcula el volumen promedio de los últimos N días"""
+    if len(hist) >= dias:
+        return hist['Volume'].tail(dias).mean()
+    return hist['Volume'].mean() if not hist.empty else 0
+
+def identificar_resistencias(hist, precio_actual, volumen_promedio):
     """
-    Calcula soportes y resistencias de forma SIMPLE y ROBUSTA
-    Usa máximos y mínimos de los últimos 90 días
+    Identifica resistencias REALES basadas en:
+    - Múltiples toques (mínimo 2)
+    - Rechazos claros (cierre por debajo del máximo)
+    - Volumen significativo
     """
-    try:
-        stock = yf.Ticker(ticker)
-        # Usar 90 días de datos diarios
-        hist = stock.history(period="90d", interval="1d")
-        
-        if hist.empty or len(hist) < 10:
-            print(f"    ⚠️ Datos insuficientes, usando método simple")
-            return {
-                "soporte_cercano": round(precio_actual * 0.97, 3),
-                "resistencia_cercana": round(precio_actual * 1.03, 3),
-                "soporte_fuerte": round(precio_actual * 0.95, 3),
-                "resistencia_fuerte": round(precio_actual * 1.05, 3)
-            }
-        
-        # Obtener máximos y mínimos del período
-        max_90d = hist['High'].max()
-        min_90d = hist['Low'].min()
-        
-        # Obtener máximos y mínimos de los últimos 30 días (más relevantes)
-        ultimos_30 = hist.tail(30)
-        max_30d = ultimos_30['High'].max()
-        min_30d = ultimos_30['Low'].min()
-        
-        # Obtener cierres anteriores como posibles soportes/resistencias
-        cierres = hist['Close'].tail(20).tolist()
-        
-        # Buscar resistencias cercanas (precios por encima del actual)
-        resistencias = []
-        for precio in cierres:
-            if precio > precio_actual and precio not in resistencias:
-                resistencias.append(round(precio, 3))
-        
-        # Buscar soportes cercanos (precios por debajo del actual)
-        soportes = []
-        for precio in cierres:
-            if precio < precio_actual and precio not in soportes:
-                soportes.append(round(precio, 3))
-        
-        # Ordenar
-        resistencias.sort()
-        soportes.sort(reverse=True)
-        
-        # Resistencia más cercana
-        resistencia_cercana = resistencias[0] if resistencias else round(max_30d, 3)
-        
-        # Soporte más cercano
-        soporte_cercano = soportes[0] if soportes else round(min_30d, 3)
-        
-        # Si la resistencia calculada es muy cercana (<0.5%), usar +3%
-        if resistencia_cercana - precio_actual < 0.05:
-            resistencia_cercana = round(precio_actual * 1.03, 3)
-        
-        # Si el soporte calculado es muy cercano (<0.5%), usar -3%
-        if precio_actual - soporte_cercano < 0.05:
-            soporte_cercano = round(precio_actual * 0.97, 3)
-        
-        print(f"    📉 Soporte cercano: {soporte_cercano}€")
-        print(f"    📈 Resistencia cercana: {resistencia_cercana}€")
-        print(f"    📊 Máximo 30 días: {round(max_30d, 3)}€")
-        print(f"    📊 Mínimo 30 días: {round(min_30d, 3)}€")
-        
-        return {
-            "soporte_cercano": soporte_cercano,
-            "resistencia_cercana": resistencia_cercana,
-            "soporte_fuerte": round(min_30d, 3),
-            "resistencia_fuerte": round(max_30d, 3),
-            "max_30d": round(max_30d, 3),
-            "min_30d": round(min_30d, 3)
-        }
+    resistencias = []
     
-    except Exception as e:
-        print(f"    ⚠️ Error: {e}")
-        return {
-            "soporte_cercano": round(precio_actual * 0.97, 3),
-            "resistencia_cercana": round(precio_actual * 1.03, 3),
-            "soporte_fuerte": round(precio_actual * 0.95, 3),
-            "resistencia_fuerte": round(precio_actual * 1.05, 3)
-        }
+    for i in range(len(hist)):
+        fila = hist.iloc[i]
+        maximo = fila['High']
+        cierre = fila['Close']
+        volumen = fila['Volume']
+        
+        # Solo considerar máximos por encima del precio actual
+        if maximo <= precio_actual:
+            continue
+        
+        # ¿Hay rechazo? (cierre significativamente por debajo del máximo)
+        rechazo = (maximo - cierre) / maximo > 0.02  # Al menos 2% de rechazo
+        
+        # Volumen significativo (al menos 80% del promedio)
+        volumen_significativo = volumen > (volumen_promedio * 0.8)
+        
+        # Si hay rechazo o volumen significativo, es candidato
+        if rechazo or volumen_significativo:
+            resistencias.append({
+                "precio": round(maximo, 3),
+                "fecha": fila.name,
+                "rechazo": rechazo,
+                "volumen": volumen
+            })
+    
+    # Agrupar por zonas (precios cercanos ±1%)
+    zonas = {}
+    for r in resistencias:
+        precio = r["precio"]
+        # Buscar zona existente
+        encontrado = False
+        for zona_precio in list(zonas.keys()):
+            if abs(precio - zona_precio) / zona_precio < 0.01:  # ±1%
+                zonas[zona_precio].append(r)
+                encontrado = True
+                break
+        if not encontrado:
+            zonas[precio] = [r]
+    
+    # Calcular fuerza de cada zona
+    resultado = []
+    for precio, toques in zonas.items():
+        fuerza = 0
+        toques_count = len(toques)
+        
+        # Más toques = más fuerza
+        if toques_count >= 3:
+            fuerza = 100
+        elif toques_count == 2:
+            fuerza = 70
+        else:
+            fuerza = 40
+        
+        # Rechazos claros aumentan fuerza
+        rechazos = sum(1 for t in toques if t["rechazo"])
+        if rechazos >= 2:
+            fuerza = min(100, fuerza + 20)
+        
+        # Volumen alto aumenta fuerza
+        volumen_alto = sum(1 for t in toques if t["volumen"] > volumen_promedio)
+        if volumen_alto >= 2:
+            fuerza = min(100, fuerza + 10)
+        
+        resultado.append({
+            "precio": precio,
+            "fuerza": fuerza,
+            "toques": toques_count,
+            "rechazos": rechazos
+        })
+    
+    # Ordenar por precio (de menor a mayor)
+    resultado.sort(key=lambda x: x["precio"])
+    
+    return resultado
+
+def identificar_soportes(hist, precio_actual, volumen_promedio):
+    """
+    Identifica soportes REALES basados en:
+    - Múltiples toques (mínimo 2)
+    - Rebotes claros (cierre por encima del mínimo)
+    - Volumen significativo
+    """
+    soportes = []
+    
+    for i in range(len(hist)):
+        fila = hist.iloc[i]
+        minimo = fila['Low']
+        cierre = fila['Close']
+        volumen = fila['Volume']
+        
+        # Solo considerar mínimos por debajo del precio actual
+        if minimo >= precio_actual:
+            continue
+        
+        # ¿Hay rebote? (cierre significativamente por encima del mínimo)
+        rebote = (cierre - minimo) / minimo > 0.02  # Al menos 2% de rebote
+        
+        # Volumen significativo
+        volumen_significativo = volumen > (volumen_promedio * 0.8)
+        
+        if rebote or volumen_significativo:
+            soportes.append({
+                "precio": round(minimo, 3),
+                "fecha": fila.name,
+                "rebote": rebote,
+                "volumen": volumen
+            })
+    
+    # Agrupar por zonas
+    zonas = {}
+    for s in soportes:
+        precio = s["precio"]
+        encontrado = False
+        for zona_precio in list(zonas.keys()):
+            if abs(precio - zona_precio) / zona_precio < 0.01:
+                zonas[zona_precio].append(s)
+                encontrado = True
+                break
+        if not encontrado:
+            zonas[precio] = [s]
+    
+    # Calcular fuerza
+    resultado = []
+    for precio, toques in zonas.items():
+        fuerza = 0
+        toques_count = len(toques)
+        
+        if toques_count >= 3:
+            fuerza = 100
+        elif toques_count == 2:
+            fuerza = 70
+        else:
+            fuerza = 40
+        
+        rebotes = sum(1 for t in toques if t["rebote"])
+        if rebotes >= 2:
+            fuerza = min(100, fuerza + 20)
+        
+        volumen_alto = sum(1 for t in toques if t["volumen"] > volumen_promedio)
+        if volumen_alto >= 2:
+            fuerza = min(100, fuerza + 10)
+        
+        resultado.append({
+            "precio": precio,
+            "fuerza": fuerza,
+            "toques": toques_count,
+            "rebotes": rebotes
+        })
+    
+    # Ordenar por precio (de mayor a menor, para tener los más cercanos primero)
+    resultado.sort(key=lambda x: x["precio"], reverse=True)
+    
+    return resultado
 
 def calcular_precio_objetivo(ticker, precio_actual, smi_diario):
     """
-    Calcula precio objetivo basado en SOPORTES y RESISTENCIAS reales
+    Calcula precio objetivo basado en RESISTENCIAS REALES
     """
-    niveles = calcular_soportes_resistencias(ticker, precio_actual)
-    
-    if not niveles:
+    try:
+        stock = yf.Ticker(ticker)
+        hist = stock.history(period="90d", interval="1d")
+        
+        if hist.empty or len(hist) < 10:
+            print(f"    ⚠️ Datos insuficientes, usando +5%")
+            return round(precio_actual * 1.05, 3)
+        
+        volumen_promedio = calcular_volumen_promedio(hist)
+        
+        # Identificar resistencias reales
+        resistencias = identificar_resistencias(hist, precio_actual, volumen_promedio)
+        
+        # Filtrar resistencias con fuerza suficiente (mínimo 40)
+        resistencias_fuertes = [r for r in resistencias if r["fuerza"] >= 40]
+        
+        print(f"    📊 Resistencias detectadas: {len(resistencias)} total, {len(resistencias_fuertes)} fuertes")
+        for r in resistencias_fuertes[:3]:
+            print(f"      - {r['precio']}€ (fuerza: {r['fuerza']}, toques: {r['toques']})")
+        
+        # Si SMI está en sobreventa, buscamos resistencia
+        if smi_diario is not None and smi_diario < -40:
+            if resistencias_fuertes:
+                # La resistencia más cercana (la de menor precio por encima del actual)
+                objetivo = resistencias_fuertes[0]["precio"]
+                print(f"    🎯 SMI en sobreventa ({smi_diario}) → objetivo RESISTENCIA: {objetivo}€")
+                return objetivo
+            else:
+                # No hay resistencias fuertes, usar máximo de 90 días
+                max_90d = hist['High'].max()
+                objetivo = round(max_90d, 3)
+                print(f"    🎯 Sin resistencias fuertes → objetivo MÁXIMO 90d: {objetivo}€")
+                return objetivo
+        
+        # Si no hay señal de compra, devolvemos el precio actual (sin objetivo)
+        return round(precio_actual, 3)
+        
+    except Exception as e:
+        print(f"    ⚠️ Error calculando objetivo: {e}")
         return round(precio_actual * 1.05, 3)
-    
-    # Si el SMI diario está en sobreventa (< -40) → se espera subida
-    if smi_diario is not None and smi_diario < -40:
-        # Objetivo = resistencia cercana
-        precio_objetivo = niveles["resistencia_cercana"]
-        print(f"    🎯 SMI en sobreventa ({smi_diario}) → objetivo RESISTENCIA: {precio_objetivo}€")
-    else:
-        # Objetivo = soporte cercano (por defecto)
-        precio_objetivo = niveles["soporte_cercano"]
-        print(f"    🎯 Objetivo SOPORTE: {precio_objetivo}€")
-    
-    return round(precio_objetivo, 3)
 
 def guardar_recomendacion(ticker, nombre, precio, smi_h, smi_d, smi_s, recomendacion, precio_obj):
     """Guarda todas las empresas en Supabase"""
@@ -231,10 +340,11 @@ def guardar_recomendacion(ticker, nombre, precio, smi_h, smi_d, smi_s, recomenda
 def analizar_todo():
     """Analiza todas las empresas y guarda TODAS en Supabase"""
     print(f"🚀 Iniciando análisis - {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}")
-    print("=" * 60)
+    print("=" * 70)
     print("📊 LÓGICA: El DIARIO marca si hay COMPRA")
-    print("📊 PRECIO OBJETIVO: Basado en SOPORTES/RESISTENCIAS reales")
-    print("=" * 60)
+    print("📊 RESISTENCIAS: Basadas en toques, rechazos y volumen (mínimo 2 toques)")
+    print("📊 PRECIO OBJETIVO: La resistencia más cercana por encima del precio actual")
+    print("=" * 70)
     
     contador_compras = 0
     contador_compras_perfectas = 0
@@ -268,7 +378,7 @@ def analizar_todo():
         # LÓGICA DE COMPRA: El DIARIO manda
         if smi_diario is not None and smi_diario < -40:
             
-            # Calcular precio objetivo con soportes/resistencias reales
+            # Calcular precio objetivo con resistencias reales
             precio_objetivo = calcular_precio_objetivo(ticker, precio_actual, smi_diario)
             
             if smi_horario is not None and smi_horario < -40:
@@ -295,10 +405,10 @@ def analizar_todo():
         
         time.sleep(0.5)
     
-    print("\n" + "=" * 60)
+    print("\n" + "=" * 70)
     print(f"✅ Análisis completado")
     print(f"📈 COMPRAS: {contador_compras} (Perfectas: {contador_compras_perfectas})")
-    print("=" * 60)
+    print("=" * 70)
 
 if __name__ == "__main__":
     analizar_todo()
