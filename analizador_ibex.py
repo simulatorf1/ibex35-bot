@@ -9,8 +9,8 @@ import os
 # ============================================
 # CONFIGURACIÓN DE SUPABASE (CAMBIAR AQUÍ)
 # ============================================
-SUPABASE_URL = "https://TUSUPABASEURL.supabase.co"  # ← CAMBIA ESTO
-SUPABASE_KEY = "TU_ANON_KEY"  # ← CAMBIA ESTO
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 
 # Conectar a Supabase
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
