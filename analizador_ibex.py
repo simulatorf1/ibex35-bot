@@ -180,9 +180,12 @@ def detectar_pinchos(ticker):
 def detectar_gaps(ticker):
     """
     Detecta gaps REALES comparando máximos y mínimos entre velas consecutivas
-    Gap alcista: min_actual > max_anterior (hueco sin cotizar al alza)
-    Gap bajista: max_actual < min_anterior (hueco sin cotizar a la baja)
-    Determina si el gap está cerrado (abierto/cerrado)
+    Gap alcista: min_actual > max_anterior
+    Gap bajista: max_actual < min_anterior
+    Estado del gap:
+        - ABIERTO: nunca se ha tocado el rango
+        - CERRADO PARCIALMENTE: se ha tocado pero no se ha rellenado entero
+        - CERRADO TOTALMENTE: se ha rellenado completamente (llega al extremo)
     """
     try:
         stock = yf.Ticker(ticker)
@@ -191,13 +194,10 @@ def detectar_gaps(ticker):
         if hist.empty or len(hist) < 5:
             return [], []
         
-        UMBRAL_PORCENTAJE = 0.01  # 1% mínimo para considerar un gap relevante
+        UMBRAL_PORCENTAJE = 1.0  # 1% mínimo para considerar un gap relevante
         
         gaps_alcistas = []
         gaps_bajistas = []
-        
-        # Convertir fechas a lista para búsqueda posterior
-        fechas = hist.index.tolist()
         
         for i in range(1, len(hist)):
             max_anterior = hist.iloc[i-1]['High']
@@ -214,22 +214,29 @@ def detectar_gaps(ticker):
                 diferencia = min_actual - max_anterior
                 porcentaje = (diferencia / max_anterior) * 100
                 
-                # Solo considerar gaps relevantes (>1%)
-                if porcentaje >= UMBRAL_PORCENTAJE * 100:
-                    # Verificar si el gap se ha cerrado
-                    cerrado = False
-                    fecha_cierre = None
+                if porcentaje >= UMBRAL_PORCENTAJE:
+                    # Estado del gap: ABIERTO, CERRADO PARCIAL, CERRADO TOTAL
+                    estado = "ABIERTO"
+                    fecha_estado = None
+                    nivel_cierre = None
+                    tope_parcial = None
                     
-                    # Buscar en velas posteriores si el precio entró en el rango
+                    # Buscar en velas posteriores
                     for j in range(i+1, len(hist)):
                         precio_min = hist.iloc[j]['Low']
                         precio_max = hist.iloc[j]['High']
                         
-                        # Si alguna vela toca el rango del gap
-                        if precio_min <= max_anterior or precio_max >= min_actual:
-                            cerrado = True
-                            fecha_cierre = hist.index[j].strftime('%d/%m/%Y')
+                        # Verificar si ha llegado a cerrar TOTALMENTE (≤ max_anterior)
+                        if precio_min <= max_anterior:
+                            estado = "CERRADO TOTALMENTE"
+                            fecha_estado = hist.index[j].strftime('%d/%m/%Y')
+                            nivel_cierre = max_anterior
                             break
+                        # Verificar si ha entrado en el rango (cierre parcial)
+                        elif precio_min < min_actual and estado == "ABIERTO":
+                            estado = "CERRADO PARCIALMENTE"
+                            fecha_estado = hist.index[j].strftime('%d/%m/%Y')
+                            tope_parcial = round(precio_min, 3)
                     
                     gaps_alcistas.append({
                         "fecha": fecha_actual,
@@ -237,8 +244,10 @@ def detectar_gaps(ticker):
                         "desde": round(max_anterior, 3),
                         "hasta": round(min_actual, 3),
                         "porcentaje": round(porcentaje, 2),
-                        "estado": "cerrado" if cerrado else "abierto",
-                        "fecha_cierre": fecha_cierre if cerrado else None
+                        "estado": estado,
+                        "fecha_estado": fecha_estado,
+                        "nivel_cierre": nivel_cierre,
+                        "tope_parcial": tope_parcial
                     })
             
             # ============================================
@@ -248,19 +257,27 @@ def detectar_gaps(ticker):
                 diferencia = min_anterior - max_actual
                 porcentaje = (diferencia / min_anterior) * 100
                 
-                if porcentaje >= UMBRAL_PORCENTAJE * 100:
-                    # Verificar si el gap se ha cerrado
-                    cerrado = False
-                    fecha_cierre = None
+                if porcentaje >= UMBRAL_PORCENTAJE:
+                    estado = "ABIERTO"
+                    fecha_estado = None
+                    nivel_cierre = None
+                    tope_parcial = None
                     
                     for j in range(i+1, len(hist)):
                         precio_min = hist.iloc[j]['Low']
                         precio_max = hist.iloc[j]['High']
                         
-                        if precio_max >= min_anterior or precio_min <= max_actual:
-                            cerrado = True
-                            fecha_cierre = hist.index[j].strftime('%d/%m/%Y')
+                        # Verificar si ha llegado a cerrar TOTALMENTE (≥ min_anterior)
+                        if precio_max >= min_anterior:
+                            estado = "CERRADO TOTALMENTE"
+                            fecha_estado = hist.index[j].strftime('%d/%m/%Y')
+                            nivel_cierre = min_anterior
                             break
+                        # Verificar si ha entrado en el rango (cierre parcial)
+                        elif precio_max > max_actual and estado == "ABIERTO":
+                            estado = "CERRADO PARCIALMENTE"
+                            fecha_estado = hist.index[j].strftime('%d/%m/%Y')
+                            tope_parcial = round(precio_max, 3)
                     
                     gaps_bajistas.append({
                         "fecha": fecha_actual,
@@ -268,8 +285,10 @@ def detectar_gaps(ticker):
                         "desde": round(min_anterior, 3),
                         "hasta": round(max_actual, 3),
                         "porcentaje": round(porcentaje, 2),
-                        "estado": "cerrado" if cerrado else "abierto",
-                        "fecha_cierre": fecha_cierre if cerrado else None
+                        "estado": estado,
+                        "fecha_estado": fecha_estado,
+                        "nivel_cierre": nivel_cierre,
+                        "tope_parcial": tope_parcial
                     })
         
         return gaps_alcistas, gaps_bajistas
@@ -460,11 +479,12 @@ def analizar_todo():
         print(f"  📈 Gaps alcistas (min_actual > max_anterior):")
         if gaps_alcistas:
             for g in gaps_alcistas:
-                estado = "✅ CERRADO" if g["estado"] == "cerrado" else "⚠️ ABIERTO"
-                if g["estado"] == "cerrado":
-                    print(f"     {g['fecha']} - {g['desde']}€ → {g['hasta']}€ ({g['porcentaje']}%) - {estado} (cerró el {g['fecha_cierre']})")
+                if g["estado"] == "ABIERTO":
+                    print(f"     {g['fecha']} - {g['desde']}€ → {g['hasta']}€ ({g['porcentaje']}%) - 🔴 {g['estado']}")
+                elif g["estado"] == "CERRADO PARCIALMENTE":
+                    print(f"     {g['fecha']} - {g['desde']}€ → {g['hasta']}€ ({g['porcentaje']}%) - 🟡 {g['estado']} (llegó a {g['tope_parcial']}€ el {g['fecha_estado']})")
                 else:
-                    print(f"     {g['fecha']} - {g['desde']}€ → {g['hasta']}€ ({g['porcentaje']}%) - {estado}")
+                    print(f"     {g['fecha']} - {g['desde']}€ → {g['hasta']}€ ({g['porcentaje']}%) - 🟢 {g['estado']} (cerró en {g['nivel_cierre']}€ el {g['fecha_estado']})")
             print(f"     Total: {len(gaps_alcistas)} gaps alcistas")
         else:
             print(f"     0")
@@ -472,11 +492,12 @@ def analizar_todo():
         print(f"\n  📉 Gaps bajistas (max_actual < min_anterior):")
         if gaps_bajistas:
             for g in gaps_bajistas:
-                estado = "✅ CERRADO" if g["estado"] == "cerrado" else "⚠️ ABIERTO"
-                if g["estado"] == "cerrado":
-                    print(f"     {g['fecha']} - {g['desde']}€ → {g['hasta']}€ ({g['porcentaje']}%) - {estado} (cerró el {g['fecha_cierre']})")
+                if g["estado"] == "ABIERTO":
+                    print(f"     {g['fecha']} - {g['desde']}€ → {g['hasta']}€ ({g['porcentaje']}%) - 🔴 {g['estado']}")
+                elif g["estado"] == "CERRADO PARCIALMENTE":
+                    print(f"     {g['fecha']} - {g['desde']}€ → {g['hasta']}€ ({g['porcentaje']}%) - 🟡 {g['estado']} (llegó a {g['tope_parcial']}€ el {g['fecha_estado']})")
                 else:
-                    print(f"     {g['fecha']} - {g['desde']}€ → {g['hasta']}€ ({g['porcentaje']}%) - {estado}")
+                    print(f"     {g['fecha']} - {g['desde']}€ → {g['hasta']}€ ({g['porcentaje']}%) - 🟢 {g['estado']} (cerró en {g['nivel_cierre']}€ el {g['fecha_estado']})")
             print(f"     Total: {len(gaps_bajistas)} gaps bajistas")
         else:
             print(f"     0")
