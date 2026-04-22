@@ -53,12 +53,11 @@ EMPRESAS = [
     ("BKT.MC", "Bankinter"),
 ]
 
-def calcular_smi_completo(high, low, close):
-    """Calcula el SMI completo: rápido y lento"""
+def calcular_smi_rapido(high, low, close):
+    """Calcula SOLO la línea RÁPIDA del SMI (la que marca giros)"""
     length_k = 10
     length_d = 3
     smooth_period = 5
-    ema_signal_len = 10
     
     hh = high.rolling(window=length_k).max()
     ll = low.rolling(window=length_k).min()
@@ -73,146 +72,150 @@ def calcular_smi_completo(high, low, close):
     smi_raw = (avgrel / (avgdiff_safe / 2)) * 100
     smi_raw = smi_raw.clip(-100, 100)
     
-    # RÁPIDO
+    # Línea RÁPIDA
     smi_rapido = smi_raw.rolling(window=smooth_period).mean()
-    # LENTO
-    smi_lento = smi_rapido.ewm(span=ema_signal_len, adjust=False).mean()
     
-    return smi_rapido, smi_lento
+    return smi_rapido
 
-def obtener_smis_diario(ticker):
-    """Obtiene las dos líneas del SMI diario"""
+def obtener_smi_rapido_con_pendiente(ticker):
+    """Obtiene el SMI rápido y calcula su pendiente (giro)"""
     try:
         stock = yf.Ticker(ticker)
         datos = stock.history(period="90d", interval="1d")
         
-        if datos.empty:
-            return None, None, None, False
+        if datos.empty or len(datos) < 10:
+            return None, None, False
         
-        smi_rapido, smi_lento = calcular_smi_completo(datos['High'], datos['Low'], datos['Close'])
+        smi_rapido = calcular_smi_rapido(datos['High'], datos['Low'], datos['Close'])
+        smi_clean = smi_rapido.dropna()
         
-        smi_rapido_clean = smi_rapido.dropna()
-        smi_lento_clean = smi_lento.dropna()
+        if len(smi_clean) < 2:
+            return None, None, False
         
-        if len(smi_rapido_clean) < 2 or len(smi_lento_clean) < 1:
-            return None, None, None, False
-        
-        ultimo_rapido = round(smi_rapido_clean.iloc[-1], 2)
-        ultimo_lento = round(smi_lento_clean.iloc[-1], 2)
-        
-        # Calcular pendiente del RÁPIDO
-        penultimo_rapido = smi_rapido_clean.iloc[-2]
-        pendiente = round(ultimo_rapido - penultimo_rapido, 2)
+        ultimo = round(smi_clean.iloc[-1], 2)
+        penultimo = smi_clean.iloc[-2]
+        pendiente = round(ultimo - penultimo, 2)
         giro_positivo = pendiente > 0
         
-        return ultimo_rapido, ultimo_lento, pendiente, giro_positivo
+        return ultimo, pendiente, giro_positivo
     
     except Exception as e:
         print(f"  Error SMI: {e}")
-        return None, None, None, False
+        return None, None, False
 
-def obtener_smi_timeframe_simple(ticker, intervalo, periodo):
-    """Obtiene solo la línea LENTA del SMI para otros timeframes"""
+def obtener_smi_horario_semanal(ticker):
+    """Obtiene SMI horario y semanal (opcional, si falla da None)"""
     try:
         stock = yf.Ticker(ticker)
-        datos = stock.history(period=periodo, interval=intervalo)
         
-        if datos.empty:
-            return None
+        # Horario
+        datos_h = stock.history(period="7d", interval="1h")
+        smi_h = None
+        if not datos_h.empty and len(datos_h) > 5:
+            smi_h_temp = calcular_smi_rapido(datos_h['High'], datos_h['Low'], datos_h['Close'])
+            smi_h_clean = smi_h_temp.dropna()
+            if not smi_h_clean.empty:
+                smi_h = round(smi_h_clean.iloc[-1], 2)
         
-        _, smi_lento = calcular_smi_completo(datos['High'], datos['Low'], datos['Close'])
-        smi_lento_clean = smi_lento.dropna()
+        # Semanal
+        datos_w = stock.history(period="1y", interval="1wk")
+        smi_w = None
+        if not datos_w.empty and len(datos_w) > 5:
+            smi_w_temp = calcular_smi_rapido(datos_w['High'], datos_w['Low'], datos_w['Close'])
+            smi_w_clean = smi_w_temp.dropna()
+            if not smi_w_clean.empty:
+                smi_w = round(smi_w_clean.iloc[-1], 2)
         
-        if smi_lento_clean.empty:
-            return None
-        
-        return round(smi_lento_clean.iloc[-1], 2)
+        return smi_h, smi_w
     
     except Exception as e:
-        print(f"  Error SMI simple: {e}")
-        return None
+        print(f"  Error horario/semanal: {e}")
+        return None, None
 
 def calcular_soportes_y_resistencias(ticker, precio_actual):
     """
-    Calcula SOPORTES y RESISTENCIAS reales para MOSTRAR siempre
+    Calcula 2 SOPORTES por debajo y 2 RESISTENCIAS por encima
+    Si una resistencia está a menos del 2%, la descarta y busca la siguiente
     """
     try:
         stock = yf.Ticker(ticker)
         hist = stock.history(period="90d", interval="1d")
         
         if hist.empty or len(hist) < 10:
-            return None, None
+            return [], [], None, None
         
         volumen_promedio = hist['Volume'].tail(30).mean()
         
-        # Buscar resistencias (máximos por encima del precio actual)
-        resistencias = []
+        # Recopilar todos los máximos y mínimos significativos
+        maximos = []
+        minimos = []
+        
         for i in range(len(hist)):
             fila = hist.iloc[i]
             maximo = fila['High']
-            cierre = fila['Close']
-            volumen = fila['Volume']
-            
-            if maximo <= precio_actual:
-                continue
-            
-            rechazo = (maximo - cierre) / maximo > 0.02
-            volumen_significativo = volumen > (volumen_promedio * 0.8)
-            
-            if rechazo or volumen_significativo:
-                resistencias.append(round(maximo, 3))
-        
-        # Buscar soportes (mínimos por debajo del precio actual)
-        soportes = []
-        for i in range(len(hist)):
-            fila = hist.iloc[i]
             minimo = fila['Low']
             cierre = fila['Close']
             volumen = fila['Volume']
             
-            if minimo >= precio_actual:
-                continue
+            # Máximos con rechazo o volumen significativo
+            if maximo > precio_actual:
+                rechazo = (maximo - cierre) / maximo > 0.02
+                volumen_significativo = volumen > (volumen_promedio * 0.8)
+                if rechazo or volumen_significativo:
+                    maximos.append(round(maximo, 3))
             
-            rebote = (cierre - minimo) / minimo > 0.02
-            volumen_significativo = volumen > (volumen_promedio * 0.8)
-            
-            if rebote or volumen_significativo:
-                soportes.append(round(minimo, 3))
+            # Mínimos con rebote o volumen significativo
+            if minimo < precio_actual:
+                rebote = (cierre - minimo) / minimo > 0.02
+                volumen_significativo = volumen > (volumen_promedio * 0.8)
+                if rebote or volumen_significativo:
+                    minimos.append(round(minimo, 3))
         
         # Eliminar duplicados y ordenar
-        resistencias = sorted(list(set(resistencias)))
-        soportes = sorted(list(set(soportes)), reverse=True)
+        maximos = sorted(list(set(maximos)))
+        minimos = sorted(list(set(minimos)), reverse=True)
         
-        # Resistencia más cercana (la más baja por encima)
-        resistencia_cercana = resistencias[0] if resistencias else None
+        # ============================================
+        # RESISTENCIAS: buscar las que estén a más del 2%
+        # ============================================
+        resistencias_validas = []
+        for r in maximos:
+            distancia_pct = ((r - precio_actual) / precio_actual) * 100
+            if distancia_pct >= 2:  # Solo si está al menos a 2%
+                resistencias_validas.append(r)
         
-        # Soporte más cercano (el más alto por debajo)
-        soporte_cercano = soportes[0] if soportes else None
+        # Tomar las 2 primeras resistencias válidas
+        resistencias = resistencias_validas[:2]
         
-        # Si no hay resistencias, usar máximo de 90 días
-        if not resistencia_cercana:
-            resistencia_cercana = round(hist['High'].max(), 3)
+        # Si no hay resistencias válidas, usar el máximo de 90 días
+        if not resistencias:
+            max_90d = round(hist['High'].max(), 3)
+            if max_90d > precio_actual:
+                resistencias = [max_90d]
         
-        # Si no hay soportes, usar mínimo de 90 días
-        if not soporte_cercano:
-            soporte_cercano = round(hist['Low'].min(), 3)
+        # ============================================
+        # SOPORTES: tomar los 2 más cercanos por debajo
+        # ============================================
+        soportes = minimos[:2] if minimos else []
         
-        return resistencia_cercana, soporte_cercano
+        # Si no hay soportes, usar el mínimo de 90 días
+        if not soportes:
+            min_90d = round(hist['Low'].min(), 3)
+            if min_90d < precio_actual:
+                soportes = [min_90d]
+        
+        # Para mostrar en pantalla
+        resistencia_principal = resistencias[0] if resistencias else None
+        soporte_principal = soportes[0] if soportes else None
+        
+        return soportes, resistencias, soporte_principal, resistencia_principal
     
     except Exception as e:
         print(f"  Error niveles: {e}")
-        return None, None
+        return [], [], None, None
 
-def verificar_recorrido_suficiente(precio_actual, precio_objetivo):
-    """Verifica al menos 3% de recorrido"""
-    if precio_objetivo is None or precio_actual is None:
-        return False, 0
-    
-    porcentaje = ((precio_objetivo - precio_actual) / precio_actual) * 100
-    return porcentaje >= 3, round(porcentaje, 2)
-
-def guardar_recomendacion(ticker, nombre, precio, smi_h, smi_rapido, smi_lento, smi_s, 
-                          recomendacion, precio_obj, resistencia, soporte):
+def guardar_recomendacion(ticker, nombre, precio, smi_h, smi_rapido, smi_w, 
+                          recomendacion, precio_obj, soportes, resistencias):
     """Guarda todas las empresas en Supabase"""
     try:
         fecha_actual = datetime.now(timezone.utc).isoformat()
@@ -222,10 +225,9 @@ def guardar_recomendacion(ticker, nombre, precio, smi_h, smi_rapido, smi_lento, 
             "ticker": ticker,
             "nombre_empresa": nombre,
             "precio_cierre": precio,
-            "smi_horario": smi_h,
-            "smi_diario": smi_lento,
-            "smi_diario_rapido": smi_rapido,
-            "smi_semanal": smi_s,
+            "smi_horario": smi_h if smi_h else None,
+            "smi_diario": smi_rapido,  # Ahora guardamos el rápido como principal
+            "smi_semanal": smi_w if smi_w else None,
             "recomendacion": recomendacion,
             "precio_objetivo": precio_obj if precio_obj else None
         }
@@ -233,22 +235,24 @@ def guardar_recomendacion(ticker, nombre, precio, smi_h, smi_rapido, smi_lento, 
         supabase.table("recomendaciones").insert(data).execute()
         
         print(f"  💾 Guardado: {nombre}")
-        print(f"     📈 Soporte: {soporte}€ | Resistencia: {resistencia}€")
+        print(f"     📉 Soportes: {soportes if soportes else 'No hay'} €")
+        print(f"     📈 Resistencias: {resistencias if resistencias else 'No hay'} €")
         
-        if "COMPRA" in recomendacion:
-            print(f"     🎯 Objetivo: {precio_obj}€ | Recorrido: {((precio_obj-precio)/precio)*100:.1f}%")
+        if "COMPRA" in recomendacion and precio_obj:
+            recorrido = ((precio_obj - precio) / precio) * 100
+            print(f"     🎯 Objetivo: {precio_obj}€ | Recorrido: {recorrido:.1f}%")
         
     except Exception as e:
         print(f"  ❌ Error guardando: {e}")
 
 def analizar_todo():
-    """Analiza todas las empresas mostrando SIEMPRE soportes y resistencias"""
+    """Analiza todas las empresas con la lógica CORRECTA (solo SMI rápido)"""
     print(f"🚀 Iniciando análisis - {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}")
     print("=" * 70)
     print("📊 CONDICIONES PARA COMPRA:")
-    print("   1. SMI LENTO < -40 (sobreventa)")
-    print("   2. SMI RÁPIDO con GIRO POSITIVO")
-    print("   3. Recorrido hasta resistencia > 3%")
+    print("   1. SMI RÁPIDO < -40 (sobreventa)")
+    print("   2. SMI RÁPIDO con GIRO POSITIVO (pendiente > 0)")
+    print("   3. Resistencia válida a más del 2% del precio actual")
     print("=" * 70)
     
     contador_compras = 0
@@ -269,84 +273,77 @@ def analizar_todo():
             print(f"  ⚠️ Error precio: {e}")
             continue
         
-        # Obtener SMI Diario (rápido y lento)
-        smi_rapido, smi_lento, pendiente, giro_positivo = obtener_smis_diario(ticker)
+        # Obtener SMI RÁPIDO y su pendiente
+        smi_rapido, pendiente, giro_positivo = obtener_smi_rapido_con_pendiente(ticker)
         
-        # Obtener SMI Horario y Semanal
-        smi_horario = obtener_smi_timeframe_simple(ticker, "1h", "7d")
-        smi_semanal = obtener_smi_timeframe_simple(ticker, "1wk", "1y")
+        # Obtener SMI horario y semanal (opcional)
+        smi_horario, smi_semanal = obtener_smi_horario_semanal(ticker)
         
-        # Calcular soporte y resistencia (SIEMPRE, haya o no compra)
-        resistencia, soporte = calcular_soportes_y_resistencias(ticker, precio_actual)
+        # Calcular soportes y resistencias
+        soportes, resistencias, soporte_principal, resistencia_principal = calcular_soportes_y_resistencias(ticker, precio_actual)
         
         print(f"  💰 Precio: {precio_actual}€")
-        print(f"  📊 SMI LENTO (sobreventa): {smi_lento}")
-        print(f"  📊 SMI RÁPIDO (giro): {smi_rapido}")
-        print(f"  📊 Pendiente RÁPIDO: {pendiente} (Giro: {'✅' if giro_positivo else '❌'})")
+        print(f"  📊 SMI RÁPIDO: {smi_rapido}")
+        print(f"  📊 Pendiente: {pendiente} (Giro positivo: {'✅' if giro_positivo else '❌'})")
         print(f"  📊 SMI HORARIO: {smi_horario}")
-        print(f"  📈 SOPORTE: {soporte}€")
-        print(f"  📉 RESISTENCIA: {resistencia}€")
+        print(f"  📉 SOPORTES (por debajo): {soportes if soportes else 'No hay'} €")
+        print(f"  📈 RESISTENCIAS (por encima): {resistencias if resistencias else 'No hay'} €")
         
         # ============================================
-        # CONDICIÓN 1: SMI LENTO en sobreventa (< -40)
+        # CONDICIÓN 1: SMI RÁPIDO en sobreventa (< -40)
         # ============================================
-        if smi_lento is not None and smi_lento < -40:
-            print(f"  ✅ Condición 1: SMI LENTO en sobreventa")
+        if smi_rapido is not None and smi_rapido < -40:
+            print(f"  ✅ Condición 1: SMI en sobreventa ({smi_rapido} < -40)")
             
             # ============================================
-            # CONDICIÓN 2: SMI RÁPIDO con giro positivo
+            # CONDICIÓN 2: Giro positivo
             # ============================================
             if giro_positivo:
-                print(f"  ✅ Condición 2: SMI RÁPIDO con giro positivo")
+                print(f"  ✅ Condición 2: Giro positivo detectado")
                 
                 # ============================================
-                # CONDICIÓN 3: Verificar recorrido
+                # CONDICIÓN 3: ¿Hay resistencia válida?
                 # ============================================
-                if resistencia:
-                    recorrido_valido, porcentaje = verificar_recorrido_suficiente(precio_actual, resistencia)
+                if resistencia_principal:
+                    recorrido = ((resistencia_principal - precio_actual) / precio_actual) * 100
+                    print(f"  📊 Resistencia principal: {resistencia_principal}€ (recorrido: {recorrido:.2f}%)")
                     
-                    if recorrido_valido:
-                        print(f"  ✅ Condición 3: Recorrido suficiente ({porcentaje}% > 3%)")
-                        
-                        if smi_horario is not None and smi_horario < -40:
-                            recomendacion = "COMPRA PERFECTA"
-                            print(f"  🟢🟢 ¡COMPRA PERFECTA!")
-                            guardar_recomendacion(ticker, nombre, precio_actual, 
-                                                  smi_horario, smi_rapido, smi_lento, smi_semanal,
-                                                  recomendacion, resistencia, resistencia, soporte)
-                            contador_compras_perfectas += 1
-                            contador_compras += 1
-                        else:
-                            recomendacion = "COMPRA (esperar momento)"
-                            print(f"  🟢 ¡COMPRA!")
-                            guardar_recomendacion(ticker, nombre, precio_actual, 
-                                                  smi_horario, smi_rapido, smi_lento, smi_semanal,
-                                                  recomendacion, resistencia, resistencia, soporte)
-                            contador_compras += 1
-                    else:
-                        print(f"  ❌ Condición 3: Recorrido insuficiente ({porcentaje}% < 3%)")
+                    # La resistencia ya está filtrada al menos al 2%
+                    if smi_horario is not None and smi_horario < -40:
+                        recomendacion = "COMPRA PERFECTA"
+                        print(f"  🟢🟢 ¡COMPRA PERFECTA!")
                         guardar_recomendacion(ticker, nombre, precio_actual, 
-                                              smi_horario, smi_rapido, smi_lento, smi_semanal,
-                                              "SIN COMPRA (recorrido insuficiente)", 
-                                              None, resistencia, soporte)
+                                              smi_horario, smi_rapido, smi_semanal,
+                                              recomendacion, resistencia_principal, 
+                                              soportes, resistencias)
+                        contador_compras_perfectas += 1
+                        contador_compras += 1
+                    else:
+                        recomendacion = "COMPRA (esperar momento)"
+                        print(f"  🟢 ¡COMPRA!")
+                        guardar_recomendacion(ticker, nombre, precio_actual, 
+                                              smi_horario, smi_rapido, smi_semanal,
+                                              recomendacion, resistencia_principal,
+                                              soportes, resistencias)
+                        contador_compras += 1
                 else:
-                    print(f"  ❌ No se pudo calcular resistencia")
+                    print(f"  ❌ Condición 3: No hay resistencia válida (todas están a menos del 2%)")
                     guardar_recomendacion(ticker, nombre, precio_actual, 
-                                          smi_horario, smi_rapido, smi_lento, smi_semanal,
-                                          "SIN COMPRA (sin resistencia clara)", 
-                                          None, resistencia, soporte)
+                                          smi_horario, smi_rapido, smi_semanal,
+                                          "SIN COMPRA (sin resistencia válida)", 
+                                          None, soportes, resistencias)
             else:
-                print(f"  ❌ Condición 2: SMI RÁPIDO sin giro positivo")
+                print(f"  ❌ Condición 2: SMI sin giro positivo (pendiente {pendiente})")
                 guardar_recomendacion(ticker, nombre, precio_actual, 
-                                      smi_horario, smi_rapido, smi_lento, smi_semanal,
+                                      smi_horario, smi_rapido, smi_semanal,
                                       "SIN COMPRA (SMI sin giro)", 
-                                      None, resistencia, soporte)
+                                      None, soportes, resistencias)
         else:
-            print(f"  ❌ Condición 1: SMI LENTO NO en sobreventa ({smi_lento} > -40)")
+            print(f"  ❌ Condición 1: SMI NO en sobreventa ({smi_rapido} > -40)")
             guardar_recomendacion(ticker, nombre, precio_actual, 
-                                  smi_horario, smi_rapido, smi_lento, smi_semanal,
+                                  smi_horario, smi_rapido, smi_semanal,
                                   "SIN COMPRA", 
-                                  None, resistencia, soporte)
+                                  None, soportes, resistencias)
         
         time.sleep(0.5)
     
