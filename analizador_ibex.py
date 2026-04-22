@@ -51,7 +51,6 @@ EMPRESAS = [
     ("TRE.MC", "Técnicas Reunidas"),
     ("SAB.MC", "Banco Sabadell"),
     ("BKT.MC", "Bankinter"),
-    ("ADX.MC", "Audax Renovables"),
 ]
 
 def calcular_smi_rapido(high, low, close):
@@ -186,7 +185,7 @@ def detectar_gaps(ticker):
     Estado del gap:
         - ABIERTO: nunca se ha tocado el rango
         - CERRADO PARCIALMENTE: se ha tocado pero no se ha rellenado entero
-        - CERRADO TOTALMENTE: se ha rellenado completamente (llega al extremo)
+        - CERRADO TOTALMENTE: se ha rellenado completamente
     """
     try:
         stock = yf.Ticker(ticker)
@@ -216,24 +215,19 @@ def detectar_gaps(ticker):
                 porcentaje = (diferencia / max_anterior) * 100
                 
                 if porcentaje >= UMBRAL_PORCENTAJE:
-                    # Estado del gap: ABIERTO, CERRADO PARCIAL, CERRADO TOTAL
                     estado = "ABIERTO"
                     fecha_estado = None
                     nivel_cierre = None
                     tope_parcial = None
                     
-                    # Buscar en velas posteriores
                     for j in range(i+1, len(hist)):
                         precio_min = hist.iloc[j]['Low']
-                        precio_max = hist.iloc[j]['High']
                         
-                        # Verificar si ha llegado a cerrar TOTALMENTE (≤ max_anterior)
                         if precio_min <= max_anterior:
                             estado = "CERRADO TOTALMENTE"
                             fecha_estado = hist.index[j].strftime('%d/%m/%Y')
                             nivel_cierre = max_anterior
                             break
-                        # Verificar si ha entrado en el rango (cierre parcial)
                         elif precio_min < min_actual and estado == "ABIERTO":
                             estado = "CERRADO PARCIALMENTE"
                             fecha_estado = hist.index[j].strftime('%d/%m/%Y')
@@ -265,16 +259,13 @@ def detectar_gaps(ticker):
                     tope_parcial = None
                     
                     for j in range(i+1, len(hist)):
-                        precio_min = hist.iloc[j]['Low']
                         precio_max = hist.iloc[j]['High']
                         
-                        # Verificar si ha llegado a cerrar TOTALMENTE (≥ min_anterior)
                         if precio_max >= min_anterior:
                             estado = "CERRADO TOTALMENTE"
                             fecha_estado = hist.index[j].strftime('%d/%m/%Y')
                             nivel_cierre = min_anterior
                             break
-                        # Verificar si ha entrado en el rango (cierre parcial)
                         elif precio_max > max_actual and estado == "ABIERTO":
                             estado = "CERRADO PARCIALMENTE"
                             fecha_estado = hist.index[j].strftime('%d/%m/%Y')
@@ -301,8 +292,8 @@ def detectar_gaps(ticker):
 def identificar_niveles(ticker, precio_actual):
     """
     Identifica SOPORTES y RESISTENCIAS con tolerancia 0.6%
+    Cuenta toques TOTALES (mínimos y máximos en la misma zona)
     Muestra el RANGO REAL (mínimo y máximo de la zona)
-    Cuenta toques reales
     """
     try:
         stock = yf.Ticker(ticker)
@@ -314,25 +305,19 @@ def identificar_niveles(ticker, precio_actual):
         TOLERANCIA = 0.006  # 0.6%
         
         # ============================================
-        # RECOPILAR TODOS LOS MÍNIMOS (para soportes)
+        # RECOPILAR TODOS LOS PRECIOS (mínimos y máximos)
         # ============================================
-        minimos = []
+        todos_los_precios = []
+        
         for i in range(len(hist)):
             fila = hist.iloc[i]
             minimo = round(fila['Low'], 3)
-            minimos.append(minimo)
-        
-        # ============================================
-        # RECOPILAR TODOS LOS MÁXIMOS (para resistencias)
-        # ============================================
-        maximos = []
-        for i in range(len(hist)):
-            fila = hist.iloc[i]
             maximo = round(fila['High'], 3)
-            maximos.append(maximo)
+            todos_los_precios.append(minimo)
+            todos_los_precios.append(maximo)
         
         # ============================================
-        # AGRUPAR MÍNIMOS POR ZONAS (tolerancia 0.6%)
+        # AGRUPAR POR ZONAS (tolerancia 0.6%)
         # ============================================
         def agrupar_por_zona(precios):
             grupos = []
@@ -361,17 +346,20 @@ def identificar_niveles(ticker, precio_actual):
                         "precios": grupo
                     })
             
+            # Ordenar por número de toques (de mayor a menor)
             grupos.sort(key=lambda x: x["toques"], reverse=True)
             return grupos
         
-        grupos_minimos = agrupar_por_zona(minimos)
-        grupos_maximos = agrupar_por_zona(maximos)
+        todos_los_grupos = agrupar_por_zona(todos_los_precios)
         
         # ============================================
         # CLASIFICAR POR PRECIO ACTUAL
         # ============================================
         soportes = []
-        for g in grupos_minimos:
+        resistencias = []
+        
+        for g in todos_los_grupos:
+            # Si el grupo está por DEBAJO del precio actual → es SOPORTE
             if g["maximo"] < precio_actual:
                 soportes.append({
                     "minimo": g["minimo"],
@@ -379,18 +367,20 @@ def identificar_niveles(ticker, precio_actual):
                     "toques": g["toques"],
                     "rango": f"{g['minimo']}-{g['maximo']}"
                 })
-        
-        resistencias = []
-        for g in grupos_maximos:
-            if g["minimo"] > precio_actual:
+            # Si el grupo está por ENCIMA del precio actual → es RESISTENCIA
+            elif g["minimo"] > precio_actual:
                 resistencias.append({
                     "minimo": g["minimo"],
                     "maximo": g["maximo"],
                     "toques": g["toques"],
                     "rango": f"{g['minimo']}-{g['maximo']}"
                 })
+            # Si el grupo contiene el precio actual, se ignora (no es ni soporte ni resistencia)
         
+        # Ordenar soportes: de más cercanos a más lejanos (por el máximo del grupo)
         soportes.sort(key=lambda x: x["maximo"], reverse=True)
+        
+        # Ordenar resistencias: de más cercanas a más lejanas (por el mínimo del grupo)
         resistencias.sort(key=lambda x: x["minimo"])
         
         return soportes, resistencias
@@ -460,10 +450,10 @@ def analizar_todo():
         # Detectar pinchos
         pinchos_alcistas, pinchos_bajistas = detectar_pinchos(ticker)
         
-        # Detectar gaps REALES
+        # Detectar gaps
         gaps_alcistas, gaps_bajistas = detectar_gaps(ticker)
         
-        # Identificar niveles
+        # Identificar niveles (NUEVO: cuenta toques TOTALES)
         soportes, resistencias = identificar_niveles(ticker, precio_actual)
         
         print(f"\n  💰 Precio actual: {precio_actual}€")
@@ -528,13 +518,14 @@ def analizar_todo():
         # ============================================
         # MOSTRAR NIVELES MÁS RELEVANTES
         # ============================================
+        # Seleccionar los 2 con más toques de cada lado
         resistencias_por_toques = sorted(resistencias, key=lambda x: x["toques"], reverse=True)
         top_2_resistencias = resistencias_por_toques[:2]
         
         soportes_por_toques = sorted(soportes, key=lambda x: x["toques"], reverse=True)
         top_2_soportes = soportes_por_toques[:2]
         
-        print(f"\n  📊 NIVELES MÁS RELEVANTES (rango real, sin promedios):")
+        print(f"\n  📊 NIVELES MÁS RELEVANTES (rango real, toques TOTALES):")
         print(f"  {'='*50}")
         
         print(f"  📈 RESISTENCIAS (por encima):")
