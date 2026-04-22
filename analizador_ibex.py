@@ -131,7 +131,7 @@ def obtener_smi_horario_semanal(ticker):
 
 def identificar_niveles(ticker, precio_actual):
     """
-    Identifica SOPORTES y RESISTENCIAS con tolerancia del 0.3%
+    Identifica SOPORTES y RESISTENCIAS con tolerancia del 0.6%
     Solo muestra niveles con al menos 2 toques
     """
     try:
@@ -141,7 +141,7 @@ def identificar_niveles(ticker, precio_actual):
         if hist.empty or len(hist) < 20:
             return [], []
         
-        TOLERANCIA = 0.003  # 0.3%
+        TOLERANCIA = 0.006  # 0.6%
         MIN_TOQUES = 2      # Mínimo 2 toques para considerar un nivel
         
         volumen_promedio = hist['Volume'].tail(30).mean()
@@ -183,7 +183,7 @@ def identificar_niveles(ticker, precio_actual):
             })
         
         # ============================================
-        # AGRUPAR POR ZONAS CON TOLERANCIA 0.3%
+        # AGRUPAR POR ZONAS CON TOLERANCIA 0.6%
         # ============================================
         def agrupar_por_zona(datos, es_maximo):
             zonas = {}
@@ -210,7 +210,6 @@ def identificar_niveles(ticker, precio_actual):
                     rechazos = sum(1 for t in toques if t["rechazo"])
                     volumen_total = sum(t["volumen"] for t in toques)
                     
-                    # Fuerza (0-100)
                     fuerza = 30
                     if toques_count >= 5:
                         fuerza = 90
@@ -346,7 +345,7 @@ def analizar_todo():
         print(f"  📊 SMI HORARIO: {smi_horario}")
         
         # Mostrar TODOS los niveles encontrados
-        print(f"\n  📊 NIVELES ENCONTRADOS (tolerancia 0.3%, mínimo {2} toques):")
+        print(f"\n  📊 NIVELES ENCONTRADOS (tolerancia 0.6%, mínimo 2 toques):")
         print(f"  {'='*50}")
         
         print(f"  📉 SOPORTES (por debajo de {precio_actual}€):")
@@ -388,6 +387,38 @@ def analizar_todo():
                 
                 if resistencia_valida:
                     print(f"  ✅ Condición 3: Resistencia válida encontrada")
+                    
+                    # Mostrar siguientes 2 resistencias y siguientes 2 soportes
+                    print(f"\n  📊 SIGUIENTES NIVELES:")
+                    
+                    # Siguientes 2 resistencias (después de la válida)
+                    idx_resistencia = None
+                    for i, r in enumerate(resistencias):
+                        if r["precio"] == resistencia_valida:
+                            idx_resistencia = i
+                            break
+                    
+                    if idx_resistencia is not None:
+                        siguientes_resistencias = resistencias[idx_resistencia+1:idx_resistencia+3]
+                        if siguientes_resistencias:
+                            print(f"     📈 Siguientes resistencias:")
+                            for r in siguientes_resistencias:
+                                recorrido_sig = ((r["precio"] - precio_actual) / precio_actual) * 100
+                                print(f"        💪 {r['precio']}€ (recorrido: {recorrido_sig:.2f}%, toques: {r['toques']})")
+                        else:
+                            print(f"     📈 Siguientes resistencias: No hay más")
+                    
+                    # Siguientes 2 soportes (los más cercanos por debajo)
+                    siguientes_soportes = soportes[:2]
+                    if siguientes_soportes:
+                        print(f"     📉 Siguientes soportes:")
+                        for s in siguientes_soportes:
+                            distancia_sop = ((precio_actual - s["precio"]) / precio_actual) * 100
+                            print(f"        💪 {s['precio']}€ (distancia: {distancia_sop:.2f}%, toques: {s['toques']})")
+                    else:
+                        print(f"     📉 Siguientes soportes: No hay")
+                    
+                    print(f"")
                     
                     if smi_horario is not None and smi_horario < -40:
                         recomendacion = "COMPRA PERFECTA"
