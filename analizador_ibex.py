@@ -413,129 +413,57 @@ def guardar_recomendacion(ticker, nombre, precio, smi_h, smi_rapido, smi_w, reco
         print(f"  ❌ Error guardando: {e}")
 
 def analizar_todo():
-    """Analiza todas las empresas con la lógica correcta"""
+    """Analiza todas las empresas - La COMPRA depende SOLO del SMI y su pendiente"""
     print(f"🚀 Iniciando análisis - {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}")
     print("=" * 70)
-    print("📊 CONDICIONES PARA COMPRA:")
+    print("📊 CONDICIONES PARA COMPRA (SOLO SMI):")
     print("   1. SMI RÁPIDO < -40 (sobreventa)")
     print("   2. SMI RÁPIDO con GIRO POSITIVO (pendiente > 0)")
-    print("   3. Resistencia válida a más del 3% del precio actual")
     print("=" * 70)
-    
-    contador_compras = 0
-    contador_compras_perfectas = 0
-    
-    for ticker, nombre in EMPRESAS:
-        print(f"\n{'='*60}")
-        print(f"📊 Analizando: {nombre} ({ticker})")
-        print(f"{'='*60}")
-        
-        # Obtener precio actual
-        try:
-            stock = yf.Ticker(ticker)
-            info = stock.info
-            precio_actual = info.get("currentPrice", info.get("regularMarketPrice"))
-            if precio_actual is None:
-                print(f"  ⚠️ Sin precio")
-                continue
-        except Exception as e:
-            print(f"  ⚠️ Error precio: {e}")
-            continue
-        
-        # Obtener SMI RÁPIDO
-        smi_rapido, pendiente, giro_positivo = obtener_smi_rapido_con_pendiente(ticker)
-        
-        # Obtener SMI horario y semanal
-        smi_horario, smi_semanal = obtener_smi_horario_semanal(ticker)
-        
-        # Detectar pinchos
-        pinchos_alcistas, pinchos_bajistas = detectar_pinchos(ticker)
-        
-        # Detectar gaps
-        gaps_alcistas, gaps_bajistas = detectar_gaps(ticker)
-        
-        # Identificar niveles (NUEVO: cuenta toques TOTALES)
+    print("📊 RESISTENCIAS, SOPORTES, GAPS Y PINCHOS se muestran como CONTEXTO")
         soportes, resistencias = identificar_niveles(ticker, precio_actual)
         
-        print(f"\n  💰 Precio actual: {precio_actual}€")
-        print(f"  📊 SMI RÁPIDO: {smi_rapido}")
-        print(f"  📊 Pendiente: {pendiente} (Giro: {'✅' if giro_positivo else '❌'})")
+        # ============================================
+        # DECISIÓN DE COMPRA (SOLO SMI)
+        # ============================================
+        if smi_rapido is not None and smi_rapido < -40 and giro_positivo:
+            # COMPRA: SMI en sobreventa Y con giro positivo
+            if smi_horario is not None and smi_horario < -40:
+                recomendacion = "COMPRA PERFECTA"
+                print(f"\n  🟢🟢 CONCLUSIÓN: ¡COMPRA PERFECTA!")
+                contador_compras_perfectas += 1
+                contador_compras += 1
+            else:
+                recomendacion = "COMPRA (esperar momento horario)"
+                print(f"\n  🟢 CONCLUSIÓN: ¡COMPRA!")
+                contador_compras += 1
+        else:
+            recomendacion = "SIN COMPRA"
+            print(f"\n  🔴 CONCLUSIÓN: SIN COMPRA")
+        
+        # ============================================
+        # MOSTRAR INFORMACIÓN DE CONTEXTO
+        # ============================================
+        print(f"\n  📊 CONTEXTO TÉCNICO:")
+        print(f"  {'='*50}")
+        print(f"  💰 Precio actual: {precio_actual}€")
+        print(f"  📊 SMI RÁPIDO: {smi_rapido} (Pendiente: {pendiente} - Giro: {'✅' if giro_positivo else '❌'})")
         print(f"  📊 SMI HORARIO: {smi_horario}")
         
-        # ============================================
-        # MOSTRAR GAPS REALES
-        # ============================================
-        print(f"\n  📊 GAPS REALES (huecos sin cotizar):")
-        print(f"  {'='*50}")
-        
-        print(f"  📈 Gaps alcistas (min_actual > max_anterior):")
-        if gaps_alcistas:
-            for g in gaps_alcistas:
-                if g["estado"] == "ABIERTO":
-                    print(f"     {g['fecha']} - {g['desde']}€ → {g['hasta']}€ ({g['porcentaje']}%) - 🔴 {g['estado']}")
-                elif g["estado"] == "CERRADO PARCIALMENTE":
-                    print(f"     {g['fecha']} - {g['desde']}€ → {g['hasta']}€ ({g['porcentaje']}%) - 🟡 {g['estado']} (llegó a {g['tope_parcial']}€ el {g['fecha_estado']})")
-                else:
-                    print(f"     {g['fecha']} - {g['desde']}€ → {g['hasta']}€ ({g['porcentaje']}%) - 🟢 {g['estado']} (cerró en {g['nivel_cierre']}€ el {g['fecha_estado']})")
-            print(f"     Total: {len(gaps_alcistas)} gaps alcistas")
-        else:
-            print(f"     0")
-        
-        print(f"\n  📉 Gaps bajistas (max_actual < min_anterior):")
-        if gaps_bajistas:
-            for g in gaps_bajistas:
-                if g["estado"] == "ABIERTO":
-                    print(f"     {g['fecha']} - {g['desde']}€ → {g['hasta']}€ ({g['porcentaje']}%) - 🔴 {g['estado']}")
-                elif g["estado"] == "CERRADO PARCIALMENTE":
-                    print(f"     {g['fecha']} - {g['desde']}€ → {g['hasta']}€ ({g['porcentaje']}%) - 🟡 {g['estado']} (llegó a {g['tope_parcial']}€ el {g['fecha_estado']})")
-                else:
-                    print(f"     {g['fecha']} - {g['desde']}€ → {g['hasta']}€ ({g['porcentaje']}%) - 🟢 {g['estado']} (cerró en {g['nivel_cierre']}€ el {g['fecha_estado']})")
-            print(f"     Total: {len(gaps_bajistas)} gaps bajistas")
-        else:
-            print(f"     0")
-        
-        # ============================================
-        # MOSTRAR PINCHOS
-        # ============================================
-        print(f"\n  📊 PINCHOS DESTACADOS (recuperación/caída >5%):")
-        print(f"  {'='*50}")
-        
-        print(f"  🔺 Pinchos alcistas (giro desde mínimo):")
-        if pinchos_alcistas:
-            for p in pinchos_alcistas:
-                print(f"     {p['fecha']} - giró en {p['precio']}€ (recuperó {p['porcentaje']}%)")
-            print(f"     Total: {len(pinchos_alcistas)} pinchos alcistas")
-        else:
-            print(f"     0")
-        
-        print(f"\n  🔻 Pinchos bajistas (giro desde máximo):")
-        if pinchos_bajistas:
-            for p in pinchos_bajistas:
-                print(f"     {p['fecha']} - giró en {p['precio']}€ (cayó {p['porcentaje']}%)")
-            print(f"     Total: {len(pinchos_bajistas)} pinchos bajistas")
-        else:
-            print(f"     0")
-        
-        # ============================================
-        # MOSTRAR NIVELES MÁS RELEVANTES
-        # ============================================
-        # Seleccionar los 2 con más toques de cada lado
+        # Niveles más relevantes
         resistencias_por_toques = sorted(resistencias, key=lambda x: x["toques"], reverse=True)
         top_2_resistencias = resistencias_por_toques[:2]
         
         soportes_por_toques = sorted(soportes, key=lambda x: x["toques"], reverse=True)
         top_2_soportes = soportes_por_toques[:2]
         
-        print(f"\n  📊 NIVELES MÁS RELEVANTES (rango real, toques TOTALES):")
-        print(f"  {'='*50}")
-        
-        print(f"  📈 RESISTENCIAS (por encima):")
+        print(f"\n  📈 RESISTENCIAS (por encima):")
         if top_2_resistencias:
             for r in top_2_resistencias:
                 recorrido = ((r["minimo"] - precio_actual) / precio_actual) * 100
                 print(f"     💪 {r['rango']}€ - {r['toques']} toques (recorrido: {recorrido:.2f}%)")
         else:
-            print(f"     ❌ No hay resistencias con suficientes toques")
+            print(f"     ❌ No hay resistencias claras")
         
         print(f"\n  📉 SOPORTES (por debajo):")
         if top_2_soportes:
@@ -543,58 +471,44 @@ def analizar_todo():
                 distancia = ((precio_actual - s["maximo"]) / precio_actual) * 100
                 print(f"     💪 {s['rango']}€ - {s['toques']} toques (distancia: {distancia:.2f}%)")
         else:
-            print(f"     ❌ No hay soportes con suficientes toques")
+            print(f"     ❌ No hay soportes claros")
         
-        # ============================================
-        # CONDICIÓN DE COMPRA
-        # ============================================
-        if smi_rapido is not None and smi_rapido < -40:
-            print(f"  ✅ Condición 1: SMI en sobreventa")
-            
-            if giro_positivo:
-                print(f"  ✅ Condición 2: Giro positivo")
-                
-                resistencia_valida = None
-                for r in resistencias:
-                    recorrido = ((r["minimo"] - precio_actual) / precio_actual) * 100
-                    if recorrido >= 3:
-                        resistencia_valida = r["minimo"]
-                        print(f"  📊 Resistencia válida: {r['rango']}€ (recorrido: {recorrido:.2f}%)")
-                        break
-                
-                if resistencia_valida:
-                    print(f"  ✅ Condición 3: Resistencia válida encontrada")
-                    
-                    if smi_horario is not None and smi_horario < -40:
-                        recomendacion = "COMPRA PERFECTA"
-                        print(f"  🟢🟢 ¡COMPRA PERFECTA!")
-                        guardar_recomendacion(ticker, nombre, precio_actual, 
-                                              smi_horario, smi_rapido, smi_semanal,
-                                              recomendacion, resistencia_valida)
-                        contador_compras_perfectas += 1
-                        contador_compras += 1
-                    else:
-                        recomendacion = "COMPRA (esperar momento)"
-                        print(f"  🟢 ¡COMPRA!")
-                        guardar_recomendacion(ticker, nombre, precio_actual, 
-                                              smi_horario, smi_rapido, smi_semanal,
-                                              recomendacion, resistencia_valida)
-                        contador_compras += 1
-                else:
-                    print(f"  ❌ Condición 3: No hay resistencia válida (recorrido < 3%)")
-                    guardar_recomendacion(ticker, nombre, precio_actual, 
-                                          smi_horario, smi_rapido, smi_semanal,
-                                          "SIN COMPRA (sin resistencia válida)", None)
-            else:
-                print(f"  ❌ Condición 2: SMI sin giro positivo")
-                guardar_recomendacion(ticker, nombre, precio_actual, 
-                                      smi_horario, smi_rapido, smi_semanal,
-                                      "SIN COMPRA (SMI sin giro)", None)
+        # Gaps
+        print(f"\n  📊 GAPS:")
+        if gaps_alcistas:
+            print(f"     📈 Gaps alcistas: {len(gaps_alcistas)}")
+            for g in gaps_alcistas[:2]:  # Mostrar solo los 2 más recientes
+                print(f"        {g['fecha']} - {g['desde']}€ → {g['hasta']}€ ({g['porcentaje']}%) - {g['estado']}")
         else:
-            print(f"  ❌ Condición 1: SMI NO en sobreventa")
-            guardar_recomendacion(ticker, nombre, precio_actual, 
-                                  smi_horario, smi_rapido, smi_semanal,
-                                  "SIN COMPRA", None)
+            print(f"     📈 Gaps alcistas: 0")
+        
+        if gaps_bajistas:
+            print(f"     📉 Gaps bajistas: {len(gaps_bajistas)}")
+            for g in gaps_bajistas[:2]:
+                print(f"        {g['fecha']} - {g['desde']}€ → {g['hasta']}€ ({g['porcentaje']}%) - {g['estado']}")
+        else:
+            print(f"     📉 Gaps bajistas: 0")
+        
+        # Pinchos
+        print(f"\n  📊 PINCHOS:")
+        if pinchos_alcistas:
+            print(f"     🔺 Pinchos alcistas: {len(pinchos_alcistas)}")
+            for p in pinchos_alcistas[:2]:
+                print(f"        {p['fecha']} - giró en {p['precio']}€ (recuperó {p['porcentaje']}%)")
+        else:
+            print(f"     🔺 Pinchos alcistas: 0")
+        
+        if pinchos_bajistas:
+            print(f"     🔻 Pinchos bajistas: {len(pinchos_bajistas)}")
+            for p in pinchos_bajistas[:2]:
+                print(f"        {p['fecha']} - giró en {p['precio']}€ (cayó {p['porcentaje']}%)")
+        else:
+            print(f"     🔻 Pinchos bajistas: 0")
+        
+        # Guardar en Supabase
+        guardar_recomendacion(ticker, nombre, precio_actual, 
+                              smi_horario, smi_rapido, smi_semanal,
+                              recomendacion, None)
         
         time.sleep(0.5)
     
