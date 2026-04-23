@@ -421,6 +421,41 @@ def analizar_todo():
     print("   2. SMI RÁPIDO con GIRO POSITIVO (pendiente > 0)")
     print("=" * 70)
     print("📊 RESISTENCIAS, SOPORTES, GAPS Y PINCHOS se muestran como CONTEXTO")
+    print("=" * 70)
+    
+    contador_compras = 0
+    contador_compras_perfectas = 0
+    
+    for ticker, nombre in EMPRESAS:
+        print(f"\n{'='*60}")
+        print(f"📊 Analizando: {nombre} ({ticker})")
+        print(f"{'='*60}")
+        
+        # Obtener precio actual
+        try:
+            stock = yf.Ticker(ticker)
+            info = stock.info
+            precio_actual = info.get("currentPrice", info.get("regularMarketPrice"))
+            if precio_actual is None:
+                print(f"  ⚠️ Sin precio")
+                continue
+        except Exception as e:
+            print(f"  ⚠️ Error precio: {e}")
+            continue
+        
+        # Obtener SMI RÁPIDO
+        smi_rapido, pendiente, giro_positivo = obtener_smi_rapido_con_pendiente(ticker)
+        
+        # Obtener SMI horario y semanal
+        smi_horario, smi_semanal = obtener_smi_horario_semanal(ticker)
+        
+        # Detectar pinchos
+        pinchos_alcistas, pinchos_bajistas = detectar_pinchos(ticker)
+        
+        # Detectar gaps
+        gaps_alcistas, gaps_bajistas = detectar_gaps(ticker)
+        
+        # Identificar niveles
         soportes, resistencias = identificar_niveles(ticker, precio_actual)
         
         # ============================================
