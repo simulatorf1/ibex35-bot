@@ -316,7 +316,7 @@
 <body>
     <div class="container">
         <h1>📊 Analizador Técnico IBEX35</h1>
-        <div class="subtitulo">SMI 4h como gatillo · Señales de compra en tiempo real</div>
+        <div class="subtitulo">ALGORITMO · Señales de compra en tiempo real</div>
         
         <div class="buscador">
             <input type="text" id="inputEmpresa" placeholder="Buscar empresa específica (ej: Santander, BBVA...)" autocomplete="off">
@@ -436,8 +436,8 @@
                         </div>
                         <div class="tarjeta-precio">${emp.precio_cierre} €</div>
                         <div class="tarjeta-smis">
-                            <span class="smi-4h">SMI 4h: ${emp.smi_4h ?? 'N/A'}</span>
-                            <span>SMI diario: ${emp.smi_diario ?? 'N/A'}</span>
+                            <span class="smi-4h">ALGORITMO: ${emp.smi_4h ?? 'N/A'}</span>
+                            <span>Diario: ${emp.smi_diario ?? 'N/A'}</span>
                             <span class="${pendienteClase}">${pendienteSimbolo} ${emp.pendiente_diaria}</span>
                         </div>
                         <div class="tarjeta-recomendacion">
@@ -496,7 +496,7 @@
                 3: '🔵 CASO 3: REBOTE CORTO',
                 4: '🟢 CASO 4: SUBIDA (Ojo resistencias)',
                 5: '⚪ CASO 5: ÚLTIMA SUBIDA',
-                null: '⚪ SIN SEÑAL 4h'
+                null: '⚪ SIN SEÑAL'
             };
             
             const pendienteClase = dato.pendiente_diaria > 0 ? 'positivo-texto' : 'negativo-texto';
@@ -534,17 +534,17 @@
                 
                 <div class="info-grid">
                     <div class="info-card">
-                        <h3>🕐 SMI 4h</h3>
+                        <h3>🕐 ALGORITMO</h3>
                         <div class="valor ${smi4hClase}">${dato.smi_4h ?? 'N/A'}</div>
                         <div class="small">${dato.smi_4h < -40 ? '✅ Señal activada' : 'Sin señal'}</div>
                     </div>
                     <div class="info-card">
-                        <h3>📈 SMI Diario</h3>
+                        <h3>📈 Diario</h3>
                         <div class="valor">${dato.smi_diario ?? 'N/A'}</div>
                         <div class="small ${pendienteClase}">Pendiente: ${pendienteTexto}</div>
                     </div>
                     <div class="info-card">
-                        <h3>📆 SMI Semanal</h3>
+                        <h3>📆 Semanal</h3>
                         <div class="valor">${dato.smi_semanal ?? 'N/A'}</div>
                         <div class="small">Contexto</div>
                     </div>
