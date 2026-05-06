@@ -13,6 +13,8 @@ on:
     - cron: '0 15 * * *'
     - cron: '0 16 * * *'
     - cron: '0 17 * * *'
+    - cron: '0 18 * * *'
+    - cron: '0 19 * * *'
   workflow_dispatch:
 
 jobs:
