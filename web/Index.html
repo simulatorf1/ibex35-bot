@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analizador IBEX35</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Analizador Técnico IBEX35</h1>
+        
+        <div class="buscador">
+            <input type="text" id="inputEmpresa" placeholder="Escribe nombre de empresa (ej: Santander, BBVA, Inditex...)" autocomplete="off">
+            <button id="btnBuscar">🔍 Analizar</button>
+        </div>
+
+        <div id="resultado" class="resultado hidden">
+            <!-- Aquí se mostrarán los datos -->
+        </div>
+
+        <div id="error" class="error hidden"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
