@@ -3,17 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analizador IBEX35</title>
+    <title>Analizador Técnico IBEX35</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             min-height: 100vh;
             padding: 20px;
         }
-        .container { max-width: 1200px; margin: 0 auto; }
-        h1 { text-align: center; color: white; margin-bottom: 30px; }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+
+        .subtitulo {
+            text-align: center;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 30px;
+            font-size: 0.9rem;
+        }
+
         .buscador {
             display: flex;
             gap: 15px;
@@ -21,6 +44,7 @@
             margin-bottom: 30px;
             flex-wrap: wrap;
         }
+
         #inputEmpresa {
             flex: 1;
             max-width: 400px;
@@ -29,7 +53,9 @@
             border: none;
             border-radius: 50px;
             outline: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
+
         #btnBuscar {
             padding: 15px 30px;
             font-size: 1rem;
@@ -39,34 +65,175 @@
             border-radius: 50px;
             cursor: pointer;
             font-weight: bold;
+            transition: transform 0.2s, background 0.2s;
         }
+
+        #btnBuscar:hover {
+            background: #ff8c5a;
+            transform: scale(1.02);
+        }
+
         .resultado {
             background: white;
             border-radius: 20px;
             padding: 25px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            animation: fadeIn 0.3s ease;
         }
-        .caso-1 { background: #28a745; color: white; display: inline-block; padding: 8px 16px; border-radius: 50px; margin-bottom: 20px; font-weight: bold; }
-        .caso-2 { background: #ffc107; color: #333; display: inline-block; padding: 8px 16px; border-radius: 50px; margin-bottom: 20px; font-weight: bold; }
-        .caso-3 { background: #17a2b8; color: white; display: inline-block; padding: 8px 16px; border-radius: 50px; margin-bottom: 20px; font-weight: bold; }
-        .caso-4 { background: #007bff; color: white; display: inline-block; padding: 8px 16px; border-radius: 50px; margin-bottom: 20px; font-weight: bold; }
-        .caso-5 { background: #dc3545; color: white; display: inline-block; padding: 8px 16px; border-radius: 50px; margin-bottom: 20px; font-weight: bold; }
-        .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        .info-card { background: #f8f9fa; padding: 15px; border-radius: 12px; text-align: center; }
-        .info-card h3 { font-size: 0.85rem; color: #666; margin-bottom: 8px; }
-        .info-card .valor { font-size: 1.5rem; font-weight: bold; color: #333; }
-        .seccion { margin-top: 25px; border-top: 2px solid #eee; padding-top: 20px; }
-        .seccion h3 { margin-bottom: 15px; color: #1e3c72; }
-        .error { background: #f8d7da; color: #721c24; padding: 15px; border-radius: 10px; text-align: center; }
-        .hidden { display: none; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .caso-tag {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+        .caso-1 { background: #dc3545; color: white; }
+        .caso-2 { background: #ffc107; color: #333; }
+        .caso-3 { background: #17a2b8; color: white; }
+        .caso-4 { background: #28a745; color: white; }
+        .caso-5 { background: #6c757d; color: white; }
+        .caso-null { background: #6c757d; color: white; }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .info-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .info-card h3 {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .info-card .valor {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .info-card .small {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        .seccion {
+            margin-top: 25px;
+            border-top: 2px solid #eee;
+            padding-top: 20px;
+        }
+
+        .seccion h3 {
+            margin-bottom: 15px;
+            color: #1e3c72;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .seccion h3 .icono {
+            font-size: 1.3rem;
+        }
+
+        .lista-items {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .item {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            border-left: 3px solid #ff6b35;
+        }
+
+        .item.positivo {
+            border-left-color: #28a745;
+        }
+
+        .item.negativo {
+            border-left-color: #dc3545;
+        }
+
+        .grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .positivo-texto {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .negativo-texto {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .recomendacion-texto {
+            font-size: 1.1rem;
+            line-height: 1.5;
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 10px;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2col {
+                grid-template-columns: 1fr;
+            }
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>📊 Analizador Técnico IBEX35</h1>
+        <div class="subtitulo">SMI 4h como gatillo · 5 casos de señal · Contexto técnico completo</div>
         
         <div class="buscador">
-            <input type="text" id="inputEmpresa" placeholder="Ej: Santander, BBVA, Inditex..." autocomplete="off">
+            <input type="text" id="inputEmpresa" placeholder="Ej: Santander, BBVA, Inditex, Telefónica..." autocomplete="off">
             <button id="btnBuscar">🔍 Analizar</button>
         </div>
 
@@ -75,29 +242,33 @@
     </div>
 
     <script>
-        // CONFIGURACIÓN DE SUPABASE - CAMBIA SOLO ESTOS DOS VALORES
+        // ============================================
+        // CONFIGURACIÓN DE SUPABASE
+        // ============================================
         const SUPABASE_URL = "https://klwcletpqqsabtdanldx.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtsd2NsZXRwcXFzYWJ0ZGFubGR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4MDg2NTEsImV4cCI6MjA5MjM4NDY1MX0.nbs0tYbFOL-I8qIkgB7Ub_jcOwHTdzg0EcAp1DS6sCU";
 
+        // ============================================
+        // BUSCAR EMPRESA
+        // ============================================
         async function buscarEmpresa() {
             const input = document.getElementById('inputEmpresa').value.trim();
             const resultadoDiv = document.getElementById('resultado');
             const errorDiv = document.getElementById('error');
             
             if (!input) {
-                errorDiv.textContent = 'Escribe un nombre de empresa';
+                errorDiv.textContent = '✏️ Escribe un nombre de empresa';
                 errorDiv.classList.remove('hidden');
                 return;
             }
             
             resultadoDiv.classList.add('hidden');
             errorDiv.classList.add('hidden');
-            resultadoDiv.innerHTML = '<div class="info-card">🔄 Buscando...</div>';
+            resultadoDiv.innerHTML = '<div class="loading">🔄 Buscando datos...</div>';
             resultadoDiv.classList.remove('hidden');
             
             try {
                 const url = `${SUPABASE_URL}/rest/v1/recomendaciones_ibex?nombre_empresa=ilike.%25${encodeURIComponent(input)}%25&order=fecha.desc&limit=1`;
-                console.log("URL:", url);
                 
                 const response = await fetch(url, {
                     headers: {
@@ -106,17 +277,14 @@
                     }
                 });
                 
-                console.log("Status:", response.status);
-                
                 if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+                    throw new Error(`HTTP ${response.status}`);
                 }
                 
                 const data = await response.json();
-                console.log("Datos:", data);
                 
                 if (!data || data.length === 0) {
-                    errorDiv.textContent = 'No se encontró ninguna empresa con ese nombre';
+                    errorDiv.innerHTML = '❌ No se encontró ninguna empresa.<br><br>📋 Empresas disponibles: Santander, BBVA, Inditex, Telefónica, Iberdrola, Repsol, Ferrovial, CaixaBank, Aena, IAG, Cellnex, Grifols, Endesa, Naturgy, Redeia, Enagás, ACS, Acciona, ArcelorMittal, Melia, Solaria, Unicaja, Mapfre, Logista, Siemens Gamesa, PharmaMar, Técnicas Reunidas, Banco Sabadell, Bankinter, Audax';
                     errorDiv.classList.remove('hidden');
                     resultadoDiv.classList.add('hidden');
                     return;
@@ -125,77 +293,164 @@
                 mostrarResultado(data[0]);
                 
             } catch (error) {
-                console.error("Error completo:", error);
-                errorDiv.textContent = `Error: ${error.message}`;
+                console.error('Error:', error);
+                errorDiv.textContent = '❌ Error al conectar con la base de datos';
                 errorDiv.classList.remove('hidden');
                 resultadoDiv.classList.add('hidden');
             }
         }
 
+        // ============================================
+        // MOSTRAR RESULTADO COMPLETO
+        // ============================================
         function mostrarResultado(dato) {
             const resultadoDiv = document.getElementById('resultado');
             
             const casosTexto = {
-                1: '🔴 COMPRA YA',
-                2: '🟡 COMPRA CON RIESGO',
-                3: '🔵 REBOTE CORTO',
-                4: '🟢 SUBIDA (Ojo resistencias)',
-                5: '⚡ ÚLTIMA SUBIDA'
+                1: '🔴 CASO 1: COMPRA YA',
+                2: '🟡 CASO 2: COMPRA CON RIESGO',
+                3: '🔵 CASO 3: REBOTE CORTO',
+                4: '🟢 CASO 4: SUBIDA (Ojo resistencias)',
+                5: '⚪ CASO 5: ÚLTIMA SUBIDA',
+                null: '⚪ SIN SEÑAL 4h'
+            };
+            
+            const pendienteClase = dato.pendiente_diaria > 0 ? 'positivo-texto' : 'negativo-texto';
+            const pendienteTexto = dato.pendiente_diaria > 0 ? '▲ Positiva' : '▼ Negativa';
+            const smi4hClase = dato.smi_4h < -40 ? 'positivo-texto' : '';
+            
+            // Formatear listas
+            const formatearLista = (texto) => {
+                if (!texto) return '<div class="item">No hay datos</div>';
+                const lineas = texto.split('\n');
+                return lineas.map(linea => `<div class="item">📌 ${linea}</div>`).join('');
             };
             
             let html = `
-                <div class="caso-${dato.caso}">${casosTexto[dato.caso] || 'Sin señal'}</div>
+                <div class="caso-tag caso-${dato.caso || 'null'}">${casosTexto[dato.caso]}</div>
                 
                 <div class="info-grid">
                     <div class="info-card">
                         <h3>🏢 Empresa</h3>
                         <div class="valor">${dato.nombre_empresa}</div>
-                        <small>${dato.ticker}</small>
+                        <div class="small">${dato.ticker}</div>
                     </div>
                     <div class="info-card">
-                        <h3>💰 Precio</h3>
-                        <div class="valor">${dato.precio_cierre}€</div>
+                        <h3>💰 Precio Actual</h3>
+                        <div class="valor">${dato.precio_cierre} €</div>
+                        <div class="small">Último cierre</div>
                     </div>
                     <div class="info-card">
-                        <h3>📅 Fecha</h3>
-                        <div class="valor">${new Date(dato.fecha).toLocaleString()}</div>
+                        <h3>📅 Último análisis</h3>
+                        <div class="valor">${new Date(dato.fecha).toLocaleDateString()}</div>
+                        <div class="small">${new Date(dato.fecha).toLocaleTimeString()}</div>
                     </div>
                 </div>
                 
                 <div class="info-grid">
                     <div class="info-card">
                         <h3>🕐 SMI 4h</h3>
-                        <div class="valor">${dato.smi_4h ?? 'N/A'}</div>
-                        ${dato.smi_4h < -40 ? '<small>✅ Señal activada</small>' : '<small>Sin señal</small>'}
+                        <div class="valor ${smi4hClase}">${dato.smi_4h ?? 'N/A'}</div>
+                        <div class="small">${dato.smi_4h < -40 ? '✅ Señal activada' : 'Sin señal'}</div>
                     </div>
                     <div class="info-card">
                         <h3>📈 SMI Diario</h3>
                         <div class="valor">${dato.smi_diario ?? 'N/A'}</div>
-                        <small>Pendiente: ${dato.pendiente_diaria > 0 ? '✅ Positiva' : '❌ Negativa'}</small>
+                        <div class="small ${pendienteClase}">Pendiente: ${pendienteTexto}</div>
                     </div>
                     <div class="info-card">
                         <h3>📆 SMI Semanal</h3>
                         <div class="valor">${dato.smi_semanal ?? 'N/A'}</div>
+                        <div class="small">Contexto</div>
                     </div>
                 </div>
                 
                 <div class="seccion">
-                    <h3>📊 RECOMENDACIÓN</h3>
-                    <p>${dato.recomendacion || 'Sin recomendación'}</p>
+                    <h3><span class="icono">💡</span> RECOMENDACIÓN</h3>
+                    <div class="recomendacion-texto">${dato.recomendacion || 'Sin recomendación'}</div>
                 </div>
             `;
+            
+            // NIVELES (Soportes y Resistencias)
+            if (dato.soportes || dato.resistencias) {
+                html += `
+                    <div class="seccion">
+                        <h3><span class="icono">📊</span> NIVELES CLAVE</h3>
+                        <div class="grid-2col">
+                            <div>
+                                <h4 style="margin-bottom: 10px; color: #28a745;">📉 SOPORTES</h4>
+                                <div class="lista-items">
+                                    ${formatearLista(dato.soportes)}
+                                </div>
+                            </div>
+                            <div>
+                                <h4 style="margin-bottom: 10px; color: #dc3545;">📈 RESISTENCIAS</h4>
+                                <div class="lista-items">
+                                    ${formatearLista(dato.resistencias)}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // GAPS
+            if (dato.gaps_alcistas || dato.gaps_bajistas) {
+                html += `
+                    <div class="seccion">
+                        <h3><span class="icono">🕳️</span> GAPS</h3>
+                        <div class="grid-2col">
+                            <div>
+                                <h4 style="margin-bottom: 10px; color: #28a745;">📈 Gaps Alcistas</h4>
+                                <div class="lista-items">
+                                    ${formatearLista(dato.gaps_alcistas)}
+                                </div>
+                            </div>
+                            <div>
+                                <h4 style="margin-bottom: 10px; color: #dc3545;">📉 Gaps Bajistas</h4>
+                                <div class="lista-items">
+                                    ${formatearLista(dato.gaps_bajistas)}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // PINCHOS
+            if (dato.pinchos_alcistas || dato.pinchos_bajistas) {
+                html += `
+                    <div class="seccion">
+                        <h3><span class="icono">📍</span> PINCHOS (Recuperaciones >5%)</h3>
+                        <div class="grid-2col">
+                            <div>
+                                <h4 style="margin-bottom: 10px; color: #28a745;">🔺 Pinchos Alcistas</h4>
+                                <div class="lista-items">
+                                    ${formatearLista(dato.pinchos_alcistas)}
+                                </div>
+                            </div>
+                            <div>
+                                <h4 style="margin-bottom: 10px; color: #dc3545;">🔻 Pinchos Bajistas</h4>
+                                <div class="lista-items">
+                                    ${formatearLista(dato.pinchos_bajistas)}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
             
             resultadoDiv.innerHTML = html;
             resultadoDiv.classList.remove('hidden');
         }
 
+        // ============================================
+        // EVENTOS
+        // ============================================
         document.getElementById('btnBuscar').addEventListener('click', buscarEmpresa);
         document.getElementById('inputEmpresa').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') buscarEmpresa();
         });
-        
-        // Prueba al cargar
-        console.log("Web cargada. URL Supabase:", SUPABASE_URL);
     </script>
 </body>
 </html>
