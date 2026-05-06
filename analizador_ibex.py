@@ -77,17 +77,17 @@ def calcular_smi_rapido(high, low, close):
     
     return smi_rapido
 
-def obtener_smi_rapido_con_pendiente(ticker):
-    """Obtiene el SMI rápido y calcula su pendiente"""
+def obtener_smi_con_pendiente(ticker, period, interval):
+    """Obtiene el SMI y su pendiente para un periodo e intervalo dado"""
     try:
         stock = yf.Ticker(ticker)
-        datos = stock.history(period="90d", interval="1d")
+        datos = stock.history(period=period, interval=interval)
         
         if datos.empty or len(datos) < 10:
             return None, None, False
         
-        smi_rapido = calcular_smi_rapido(datos['High'], datos['Low'], datos['Close'])
-        smi_clean = smi_rapido.dropna()
+        smi = calcular_smi_rapido(datos['High'], datos['Low'], datos['Close'])
+        smi_clean = smi.dropna()
         
         if len(smi_clean) < 2:
             return None, None, False
@@ -103,32 +103,48 @@ def obtener_smi_rapido_con_pendiente(ticker):
         print(f"  Error SMI: {e}")
         return None, None, False
 
-def obtener_smi_horario_semanal(ticker):
-    """Obtiene SMI horario y semanal"""
+def obtener_smi_4h(ticker):
+    """Obtiene SMI cada 4 horas"""
     try:
         stock = yf.Ticker(ticker)
+        # 4 horas = 4h
+        datos = stock.history(period="10d", interval="4h")
         
-        datos_h = stock.history(period="7d", interval="1h")
-        smi_h = None
-        if not datos_h.empty and len(datos_h) > 5:
-            smi_h_temp = calcular_smi_rapido(datos_h['High'], datos_h['Low'], datos_h['Close'])
-            smi_h_clean = smi_h_temp.dropna()
-            if not smi_h_clean.empty:
-                smi_h = round(smi_h_clean.iloc[-1], 2)
+        if datos.empty or len(datos) < 5:
+            return None
         
-        datos_w = stock.history(period="1y", interval="1wk")
-        smi_w = None
-        if not datos_w.empty and len(datos_w) > 5:
-            smi_w_temp = calcular_smi_rapido(datos_w['High'], datos_w['Low'], datos_w['Close'])
-            smi_w_clean = smi_w_temp.dropna()
-            if not smi_w_clean.empty:
-                smi_w = round(smi_w_clean.iloc[-1], 2)
+        smi_temp = calcular_smi_rapido(datos['High'], datos['Low'], datos['Close'])
+        smi_clean = smi_temp.dropna()
         
-        return smi_h, smi_w
+        if not smi_clean.empty:
+            return round(smi_clean.iloc[-1], 2)
+        
+        return None
     
     except Exception as e:
-        print(f"  Error horario/semanal: {e}")
-        return None, None
+        print(f"  Error SMI 4h: {e}")
+        return None
+
+def obtener_smi_semanal(ticker):
+    """Obtiene SMI semanal (contexto)"""
+    try:
+        stock = yf.Ticker(ticker)
+        datos = stock.history(period="1y", interval="1wk")
+        
+        if datos.empty or len(datos) < 5:
+            return None
+        
+        smi_temp = calcular_smi_rapido(datos['High'], datos['Low'], datos['Close'])
+        smi_clean = smi_temp.dropna()
+        
+        if not smi_clean.empty:
+            return round(smi_clean.iloc[-1], 2)
+        
+        return None
+    
+    except Exception as e:
+        print(f"  Error SMI semanal: {e}")
+        return None
 
 def detectar_pinchos(ticker):
     """
@@ -318,7 +334,7 @@ def identificar_niveles(ticker, precio_actual):
             todos_los_precios.append(maximo)
         
         # ============================================
-        # AGRUPAR POR ZONAS (tolerancia 0.6%)
+        # AGRUPAR POR ZONA (tolerancia 0.6%)
         # ============================================
         def agrupar_por_zona(precios):
             grupos = []
@@ -390,7 +406,44 @@ def identificar_niveles(ticker, precio_actual):
         print(f"  Error identificando niveles: {e}")
         return [], []
 
-def guardar_recomendacion(ticker, nombre, precio, smi_h, smi_rapido, smi_w, recomendacion, precio_obj):
+def evaluar_caso(smi_4h, smi_diario, pendiente_diaria):
+    """
+    Evalúa cuál de los 5 casos se cumple según:
+    - SMI 4h en sobreventa (< -40)
+    - Estado del SMI diario
+    - Pendiente del SMI diario
+    """
+    SOBREVENTA = -40
+    SOBRECOMPRA = 40
+    
+    # Solo evaluamos si SMI 4h está en sobreventa
+    if smi_4h is None or smi_4h >= SOBREVENTA:
+        return None, "SMI 4h NO en sobreventa - SE IGNORA"
+    
+    # CASO 1: SMI diario en sobreventa + pendiente positiva
+    if smi_diario is not None and smi_diario < SOBREVENTA and pendiente_diaria:
+        return 1, "COMPRA YA (diario sobreventa + pendiente positiva)"
+    
+    # CASO 2: SMI diario en sobreventa + pendiente negativa
+    if smi_diario is not None and smi_diario < SOBREVENTA and not pendiente_diaria:
+        return 2, "COMPRA CON RIESGO (diario sobreventa pero pendiente negativa)"
+    
+    # CASO 3: SMI diario normal (<40 y >-40) + pendiente negativa
+    if smi_diario is not None and -40 <= smi_diario <= 40 and not pendiente_diaria:
+        return 3, "REBOTE CORTO (tendencia bajista, solo rebote)"
+    
+    # CASO 4: SMI diario normal (<40 y >-40) + pendiente positiva
+    if smi_diario is not None and -40 <= smi_diario <= 40 and pendiente_diaria:
+        return 4, "SUBIDA (ojo resistencias)"
+    
+    # CASO 5: SMI diario en sobrecompra (>40)
+    if smi_diario is not None and smi_diario > SOBRECOMPRA:
+        return 5, "ÚLTIMA SUBIDA (antes de vender)"
+    
+    # Por defecto si no encaja en ninguno
+    return None, "Sin caso definido"
+
+def guardar_recomendacion(ticker, nombre, precio, smi_4h, smi_diario, smi_semanal, caso, mensaje, pendiente_diaria):
     """Guarda la recomendación en Supabase"""
     try:
         fecha_actual = datetime.now(timezone.utc).isoformat()
@@ -400,31 +453,32 @@ def guardar_recomendacion(ticker, nombre, precio, smi_h, smi_rapido, smi_w, reco
             "ticker": ticker,
             "nombre_empresa": nombre,
             "precio_cierre": precio,
-            "smi_horario": smi_h if smi_h else None,
-            "smi_diario": smi_rapido,
-            "smi_semanal": smi_w if smi_w else None,
-            "recomendacion": recomendacion,
-            "precio_objetivo": precio_obj if precio_obj else None
+            "smi_4h": smi_4h if smi_4h else None,
+            "smi_diario": smi_diario,
+            "smi_semanal": smi_semanal if smi_semanal else None,
+            "pendiente_diaria": pendiente_diaria,
+            "caso": caso,
+            "recomendacion": mensaje
         }
         
-        supabase.table("recomendaciones").insert(data).execute()
+        supabase.table("recomendaciones_ibex").insert(data).execute()
         
     except Exception as e:
         print(f"  ❌ Error guardando: {e}")
 
 def analizar_todo():
-    """Analiza todas las empresas - La COMPRA depende SOLO del SMI y su pendiente"""
+    """Analiza todas las empresas con la nueva lógica de SMI 4h"""
     print(f"🚀 Iniciando análisis - {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}")
     print("=" * 70)
-    print("📊 CONDICIONES PARA COMPRA (SOLO SMI):")
-    print("   1. SMI RÁPIDO < -40 (sobreventa)")
-    print("   2. SMI RÁPIDO con GIRO POSITIVO (pendiente > 0)")
+    print("📊 NUEVA LÓGICA - SMI 4h como GATILLO:")
+    print("   1. SMI 4h < -40 (sobreventa) → condicional")
+    print("   2. Si no se cumple → SE IGNORA (sin análisis)")
+    print("   3. Según SMI diario y su pendiente → 5 CASOS")
     print("=" * 70)
-    print("📊 RESISTENCIAS, SOPORTES, GAPS Y PINCHOS se muestran como CONTEXTO")
+    print("📊 RESISTENCIAS, SOPORTES, GAPS Y PINCHOS como CONTEXTO")
     print("=" * 70)
     
-    contador_compras = 0
-    contador_compras_perfectas = 0
+    contador_casos = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0}
     
     for ticker, nombre in EMPRESAS:
         print(f"\n{'='*60}")
@@ -443,11 +497,14 @@ def analizar_todo():
             print(f"  ⚠️ Error precio: {e}")
             continue
         
-        # Obtener SMI RÁPIDO
-        smi_rapido, pendiente, giro_positivo = obtener_smi_rapido_con_pendiente(ticker)
+        # Obtener SMI DIARIO (con pendiente)
+        smi_diario, pendiente_diaria, giro_positivo = obtener_smi_con_pendiente(ticker, "90d", "1d")
         
-        # Obtener SMI horario y semanal
-        smi_horario, smi_semanal = obtener_smi_horario_semanal(ticker)
+        # Obtener SMI 4h (GATILLO)
+        smi_4h = obtener_smi_4h(ticker)
+        
+        # Obtener SMI semanal (CONTEXTO)
+        smi_semanal = obtener_smi_semanal(ticker)
         
         # Detectar pinchos
         pinchos_alcistas, pinchos_bajistas = detectar_pinchos(ticker)
@@ -459,22 +516,15 @@ def analizar_todo():
         soportes, resistencias = identificar_niveles(ticker, precio_actual)
         
         # ============================================
-        # DECISIÓN DE COMPRA (SOLO SMI)
+        # EVALUAR CASO (SOLO si SMI 4h < -40)
         # ============================================
-        if smi_rapido is not None and smi_rapido < -40 and giro_positivo:
-            # COMPRA: SMI en sobreventa Y con giro positivo
-            if smi_horario is not None and smi_horario < -40:
-                recomendacion = "COMPRA PERFECTA"
-                print(f"\n  🟢🟢 CONCLUSIÓN: ¡COMPRA PERFECTA!")
-                contador_compras_perfectas += 1
-                contador_compras += 1
-            else:
-                recomendacion = "COMPRA (esperar momento horario)"
-                print(f"\n  🟢 CONCLUSIÓN: ¡COMPRA!")
-                contador_compras += 1
+        caso, mensaje = evaluar_caso(smi_4h, smi_diario, giro_positivo)
+        
+        if caso is None:
+            print(f"\n  ⚪ CONCLUSIÓN: {mensaje}")
         else:
-            recomendacion = "SIN COMPRA"
-            print(f"\n  🔴 CONCLUSIÓN: SIN COMPRA")
+            contador_casos[caso] += 1
+            print(f"\n  🎯 CASO {caso}: {mensaje}")
         
         # ============================================
         # MOSTRAR INFORMACIÓN DE CONTEXTO
@@ -482,8 +532,9 @@ def analizar_todo():
         print(f"\n  📊 CONTEXTO TÉCNICO:")
         print(f"  {'='*50}")
         print(f"  💰 Precio actual: {precio_actual}€")
-        print(f"  📊 SMI RÁPIDO: {smi_rapido} (Pendiente: {pendiente} - Giro: {'✅' if giro_positivo else '❌'})")
-        print(f"  📊 SMI HORARIO: {smi_horario}")
+        print(f"  🕐 SMI 4h (GATILLO): {smi_4h} {'(SOBREVENTA ✅)' if smi_4h is not None and smi_4h < -40 else '(Normal o error)'}")
+        print(f"  📅 SMI DIARIO: {smi_diario} (Pendiente: {pendiente_diaria} - {'Positiva ✅' if giro_positivo else 'Negativa ❌'})")
+        print(f"  📆 SMI SEMANAL (contexto): {smi_semanal}")
         
         # Niveles más relevantes
         resistencias_por_toques = sorted(resistencias, key=lambda x: x["toques"], reverse=True)
@@ -512,7 +563,7 @@ def analizar_todo():
         print(f"\n  📊 GAPS:")
         if gaps_alcistas:
             print(f"     📈 Gaps alcistas: {len(gaps_alcistas)}")
-            for g in gaps_alcistas[:2]:  # Mostrar solo los 2 más recientes
+            for g in gaps_alcistas[:2]:
                 print(f"        {g['fecha']} - {g['desde']}€ → {g['hasta']}€ ({g['porcentaje']}%) - {g['estado']}")
         else:
             print(f"     📈 Gaps alcistas: 0")
@@ -542,14 +593,19 @@ def analizar_todo():
         
         # Guardar en Supabase
         guardar_recomendacion(ticker, nombre, precio_actual, 
-                              smi_horario, smi_rapido, smi_semanal,
-                              recomendacion, None)
+                              smi_4h, smi_diario, smi_semanal,
+                              caso, mensaje, pendiente_diaria)
         
         time.sleep(0.5)
     
     print("\n" + "=" * 70)
     print(f"✅ Análisis completado")
-    print(f"📈 COMPRAS: {contador_compras} (Perfectas: {contador_compras_perfectas})")
+    print(f"📊 Resumen de CASOS (cuando SMI 4h < -40):")
+    print(f"   CASO 1 (COMPRA YA): {contador_casos[1]}")
+    print(f"   CASO 2 (COMPRA CON RIESGO): {contador_casos[2]}")
+    print(f"   CASO 3 (REBOTE CORTO): {contador_casos[3]}")
+    print(f"   CASO 4 (SUBIDA): {contador_casos[4]}")
+    print(f"   CASO 5 (ÚLTIMA SUBIDA): {contador_casos[5]}")
     print("=" * 70)
 
 if __name__ == "__main__":
