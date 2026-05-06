@@ -2,10 +2,10 @@ import yfinance as yf
 import pandas as pd
 import numpy as np
 from supabase import create_client, Client
-from datetime import datetime, timezone
+from datetime import datetime
 import time
 import os
-import json
+import pytz
 
 # ============================================
 # CONFIGURACIÓN DE SUPABASE
@@ -79,7 +79,7 @@ def calcular_smi_rapido(high, low, close):
     return smi_rapido
 
 def obtener_smi_con_pendiente(ticker, period, interval):
-    """Obtiene el SMI y su pendiente para un periodo e intervalo dado"""
+    """Obtiene el SMI y su pendiente"""
     try:
         stock = yf.Ticker(ticker)
         datos = stock.history(period=period, interval=interval)
@@ -101,7 +101,7 @@ def obtener_smi_con_pendiente(ticker, period, interval):
         return ultimo, pendiente, giro_positivo
     
     except Exception as e:
-        print(f"  Error SMI: {e}")
+        print(f" Error SMI: {e}")
         return None, None, False
 
 def obtener_smi_4h(ticker):
@@ -122,11 +122,11 @@ def obtener_smi_4h(ticker):
         return None
     
     except Exception as e:
-        print(f"  Error SMI 4h: {e}")
+        print(f" Error SMI 4h: {e}")
         return None
 
 def obtener_smi_semanal(ticker):
-    """Obtiene SMI semanal (contexto)"""
+    """Obtiene SMI semanal"""
     try:
         stock = yf.Ticker(ticker)
         datos = stock.history(period="1y", interval="1wk")
@@ -143,7 +143,7 @@ def obtener_smi_semanal(ticker):
         return None
     
     except Exception as e:
-        print(f"  Error SMI semanal: {e}")
+        print(f" Error SMI semanal: {e}")
         return None
 
 def detectar_pinchos(ticker):
@@ -177,7 +177,7 @@ def detectar_pinchos(ticker):
         return pinchos_alcistas[:3], pinchos_bajistas[:3]
     
     except Exception as e:
-        print(f"  Error detectando pinchos: {e}")
+        print(f" Error detectando pinchos: {e}")
         return [], []
 
 def detectar_gaps(ticker):
@@ -228,7 +228,7 @@ def detectar_gaps(ticker):
         return gaps_alcistas[:3], gaps_bajistas[:3]
     
     except Exception as e:
-        print(f"  Error detectando gaps: {e}")
+        print(f" Error detectando gaps: {e}")
         return [], []
 
 def identificar_niveles(ticker, precio_actual):
@@ -290,40 +290,73 @@ def identificar_niveles(ticker, precio_actual):
         return soportes[:3], resistencias[:3]
     
     except Exception as e:
-        print(f"  Error identificando niveles: {e}")
+        print(f" Error identificando niveles: {e}")
         return [], []
 
 def evaluar_caso(smi_4h, smi_diario, giro_positivo):
-    """Evalúa cuál de los 5 casos se cumple"""
+    """
+    Evalúa los 7 casos:
+    - Casos 1-5: Requieren SMI 4h en sobreventa (< -40)
+    - Casos 6-7: Solo miran SMI diario (independientes del 4h)
+    """
     SOBREVENTA = -40
     SOBRECOMPRA = 40
     
+    # ============================================
+    # NUEVAS SEÑALES SOLO CON DIARIO (CASOS 6 y 7)
+    # NO requieren SMI 4h
+    # ============================================
+    if smi_diario is not None and smi_diario < SOBREVENTA:
+        if giro_positivo:
+            return 6, "🟣 COMPRA INMEDIATA (señal directa por diario)", False
+        else:
+            return 7, "🟠 A PUNTO DE COMPRA (vigilar evolución diaria)", False
+    
+    # ============================================
+    # SEÑALES CON GATILLO (requieren SMI 4h < -40)
+    # ============================================
     if smi_4h is None or smi_4h >= SOBREVENTA:
-        return None, "SMI 4h NO en sobreventa"
+        return None, "SMI 4h NO en sobreventa - SE IGNORA", False
     
+    # Caso 1
     if smi_diario is not None and smi_diario < SOBREVENTA and giro_positivo:
-        return 1, "🔴 COMPRA YA (diario sobreventa + pendiente positiva)"
+        return 1, "🔴 COMPRA YA (diario sobreventa + pendiente positiva)", True
     
+    # Caso 2
     if smi_diario is not None and smi_diario < SOBREVENTA and not giro_positivo:
-        return 2, "🟡 COMPRA CON RIESGO (diario sobreventa + pendiente negativa)"
+        return 2, "🟡 COMPRA CON RIESGO (diario sobreventa + pendiente negativa)", True
     
+    # Caso 3
     if smi_diario is not None and -40 <= smi_diario <= 40 and not giro_positivo:
-        return 3, "🔵 REBOTE CORTO (tendencia bajista, solo rebote)"
+        return 3, "🔵 REBOTE CORTO (tendencia bajista, solo rebote)", True
     
+    # Caso 4
     if smi_diario is not None and -40 <= smi_diario <= 40 and giro_positivo:
-        return 4, "🟢 SUBIDA (ojo resistencias)"
+        return 4, "🟢 SUBIDA (ojo resistencias)", True
     
+    # Caso 5
     if smi_diario is not None and smi_diario > SOBRECOMPRA:
-        return 5, "⚡ ÚLTIMA SUBIDA (antes de vender)"
+        return 5, "⚡ ÚLTIMA SUBIDA (antes de vender)", True
     
-    return None, "Sin caso definido"
+    return None, "Sin caso definido", False
 
 def guardar_recomendacion(ticker, nombre, precio, smi_4h, smi_diario, smi_semanal, 
                           caso, mensaje, pendiente_diaria, soportes, resistencias,
-                          gaps_alcistas, gaps_bajistas, pinchos_alcistas, pinchos_bajistas):
+                          gaps_alcistas, gaps_bajistas, pinchos_alcistas, pinchos_bajistas,
+                          activada_por_4h):
     """Guarda la recomendación en Supabase con todos los datos"""
     try:
-        fecha_actual = datetime.now(timezone.utc).isoformat()
+        # Usar hora de España (Madrid)
+        madrid_tz = pytz.timezone('Europe/Madrid')
+        fecha_actual = datetime.now(madrid_tz).isoformat()
+        
+        # Determinar el tipo de señal
+        if caso in [1,2,3,4,5]:
+            tipo_señal = "GATILLO 4h"
+        elif caso in [6,7]:
+            tipo_señal = "DIRECTA DIARIO"
+        else:
+            tipo_señal = "SIN SEÑAL"
         
         data = {
             "fecha": fecha_actual,
@@ -334,8 +367,10 @@ def guardar_recomendacion(ticker, nombre, precio, smi_4h, smi_diario, smi_semana
             "smi_diario": smi_diario,
             "smi_semanal": smi_semanal if smi_semanal else None,
             "pendiente_diaria": pendiente_diaria,
-            "caso": caso,
+            "caso_numero": caso,
             "recomendacion": mensaje,
+            "tipo_señal": tipo_señal,
+            "activada_por_4h": activada_por_4h,
             "soportes": "\n".join(soportes) if soportes else None,
             "resistencias": "\n".join(resistencias) if resistencias else None,
             "gaps_alcistas": "\n".join(gaps_alcistas) if gaps_alcistas else None,
@@ -347,11 +382,15 @@ def guardar_recomendacion(ticker, nombre, precio, smi_4h, smi_diario, smi_semana
         supabase.table("recomendaciones_ibex").insert(data).execute()
         
     except Exception as e:
-        print(f"  ❌ Error guardando: {e}")
+        print(f" ❌ Error guardando: {e}")
 
 def analizar_todo():
     """Analiza todas las empresas y guarda TODO en Supabase"""
-    print(f"🚀 Iniciando análisis - {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}")
+    print(f"🚀 Iniciando análisis - {datetime.now(pytz.timezone('Europe/Madrid')).strftime('%Y-%m-%d %H:%M:%S')} (Hora España)")
+    print("=" * 70)
+    print("📊 CASOS DISPONIBLES:")
+    print(" CASOS 1-5: Requieren SMI 4h < -40 (GATILLO)")
+    print(" CASOS 6-7: Solo requieren SMI DIARIO < -40 (DIRECTAS)")
     print("=" * 70)
     
     for ticker, nombre in EMPRESAS:
@@ -363,10 +402,10 @@ def analizar_todo():
             info = stock.info
             precio_actual = info.get("currentPrice", info.get("regularMarketPrice"))
             if precio_actual is None:
-                print(f"  ⚠️ Sin precio")
+                print(f" ⚠️ Sin precio")
                 continue
         except Exception as e:
-            print(f"  ⚠️ Error precio: {e}")
+            print(f" ⚠️ Error precio: {e}")
             continue
         
         # Obtener SMIs
@@ -380,16 +419,19 @@ def analizar_todo():
         soportes, resistencias = identificar_niveles(ticker, precio_actual)
         
         # Evaluar caso
-        caso, mensaje = evaluar_caso(smi_4h, smi_diario, giro_positivo)
+        caso, mensaje, activada_por_4h = evaluar_caso(smi_4h, smi_diario, giro_positivo)
         
-        print(f"  💰 Precio: {precio_actual}€")
-        print(f"  📊 Caso: {caso} - {mensaje}")
+        print(f" 💰 Precio: {precio_actual}€")
+        print(f" 🕐 SMI 4h: {smi_4h}")
+        print(f" 📈 SMI Diario: {smi_diario} (Pendiente: {pendiente_diaria})")
+        print(f" 📊 Caso: {caso} - {mensaje}")
+        print(f" 🔘 Activada por 4h: {'✅' if activada_por_4h else '❌'}")
         
         # Guardar TODO en Supabase
         guardar_recomendacion(ticker, nombre, precio_actual, smi_4h, smi_diario, 
                               smi_semanal, caso, mensaje, pendiente_diaria,
                               soportes, resistencias, gaps_alcistas, gaps_bajistas,
-                              pinchos_alcistas, pinchos_bajistas)
+                              pinchos_alcistas, pinchos_bajistas, activada_por_4h)
         
         time.sleep(0.5)
     
