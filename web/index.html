@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Diseño de estructuras</title>
+    <title>Analizador Técnico IBEX35</title>
     <style>
         * {
             margin: 0;
@@ -158,12 +158,10 @@
         .positivo { color: #28a745; }
         .negativo { color: #dc3545; }
 
-        .tarjeta-recomendacion {
-            font-size: 0.85rem;
-            color: #555;
+        .tarjeta-fecha {
+            font-size: 0.7rem;
+            color: #888;
             margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid #eee;
         }
 
         .sin-señales {
@@ -280,6 +278,40 @@
             margin-top: 10px;
         }
 
+        /* Estilos para el historial */
+        .tabla-historial {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .tabla-historial th,
+        .tabla-historial td {
+            padding: 10px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tabla-historial th {
+            background: #1e3c72;
+            color: white;
+            font-weight: bold;
+        }
+
+        .tabla-historial tr:hover {
+            background: #f8f9fa;
+        }
+
+        .historial-caso-1 { background-color: #f8d7da; }
+        .historial-caso-2 { background-color: #fff3cd; }
+        .historial-caso-3 { background-color: #d1ecf1; }
+        .historial-caso-4 { background-color: #d4edda; }
+        .historial-caso-5 { background-color: #e2e3e5; }
+
+        .scroll-horizontal {
+            overflow-x: auto;
+        }
+
         .error {
             background: #f8d7da;
             color: #721c24;
@@ -310,13 +342,18 @@
             .grid-empresas {
                 grid-template-columns: 1fr;
             }
+            .tabla-historial th,
+            .tabla-historial td {
+                font-size: 0.7rem;
+                padding: 5px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>📊 Analizador Técnico IBEX35</h1>
-        <div class="subtitulo">ALGORITMO · Señales de compra en tiempo real</div>
+        <div class="subtitulo">SMI 4h como gatillo · Señales de compra en tiempo real · Historial de análisis</div>
         
         <div class="buscador">
             <input type="text" id="inputEmpresa" placeholder="Buscar empresa específica (ej: Santander, BBVA...)" autocomplete="off">
@@ -353,46 +390,28 @@
             
             try {
                 // Obtener el análisis más reciente de cada empresa
-                // Primero obtenemos todas las empresas distintas
-                const empresasResponse = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?select=nombre_empresa,ticker&order=fecha.desc`, {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?select=*&order=fecha.desc&limit=100`, {
                     headers: {
                         'apikey': SUPABASE_KEY,
                         'Authorization': `Bearer ${SUPABASE_KEY}`
                     }
                 });
                 
-                if (!empresasResponse.ok) throw new Error('Error cargando empresas');
+                if (!response.ok) throw new Error('Error cargando empresas');
                 
-                const todasLasEmpresas = await empresasResponse.json();
+                const todosLosAnalisis = await response.json();
                 
-                // Obtener último análisis por empresa (simplificado: traemos todos y agrupamos)
+                // Agrupar por ticker y quedarse con el último
                 const ultimosAnalisis = {};
-                
-                for (const emp of todasLasEmpresas) {
-                    const key = emp.ticker;
-                    if (!ultimosAnalisis[key]) {
-                        ultimosAnalisis[key] = emp;
+                for (const analisis of todosLosAnalisis) {
+                    const ticker = analisis.ticker;
+                    if (!ultimosAnalisis[ticker] || new Date(analisis.fecha) > new Date(ultimosAnalisis[ticker].fecha)) {
+                        ultimosAnalisis[ticker] = analisis;
                     }
                 }
                 
-                // Ahora obtenemos los datos completos de las empresas con caso de compra
-                const casosCompra = [];
-                
-                for (const ticker of Object.keys(ultimosAnalisis)) {
-                    const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?ticker=eq.${encodeURIComponent(ticker)}&order=fecha.desc&limit=1`, {
-                        headers: {
-                            'apikey': SUPABASE_KEY,
-                            'Authorization': `Bearer ${SUPABASE_KEY}`
-                        }
-                    });
-                    
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data && data.length > 0 && CASOS_COMPRA.includes(data[0].caso)) {
-                            casosCompra.push(data[0]);
-                        }
-                    }
-                }
+                // Filtrar solo los que tienen caso de compra
+                const casosCompra = Object.values(ultimosAnalisis).filter(a => CASOS_COMPRA.includes(a.caso));
                 
                 mostrarSeñales(casosCompra);
                 
@@ -424,6 +443,7 @@
             for (const emp of empresas) {
                 const pendienteClase = emp.pendiente_diaria > 0 ? 'positivo' : 'negativo';
                 const pendienteSimbolo = emp.pendiente_diaria > 0 ? '▲' : '▼';
+                const fechaFormateada = new Date(emp.fecha).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
                 
                 html += `
                     <div class="tarjeta-empresa" onclick="verDetalle('${emp.ticker}')">
@@ -436,12 +456,12 @@
                         </div>
                         <div class="tarjeta-precio">${emp.precio_cierre} €</div>
                         <div class="tarjeta-smis">
-                            <span class="smi-4h">ALGORITMO: ${emp.smi_4h ?? 'N/A'}</span>
-                            <span>Diario: ${emp.smi_diario ?? 'N/A'}</span>
-                            <span class="${pendienteClase}">${pendienteSimbolo} ${emp.pendiente_diaria}</span>
+                            <span class="smi-4h">SMI 4h: ${emp.smi_4h ?? 'N/A'}</span>
+                            <span>SMI diario: ${emp.smi_diario ?? 'N/A'}</span>
+                            <span class="${pendienteClase}">${pendienteSimbolo} ${Math.abs(emp.pendiente_diaria)}</span>
                         </div>
-                        <div class="tarjeta-recomendacion">
-                            💡 ${emp.recomendacion ? emp.recomendacion.substring(0, 80) + '...' : 'Sin recomendación'}
+                        <div class="tarjeta-fecha">
+                            📅 ${fechaFormateada}
                         </div>
                     </div>
                 `;
@@ -451,7 +471,7 @@
         }
 
         // ============================================
-        // VER DETALLE DE EMPRESA
+        // VER DETALLE DE EMPRESA CON HISTORIAL
         // ============================================
         async function verDetalle(ticker) {
             const seccionSeñales = document.getElementById('seccionSeñales');
@@ -462,7 +482,8 @@
             resultadoDiv.innerHTML = '<div class="loading">🔄 Cargando datos...</div>';
             
             try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?ticker=eq.${encodeURIComponent(ticker)}&order=fecha.desc&limit=1`, {
+                // Obtener últimos 30 análisis de la empresa
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?ticker=eq.${encodeURIComponent(ticker)}&order=fecha.desc&limit=30`, {
                     headers: {
                         'apikey': SUPABASE_KEY,
                         'Authorization': `Bearer ${SUPABASE_KEY}`
@@ -474,7 +495,7 @@
                 const data = await response.json();
                 
                 if (data && data.length > 0) {
-                    mostrarDetalle(data[0]);
+                    mostrarDetalleConHistorial(data);
                 } else {
                     resultadoDiv.innerHTML = '<div class="error">No se encontraron datos</div>';
                 }
@@ -485,10 +506,11 @@
         }
 
         // ============================================
-        // MOSTRAR DETALLE COMPLETO
+        // MOSTRAR DETALLE COMPLETO CON HISTORIAL
         // ============================================
-        function mostrarDetalle(dato) {
+        function mostrarDetalleConHistorial(analisisArray) {
             const resultadoDiv = document.getElementById('resultadoDetalle');
+            const ultimo = analisisArray[0]; // El más reciente
             
             const casosTexto = {
                 1: '🔴 CASO 1: COMPRA YA',
@@ -496,12 +518,13 @@
                 3: '🔵 CASO 3: REBOTE CORTO',
                 4: '🟢 CASO 4: SUBIDA (Ojo resistencias)',
                 5: '⚪ CASO 5: ÚLTIMA SUBIDA',
-                null: '⚪ SIN SEÑAL'
+                null: '⚪ SIN SEÑAL 4h'
             };
             
-            const pendienteClase = dato.pendiente_diaria > 0 ? 'positivo-texto' : 'negativo-texto';
-            const pendienteTexto = dato.pendiente_diaria > 0 ? '▲ Positiva' : '▼ Negativa';
-            const smi4hClase = dato.smi_4h < -40 ? 'positivo-texto' : '';
+            const pendienteClase = ultimo.pendiente_diaria > 0 ? 'positivo-texto' : 'negativo-texto';
+            const pendienteTexto = ultimo.pendiente_diaria > 0 ? '▲ Positiva' : '▼ Negativa';
+            const smi4hClase = ultimo.smi_4h < -40 ? 'positivo-texto' : '';
+            const fechaFormateada = new Date(ultimo.fecha).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
             
             const formatearLista = (texto) => {
                 if (!texto) return '<div class="item">No hay datos</div>';
@@ -509,106 +532,165 @@
                 return lineas.map(linea => `<div class="item">📌 ${linea}</div>`).join('');
             };
             
+            // Generar tabla de historial
+            let historialHtml = `
+                <div class="seccion">
+                    <h3>📜 HISTORIAL DE ANÁLISIS (Últimos ${analisisArray.length})</h3>
+                    <div class="scroll-horizontal">
+                        <table class="tabla-historial">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Precio</th>
+                                    <th>SMI 4h</th>
+                                    <th>SMI Diario</th>
+                                    <th>Pendiente</th>
+                                    <th>Caso</th>
+                                    <th>Recomendación</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+            `;
+            
+            for (const a of analisisArray) {
+                const fecha = new Date(a.fecha).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
+                const casoClase = `historial-caso-${a.caso || 0}`;
+                const pendienteSimbolo = a.pendiente_diaria > 0 ? '▲' : (a.pendiente_diaria < 0 ? '▼' : '●');
+                
+                let casoTexto = '';
+                if (a.caso === 1) casoTexto = '🔴 COMPRA YA';
+                else if (a.caso === 2) casoTexto = '🟡 COMPRA RIESGO';
+                else if (a.caso === 3) casoTexto = '🔵 REBOTE CORTO';
+                else if (a.caso === 4) casoTexto = '🟢 SUBIDA';
+                else if (a.caso === 5) casoTexto = '⚪ ÚLTIMA SUBIDA';
+                else casoTexto = '⚪ SIN SEÑAL';
+                
+                historialHtml += `
+                    <tr class="${casoClase}">
+                        <td>${fecha}</td>
+                        <td><strong>${a.precio_cierre}€</strong></td>
+                        <td>${a.smi_4h ?? 'N/A'}</td>
+                        <td>${a.smi_diario ?? 'N/A'}</td>
+                        <td>${pendienteSimbolo} ${Math.abs(a.pendiente_diaria || 0)}</td>
+                        <td>${casoTexto}</td>
+                        <td style="max-width: 200px; white-space: normal;">${a.recomendacion ? a.recomendacion.substring(0, 60) + '...' : '-'}</td>
+                    </tr>
+                `;
+            }
+            
+            historialHtml += `
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            
             let html = `
                 <button class="btn-cerrar" onclick="cerrarDetalle()">← Volver a señales</button>
                 
-                <div class="caso-tag caso-${dato.caso || 'null'}">${casosTexto[dato.caso]}</div>
+                <div class="caso-tag caso-${ultimo.caso || 'null'}">${casosTexto[ultimo.caso]}</div>
                 
                 <div class="info-grid">
                     <div class="info-card">
                         <h3>🏢 Empresa</h3>
-                        <div class="valor">${dato.nombre_empresa}</div>
-                        <div class="small">${dato.ticker}</div>
+                        <div class="valor">${ultimo.nombre_empresa}</div>
+                        <div class="small">${ultimo.ticker}</div>
                     </div>
                     <div class="info-card">
                         <h3>💰 Precio Actual</h3>
-                        <div class="valor">${dato.precio_cierre} €</div>
+                        <div class="valor">${ultimo.precio_cierre} €</div>
                         <div class="small">Último cierre</div>
                     </div>
                     <div class="info-card">
                         <h3>📅 Último análisis</h3>
-                        <div class="valor">${new Date(dato.fecha).toLocaleDateString()}</div>
-                        <div class="small">${new Date(dato.fecha).toLocaleTimeString()}</div>
+                        <div class="valor">${fechaFormateada}</div>
+                        <div class="small">Hora España</div>
                     </div>
                 </div>
                 
                 <div class="info-grid">
                     <div class="info-card">
-                        <h3>🕐 ALGORITMO</h3>
-                        <div class="valor ${smi4hClase}">${dato.smi_4h ?? 'N/A'}</div>
-                        <div class="small">${dato.smi_4h < -40 ? '✅ Señal activada' : 'Sin señal'}</div>
+                        <h3>🕐 SMI 4h</h3>
+                        <div class="valor ${smi4hClase}">${ultimo.smi_4h ?? 'N/A'}</div>
+                        <div class="small">${ultimo.smi_4h < -40 ? '✅ Señal activada' : 'Sin señal'}</div>
                     </div>
                     <div class="info-card">
-                        <h3>📈 Diario</h3>
-                        <div class="valor">${dato.smi_diario ?? 'N/A'}</div>
+                        <h3>📈 SMI Diario</h3>
+                        <div class="valor">${ultimo.smi_diario ?? 'N/A'}</div>
                         <div class="small ${pendienteClase}">Pendiente: ${pendienteTexto}</div>
                     </div>
                     <div class="info-card">
-                        <h3>📆 Semanal</h3>
-                        <div class="valor">${dato.smi_semanal ?? 'N/A'}</div>
+                        <h3>📆 SMI Semanal</h3>
+                        <div class="valor">${ultimo.smi_semanal ?? 'N/A'}</div>
                         <div class="small">Contexto</div>
                     </div>
                 </div>
                 
                 <div class="seccion">
                     <h3>💡 RECOMENDACIÓN</h3>
-                    <div class="recomendacion-texto">${dato.recomendacion || 'Sin recomendación'}</div>
+                    <div class="recomendacion-texto">${ultimo.recomendacion || 'Sin recomendación'}</div>
                 </div>
             `;
             
-            if (dato.soportes || dato.resistencias) {
+            // Niveles
+            if (ultimo.soportes || ultimo.resistencias) {
                 html += `
                     <div class="seccion">
                         <h3>📊 NIVELES CLAVE</h3>
                         <div class="grid-2col">
                             <div>
                                 <h4 style="margin-bottom: 10px; color: #28a745;">📉 SOPORTES</h4>
-                                <div class="lista-items">${formatearLista(dato.soportes)}</div>
+                                <div class="lista-items">${formatearLista(ultimo.soportes)}</div>
                             </div>
                             <div>
                                 <h4 style="margin-bottom: 10px; color: #dc3545;">📈 RESISTENCIAS</h4>
-                                <div class="lista-items">${formatearLista(dato.resistencias)}</div>
+                                <div class="lista-items">${formatearLista(ultimo.resistencias)}</div>
                             </div>
                         </div>
                     </div>
                 `;
             }
             
-            if (dato.gaps_alcistas || dato.gaps_bajistas) {
+            // Gaps
+            if (ultimo.gaps_alcistas || ultimo.gaps_bajistas) {
                 html += `
                     <div class="seccion">
                         <h3>🕳️ GAPS</h3>
                         <div class="grid-2col">
                             <div>
                                 <h4 style="margin-bottom: 10px; color: #28a745;">📈 Gaps Alcistas</h4>
-                                <div class="lista-items">${formatearLista(dato.gaps_alcistas)}</div>
+                                <div class="lista-items">${formatearLista(ultimo.gaps_alcistas)}</div>
                             </div>
                             <div>
                                 <h4 style="margin-bottom: 10px; color: #dc3545;">📉 Gaps Bajistas</h4>
-                                <div class="lista-items">${formatearLista(dato.gaps_bajistas)}</div>
+                                <div class="lista-items">${formatearLista(ultimo.gaps_bajistas)}</div>
                             </div>
                         </div>
                     </div>
                 `;
             }
             
-            if (dato.pinchos_alcistas || dato.pinchos_bajistas) {
+            // Pinchos
+            if (ultimo.pinchos_alcistas || ultimo.pinchos_bajistas) {
                 html += `
                     <div class="seccion">
                         <h3>📍 PINCHOS</h3>
                         <div class="grid-2col">
                             <div>
                                 <h4 style="margin-bottom: 10px; color: #28a745;">🔺 Pinchos Alcistas</h4>
-                                <div class="lista-items">${formatearLista(dato.pinchos_alcistas)}</div>
+                                <div class="lista-items">${formatearLista(ultimo.pinchos_alcistas)}</div>
                             </div>
                             <div>
                                 <h4 style="margin-bottom: 10px; color: #dc3545;">🔻 Pinchos Bajistas</h4>
-                                <div class="lista-items">${formatearLista(dato.pinchos_bajistas)}</div>
+                                <div class="lista-items">${formatearLista(ultimo.pinchos_bajistas)}</div>
                             </div>
                         </div>
                     </div>
                 `;
             }
+            
+            // Añadir historial
+            html += historialHtml;
             
             resultadoDiv.innerHTML = html;
             window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -620,7 +702,7 @@
         function cerrarDetalle() {
             document.getElementById('seccionSeñales').classList.remove('hidden');
             document.getElementById('resultadoDetalle').classList.add('hidden');
-            cargarSeñales(); // Recargar por si hay cambios
+            cargarSeñales();
         }
 
         // ============================================
@@ -642,7 +724,7 @@
             resultadoDiv.innerHTML = '<div class="loading">🔄 Buscando...</div>';
             
             try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?nombre_empresa=ilike.%25${encodeURIComponent(input)}%25&order=fecha.desc&limit=1`, {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?nombre_empresa=ilike.%25${encodeURIComponent(input)}%25&order=fecha.desc&limit=30`, {
                     headers: {
                         'apikey': SUPABASE_KEY,
                         'Authorization': `Bearer ${SUPABASE_KEY}`
@@ -658,7 +740,7 @@
                     return;
                 }
                 
-                mostrarDetalle(data[0]);
+                mostrarDetalleConHistorial(data);
                 
             } catch (error) {
                 resultadoDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div><button class="btn-cerrar" onclick="cerrarDetalle()">← Volver</button>`;
