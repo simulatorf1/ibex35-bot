@@ -1,6 +1,6 @@
 // Configuración - REEMPLAZA con tus datos de Supabase
-const SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-const SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+const SUPABASE_URL: "https://klwcletpqqsabtdanldx.supabase.co/rest/v1/";
+const SUPABASE_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtsd2NsZXRwcXFzYWJ0ZGFubGR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4MDg2NTEsImV4cCI6MjA5MjM4NDY1MX0.nbs0tYbFOL-I8qIkgB7Ub_jcOwHTdzg0EcAp1DS6sCU";
 
 
 async function buscarEmpresa() {
