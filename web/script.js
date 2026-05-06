@@ -1,6 +1,7 @@
 // Configuración - REEMPLAZA con tus datos de Supabase
-const SUPABASE_URL = "https://tu-proyecto.supabase.co";
-const SUPABASE_KEY = "tu-anon-key-public";
+const SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+const SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+
 
 async function buscarEmpresa() {
     const input = document.getElementById('inputEmpresa').value.trim();
