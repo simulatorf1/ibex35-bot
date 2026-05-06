@@ -19,7 +19,8 @@ async function buscarEmpresa() {
     mostrarLoading();
     
     try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/buscar_empresa`, {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?nombre_empresa=ilike.%25${encodeURIComponent(input)}%25&order=fecha.desc&limit=1`, {
+    
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
