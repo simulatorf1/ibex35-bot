@@ -24,6 +24,11 @@ const CASOS_TEXTO = {
 async function cargarSeñales() {
     const listaDiv = document.getElementById('listaSeñales');
     
+    if (!listaDiv) {
+        console.error('No se encontró el elemento listaSeñales');
+        return;
+    }
+    
     try {
         const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?select=*&order=fecha.desc&limit=200`, {
             headers: {
@@ -67,6 +72,8 @@ async function cargarSeñales() {
 // ============================================
 function mostrarSeñales(empresas) {
     const listaDiv = document.getElementById('listaSeñales');
+    
+    if (!listaDiv) return;
     
     if (empresas.length === 0) {
         listaDiv.innerHTML = '<div class="sin-señales">📭 No hay empresas con señal en este momento</div>';
@@ -113,6 +120,8 @@ async function verDetalle(ticker) {
     const seccionSeñales = document.getElementById('seccionSeñales');
     const resultadoDiv = document.getElementById('resultadoDetalle');
     
+    if (!seccionSeñales || !resultadoDiv) return;
+    
     seccionSeñales.classList.add('hidden');
     resultadoDiv.classList.remove('hidden');
     resultadoDiv.classList.add('resultado-detalle');
@@ -142,7 +151,7 @@ async function verDetalle(ticker) {
 }
 
 // ============================================
-formatearLista
+// FORMATEAR LISTA
 // ============================================
 function formatearLista(texto) {
     if (!texto) return '<div class="item">No hay datos</div>';
@@ -155,6 +164,8 @@ function formatearLista(texto) {
 // ============================================
 function mostrarDetalleConHistorial(analisisArray) {
     const resultadoDiv = document.getElementById('resultadoDetalle');
+    if (!resultadoDiv) return;
+    
     const ultimo = analisisArray[0];
     
     const pendienteClase = ultimo.pendiente_diaria > 0 ? 'positivo-texto' : 'negativo-texto';
@@ -346,6 +357,8 @@ function cerrarDetalle() {
     const seccionSeñales = document.getElementById('seccionSeñales');
     const resultadoDiv = document.getElementById('resultadoDetalle');
     
+    if (!seccionSeñales || !resultadoDiv) return;
+    
     seccionSeñales.classList.remove('hidden');
     resultadoDiv.classList.add('hidden');
     resultadoDiv.classList.remove('resultado-detalle');
@@ -356,9 +369,12 @@ function cerrarDetalle() {
 // BUSCAR EMPRESA ESPECÍFICA
 // ============================================
 async function buscarEmpresa() {
-    const input = document.getElementById('inputEmpresa').value.trim();
+    const input = document.getElementById('inputEmpresa');
+    if (!input) return;
     
-    if (!input) {
+    const busqueda = input.value.trim();
+    
+    if (!busqueda) {
         cargarSeñales();
         return;
     }
@@ -366,13 +382,15 @@ async function buscarEmpresa() {
     const seccionSeñales = document.getElementById('seccionSeñales');
     const resultadoDiv = document.getElementById('resultadoDetalle');
     
+    if (!seccionSeñales || !resultadoDiv) return;
+    
     seccionSeñales.classList.add('hidden');
     resultadoDiv.classList.remove('hidden');
     resultadoDiv.classList.add('resultado-detalle');
     resultadoDiv.innerHTML = '<div class="loading">🔄 Buscando...</div>';
     
     try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?nombre_empresa=ilike.%25${encodeURIComponent(input)}%25&order=fecha.desc&limit=30`, {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?nombre_empresa=ilike.%25${encodeURIComponent(busqueda)}%25&order=fecha.desc&limit=30`, {
             headers: {
                 'apikey': SUPABASE_KEY,
                 'Authorization': `Bearer ${SUPABASE_KEY}`
@@ -398,10 +416,20 @@ async function buscarEmpresa() {
 // ============================================
 // INICIALIZAR EVENTOS
 // ============================================
-document.getElementById('btnBuscar').addEventListener('click', buscarEmpresa);
-document.getElementById('inputEmpresa').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') buscarEmpresa();
+document.addEventListener('DOMContentLoaded', function() {
+    const btnBuscar = document.getElementById('btnBuscar');
+    const inputEmpresa = document.getElementById('inputEmpresa');
+    
+    if (btnBuscar) {
+        btnBuscar.addEventListener('click', buscarEmpresa);
+    }
+    
+    if (inputEmpresa) {
+        inputEmpresa.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') buscarEmpresa();
+        });
+    }
+    
+    // Cargar señales al inicio
+    cargarSeñales();
 });
-
-// Cargar señales al inicio
-cargarSeñales();
