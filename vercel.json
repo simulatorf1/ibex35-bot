@@ -1,3 +1,8 @@
 {
-  "outputDirectory": "web"
+  "outputDirectory": "web",
+  "rewrites": [
+    { "source": "/style.css", "destination": "/web/style.css" },
+    { "source": "/script.js", "destination": "/web/script.js" },
+    { "source": "/(.*)", "destination": "/web/index.html" }
+  ]
 }
