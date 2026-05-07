@@ -612,14 +612,22 @@
             const ultimosConVariacion = [];
             for (let [ticker, arr] of tickerMap.entries()) {
                 if (arr.length === 0) continue;
-                // Ordenar de más antiguo a más reciente
-                const arrOrdenado = [...arr].sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
-                const ultimo = arrOrdenado[arrOrdenado.length - 1];
+                const ultimo = arr[arr.length - 1];
                 
-                // Calcular porcentaje vs día anterior
-                const variacionesMap = calcularPorcentajeVsDiaAnterior(arrOrdenado);
-                const idxUltimo = arrOrdenado.length - 1;
-                let variacion = variacionesMap.get(idxUltimo) || null;
+                // Calcular variación contra el último precio del día anterior
+                let variacion = null;
+                const fechaUltimo = new Date(ultimo.fecha).toISOString().split('T')[0];
+                
+                for (let i = arr.length - 2; i >= 0; i--) {
+                    const registro = arr[i];
+                    const fechaReg = new Date(registro.fecha).toISOString().split('T')[0];
+                    if (fechaReg !== fechaUltimo) {
+                        if (registro.precio_cierre && registro.precio_cierre > 0) {
+                            variacion = ((ultimo.precio_cierre - registro.precio_cierre) / registro.precio_cierre) * 100;
+                        }
+                        break;
+                    }
+                }
                 
                 ultimosConVariacion.push({ ...ultimo, variacionVsAnterior: variacion });
             }
