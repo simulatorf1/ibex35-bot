@@ -608,10 +608,11 @@
             const ultimosConVariacion = [];
             for (let [ticker, arr] of tickerMap.entries()) {
                 if (arr.length === 0) continue;
-                const ultimo = arr[arr.length - 1];
-                
-                // NUEVO CÁLCULO: porcentaje vs último precio del día anterior
+                // Ordenar de más antiguo a más reciente
                 const arrOrdenado = [...arr].sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
+                const ultimo = arrOrdenado[arrOrdenado.length - 1];
+                
+                // Calcular porcentaje vs día anterior
                 const variacionesMap = calcularPorcentajeVsDiaAnterior(arrOrdenado);
                 const idxUltimo = arrOrdenado.length - 1;
                 let variacion = variacionesMap.get(idxUltimo) || null;
