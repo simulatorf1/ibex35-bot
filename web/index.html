@@ -24,7 +24,6 @@
             margin: 0 auto;
         }
 
-        /* Cabecera profesional */
         .header-professional {
             background: #ffffff;
             border-radius: 24px;
@@ -48,7 +47,6 @@
             font-weight: 400;
         }
 
-        /* buscador refinado */
         .buscador {
             display: flex;
             gap: 12px;
@@ -93,7 +91,6 @@
             transform: translateY(-1px);
         }
 
-        /* secciones */
         .seccion-principal {
             background: transparent;
             margin-bottom: 40px;
@@ -117,7 +114,6 @@
             gap: 22px;
         }
 
-        /* tarjetas nuevas: blanco profesional */
         .tarjeta-empresa {
             background: #ffffff;
             border-radius: 20px;
@@ -161,10 +157,13 @@
             font-size: 0.9rem;
             font-weight: 600;
             margin: 4px 0;
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 30px;
         }
 
-        .positivo { color: #1e7e34; background: #e9f6ec; display: inline-block; padding: 2px 10px; border-radius: 30px; }
-        .negativo { color: #b91c1c; background: #fee9e9; display: inline-block; padding: 2px 10px; border-radius: 30px; }
+        .positivo { background: #e9f6ec; color: #1e7e34; }
+        .negativo { background: #fee9e9; color: #b91c1c; }
 
         .tipo-compra-badge {
             display: inline-block;
@@ -178,7 +177,6 @@
             letter-spacing: 0.2px;
         }
 
-        /* badge específico para señal compra destacada (1,6,4) */
         .tipo-compra-badge.strong-buy {
             background: #1e7e34;
             color: white;
@@ -192,7 +190,6 @@
             padding-top: 12px;
         }
 
-        /* detalle */
         .resultado-detalle {
             background: white;
             border-radius: 28px;
@@ -261,7 +258,6 @@
             color: #1a3e50;
         }
 
-        /* Barras refinadas */
         .barra {
             display: flex;
             gap: 5px;
@@ -393,7 +389,7 @@
 <div class="container">
     <div class="header-professional">
         <h1>📊 Análisis Estructuras · IBEX 35</h1>
-        <div class="subtitulo">Señales técnicas basadas en datos reales | SMI diario · Pendiente como indicador de tendencia</div>
+        <div class="subtitulo">Señales basadas en datos reales | % variación vs cierre anterior | Tendencia por pendiente SMI diario</div>
     </div>
 
     <div class="buscador">
@@ -401,7 +397,6 @@
         <button id="btnBuscar">🔍 Analizar ticker</button>
     </div>
 
-    <!-- Sección: Empresas con señal -->
     <div id="seccionSeñales" class="seccion-principal">
         <h2>🟢 SEÑALES ACTIVAS · COMPRA</h2>
         <div id="listaSeñales" class="grid-empresas">
@@ -409,14 +404,10 @@
         </div>
     </div>
 
-    <!-- Detalle -->
     <div id="resultadoDetalle" class="hidden"></div>
 </div>
 
 <script>
-    // ============================================
-    // SUPABASE CREDENCIALES (reales)
-    // ============================================
     const SUPABASE_URL = "https://klwcletpqqsabtdanldx.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtsd2NsZXRwcXFzYWJ0ZGFubGR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4MDg2NTEsImV4cCI6MjA5MjM4NDY1MX0.nbs0tYbFOL-I8qIkgB7Ub_jcOwHTdzg0EcAp1DS6sCU";
 
@@ -434,7 +425,6 @@
         1: "Compra Inmediata", 2: "Compra Cautela", 3: "Rebote Corto", 4: "Compra Consolidada", 5: "Compra Final", 6: "Compra Rápida", 7: "Pre-Compra"
     };
 
-    // ========== SMI a puntos (sobreventa/sobrecompra) ==========
     function smiToPuntos(smi) {
         if (smi === null || smi === undefined) return 0;
         let puntos = Math.round(((80 - smi) / 160) * 10);
@@ -442,13 +432,9 @@
         return puntos;
     }
 
-    // ========== NUEVA LÓGICA TENDENCIA SEGÚN PENDIENTE REAL (datos históricos) ==========
-    // Para calcular pendiente del SMI diario usamos últimos 2 registros (más reciente y anterior) o tendencia implícita
-    // Dado que tenemos array historial por ticker, podemos calcular si el SMI diario ha subido o bajado entre la fecha anterior y la más reciente.
-    // Función que recibe lista de análisis ordenados por fecha DESC (el más reciente primero) y devuelve tendencia para el último registro.
+    // Calcular tendencia por pendiente del SMI diario (basado en último vs anterior)
     function calcularTendenciaPorPendiente(analisisArray) {
         if (!analisisArray || analisisArray.length < 2) return { texto: "Espera", clase: "tendencia-espera" };
-        // El primer elemento es el más reciente, segundo el anterior
         const ultimo = analisisArray[0];
         const anterior = analisisArray[1];
         if (ultimo.smi_diario === null || anterior.smi_diario === null) return { texto: "Espera", clase: "tendencia-espera" };
@@ -458,10 +444,14 @@
         return { texto: "Espera", clase: "tendencia-espera" };
     }
 
-    // calcular porcentaje real respecto a precio apertura del mismo día (dato de la fila)
-    function calcularPorcentajeDesdeApertura(precioApertura, precioCierre) {
-        if (!precioApertura || !precioCierre || precioApertura === 0) return null;
-        return ((precioCierre - precioApertura) / precioApertura) * 100;
+    // Calcular % de variación: compara precio cierre actual vs cierre del registro anterior (mismo ticker)
+    // Esto refleja la variación REAL que tuvo la acción ese día de análisis
+    function calcularPorcentajeVsCierreAnterior(analisisArray, index) {
+        if (!analisisArray || analisisArray.length <= index + 1) return null;
+        const actual = analisisArray[index];
+        const anterior = analisisArray[index + 1];
+        if (!actual.precio_cierre || !anterior.precio_cierre || anterior.precio_cierre === 0) return null;
+        return ((actual.precio_cierre - anterior.precio_cierre) / anterior.precio_cierre) * 100;
     }
 
     function generarBarra(puntos) {
@@ -473,7 +463,6 @@
         return html;
     }
 
-    // procesar niveles sin inventar volumen (mostrar texto literal)
     function procesarNiveles(texto) {
         if (!texto || texto === 'No hay datos') return [];
         const lineas = texto.split('\n');
@@ -487,27 +476,50 @@
         return niveles.map(n => `<div class="item">📌 ${n.texto}</div>`).join('');
     }
 
-    // ========== CARGAR SEÑALES (tarjetas) ==========
     async function cargarSeñales() {
         const listaDiv = document.getElementById('listaSeñales');
         try {
-            const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?select=*&order=fecha.desc&limit=250`, {
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?select=*&order=fecha.desc&limit=300`, {
                 headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
             });
             if (!response.ok) throw new Error('Error cargando');
             const todos = await response.json();
-            const ultimosPorTicker = {};
-            for (const a of todos) {
-                const ticker = a.ticker;
-                if (!ultimosPorTicker[ticker] || new Date(a.fecha) > new Date(ultimosPorTicker[ticker].fecha)) {
-                    ultimosPorTicker[ticker] = a;
-                }
+            
+            // Agrupar por ticker y ordenar por fecha para cada ticker
+            const tickerMap = new Map();
+            for (const item of todos) {
+                if (!tickerMap.has(item.ticker)) tickerMap.set(item.ticker, []);
+                tickerMap.get(item.ticker).push(item);
             }
-            const señalEmpresas = Object.values(ultimosPorTicker).filter(a => CASOS_SEÑAL.includes(a.caso_numero));
-            señalEmpresas.sort((a,b) => (a.caso_numero === 1 ? -1 : (b.caso_numero === 1 ? 1 : a.caso_numero - b.caso_numero)));
+            // Ordenar cada array por fecha ascendente para poder calcular variaciones correctamente
+            for (let [ticker, arr] of tickerMap.entries()) {
+                arr.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+            }
+            
+            // Obtener último registro de cada ticker y calcular variación vs anterior
+            const ultimosConVariacion = [];
+            for (let [ticker, arr] of tickerMap.entries()) {
+                if (arr.length === 0) continue;
+                const ultimo = arr[arr.length - 1];
+                const hayVariacion = arr.length >= 2;
+                let variacion = null;
+                if (hayVariacion) {
+                    const anterior = arr[arr.length - 2];
+                    if (anterior.precio_cierre && anterior.precio_cierre > 0) {
+                        variacion = ((ultimo.precio_cierre - anterior.precio_cierre) / anterior.precio_cierre) * 100;
+                    }
+                }
+                ultimosConVariacion.push({ ...ultimo, variacionVsAnterior: variacion });
+            }
+            
+            const señalEmpresas = ultimosConVariacion.filter(a => CASOS_SEÑAL.includes(a.caso_numero));
+            señalEmpresas.sort((a,b) => {
+                const orden = [1, 6, 4, 2, 7, 3, 5];
+                return orden.indexOf(a.caso_numero) - orden.indexOf(b.caso_numero);
+            });
             mostrarSeñales(señalEmpresas);
         } catch (err) {
-            listaDiv.innerHTML = '<div class="sin-señales" style="background:white; padding:30px; border-radius:28px;">❌ Error al cargar señales</div>';
+            listaDiv.innerHTML = '<div class="error">❌ Error al cargar señales</div>';
         }
     }
 
@@ -519,8 +531,7 @@
         }
         let html = '';
         for (const emp of empresas) {
-            const pct = calcularPorcentajeDesdeApertura(emp.precio_apertura, emp.precio_cierre);
-            const pctVal = pct !== null ? pct : 0;
+            const pctVal = emp.variacionVsAnterior !== null ? emp.variacionVsAnterior : 0;
             const clasePct = pctVal >= 0 ? 'positivo' : 'negativo';
             const simbolo = pctVal >= 0 ? '▲' : '▼';
             const fechaFormateada = new Date(emp.fecha).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
@@ -530,7 +541,7 @@
                     <div class="tarjeta-nombre">${emp.nombre_empresa || emp.ticker}</div>
                     <div class="tarjeta-ticker">${emp.ticker}</div>
                     <div class="tarjeta-precio">${emp.precio_cierre} €</div>
-                    <div class="tarjeta-porcentaje ${clasePct}">${simbolo} ${Math.abs(pctVal).toFixed(2)}% (vs apertura día)</div>
+                    <div class="tarjeta-porcentaje ${clasePct}">${simbolo} ${Math.abs(pctVal).toFixed(2)}% vs cierre anterior</div>
                     <div class="tipo-compra-badge ${badgeStrong}">${resumenCorto[emp.caso_numero] || 'Señal'}</div>
                     <div class="tarjeta-fecha">📅 ${fechaFormateada}</div>
                 </div>
@@ -539,7 +550,6 @@
         listaDiv.innerHTML = html;
     }
 
-    // ========== DETALLE CON HISTORIAL + TENDENCIA POR PENDIENTE ==========
     async function verDetalle(ticker) {
         const seccionSeñales = document.getElementById('seccionSeñales');
         const resultadoDiv = document.getElementById('resultadoDetalle');
@@ -547,26 +557,38 @@
         resultadoDiv.classList.remove('hidden');
         resultadoDiv.innerHTML = '<div class="loading">📊 Cargando análisis completo...</div>';
         try {
-            const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?ticker=eq.${encodeURIComponent(ticker)}&order=fecha.desc&limit=40`, {
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?ticker=eq.${encodeURIComponent(ticker)}&order=fecha.desc&limit=50`, {
                 headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
             });
             if (!response.ok) throw new Error('Error');
-            const data = await response.json();
+            let data = await response.json();
             if (!data || data.length === 0) {
-                resultadoDiv.innerHTML = '<div class="error">❌ No se encontraron registros para este ticker</div><button class="btn-cerrar" onclick="cerrarDetalle()">← Volver</button>';
+                resultadoDiv.innerHTML = '<div class="error">❌ No se encontraron registros</div><button class="btn-cerrar" onclick="cerrarDetalle()">← Volver</button>';
                 return;
             }
+            // Orden ascendente para calcular variaciones correctamente (el más antiguo primero)
+            data.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
             mostrarDetalleCompletoConHistorial(data);
         } catch (err) {
             resultadoDiv.innerHTML = `<div class="error">Error: ${err.message}</div><button class="btn-cerrar" onclick="cerrarDetalle()">← Volver</button>`;
         }
     }
 
-    function mostrarDetalleCompletoConHistorial(analisisArray) {
+    function mostrarDetalleCompletoConHistorial(analisisArrayAsc) {
         const resultadoDiv = document.getElementById('resultadoDetalle');
-        const ultimo = analisisArray[0];
-        const pctReal = calcularPorcentajeDesdeApertura(ultimo.precio_apertura, ultimo.precio_cierre);
-        const pctValor = pctReal !== null ? pctReal : 0;
+        // El último es el más reciente (final del array ascendente)
+        const ultimo = analisisArrayAsc[analisisArrayAsc.length - 1];
+        
+        // Calcular variación del último registro vs el anterior (si existe)
+        let variacionUltimo = null;
+        if (analisisArrayAsc.length >= 2) {
+            const anterior = analisisArrayAsc[analisisArrayAsc.length - 2];
+            if (anterior.precio_cierre && anterior.precio_cierre > 0) {
+                variacionUltimo = ((ultimo.precio_cierre - anterior.precio_cierre) / anterior.precio_cierre) * 100;
+            }
+        }
+        
+        const pctValor = variacionUltimo !== null ? variacionUltimo : 0;
         const clasePct = pctValor >= 0 ? 'positivo' : 'negativo';
         const simbolo = pctValor >= 0 ? '▲' : '▼';
         const fechaFormateada = new Date(ultimo.fecha).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
@@ -575,11 +597,9 @@
         const puntosMedio = smiToPuntos(ultimo.smi_diario);
         const puntosLargo = smiToPuntos(ultimo.smi_semanal);
 
-        // TENDENCIA MEDIO PLAZO basada en PENDIENTE REAL del SMI diario (entre último y penúltimo)
-        const tendenciaObj = calcularTendenciaPorPendiente(analisisArray);
+        const tendenciaObj = calcularTendenciaPorPendiente(analisisArrayAsc.slice().reverse());
         const tendenciaTexto = tendenciaObj.texto;
         const tendenciaClase = tendenciaObj.clase;
-
         const senalActivada = puntosCorto >= 7;
 
         let recomendacionLimpia = ultimo.recomendacion || 'Condiciones técnicas bajo análisis.';
@@ -588,25 +608,30 @@
             recomendacionLimpia = senalActivada ? '✅ SE ACTIVA SEÑAL DE COMPRA - Condiciones técnicas favorables.' : '⏳ Condiciones no favorables, se recomienda esperar confirmación.';
         }
 
-        // HISTORIAL tabla sin términos técnicos densos
+        // Construir tabla historial (mostrar de más reciente a más antigua pero con variación vs anterior)
         let historialHtml = `
             <div class="seccion">
-                <h3>📜 HISTORIAL DE ANÁLISIS (últimos ${Math.min(analisisArray.length, 20)})</h3>
+                <h3>📜 HISTORIAL DE ANÁLISIS (últimos ${Math.min(analisisArrayAsc.length, 20)})</h3>
                 <div class="scroll-horizontal">
                     <table class="tabla-historial">
-                        <thead><tr><th>Fecha</th><th>Precio cierre</th><th>Var vs apertura</th><th>Tipo señal</th><th>Recomendación breve</th></tr></thead>
+                        <thead><tr><th>Fecha</th><th>Precio cierre</th><th>Variación vs cierre anterior</th><th>Tipo señal</th><th>Recomendación breve</th></tr></thead>
                         <tbody>
         `;
-        for (const a of analisisArray.slice(0, 20)) {
+        
+        for (let i = analisisArrayAsc.length - 1; i >= 0; i--) {
+            const a = analisisArrayAsc[i];
             const fechaItem = new Date(a.fecha).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
-            let pctItem = null;
-            if (a.precio_apertura && a.precio_apertura > 0 && a.precio_cierre) {
-                pctItem = ((a.precio_cierre - a.precio_apertura) / a.precio_apertura) * 100;
+            let variacionItem = null;
+            if (i > 0) {
+                const prev = analisisArrayAsc[i - 1];
+                if (prev.precio_cierre && prev.precio_cierre > 0) {
+                    variacionItem = ((a.precio_cierre - prev.precio_cierre) / prev.precio_cierre) * 100;
+                }
             }
-            const pctShow = pctItem !== null ? `${pctItem >= 0 ? '▲' : '▼'} ${Math.abs(pctItem).toFixed(2)}%` : '--';
+            const pctShow = variacionItem !== null ? `${variacionItem >= 0 ? '▲' : '▼'} ${Math.abs(variacionItem).toFixed(2)}%` : '--';
             const tipoSenal = descripcionCompra[a.caso_numero] ? descripcionCompra[a.caso_numero].substring(0, 45) : (a.activada_por_4h ? 'Señal activa' : 'Sin señal');
             const recShort = a.recomendacion ? a.recomendacion.replace(/SMI|4h|diario|semanal|sobreventa/gi, '').substring(0, 55) + '...' : '-';
-            historialHtml += `<tr><td>${fechaItem}</td><td><strong>${a.precio_cierre}€</strong></td><td class="${pctItem !== null && pctItem >= 0 ? 'positivo' : 'negativo'}">${pctShow}</td><td>${tipoSenal}</td><td style="white-space:normal;">${recShort}</td></tr>`;
+            historialHtml += `<tr><td>${fechaItem}</td><td><strong>${a.precio_cierre}€</strong></td><td class="${variacionItem !== null && variacionItem >= 0 ? 'positivo' : 'negativo'}">${pctShow}</td><td>${tipoSenal}</td><td style="white-space:normal;">${recShort}</td></tr>`;
         }
         historialHtml += `</tbody></table></div></div>`;
 
@@ -616,17 +641,17 @@
                 <div class="tipo-compra-tag">${descripcionCompra[ultimo.caso_numero] || 'Estrategia de compra'}</div>
                 <div class="info-grid">
                     <div class="info-card"><h3>🏢 Empresa</h3><div class="valor">${ultimo.nombre_empresa}</div><div class="small">${ultimo.ticker}</div></div>
-                    <div class="info-card"><h3>💰 Precio cierre</h3><div class="valor">${ultimo.precio_cierre} €</div><div class="small ${clasePct}">${simbolo} ${Math.abs(pctValor).toFixed(2)}% desde apertura del día</div></div>
+                    <div class="info-card"><h3>💰 Precio cierre</h3><div class="valor">${ultimo.precio_cierre} €</div><div class="small ${clasePct}">${simbolo} ${Math.abs(pctValor).toFixed(2)}% vs cierre anterior</div></div>
                     <div class="info-card"><h3>📅 Último análisis</h3><div class="valor">${fechaFormateada}</div><div class="small">Hora oficial España</div></div>
                 </div>
                 <div class="info-grid">
                     <div class="info-card"><h3>🕐 CORTO PLAZO (SMI 4h)</h3>${generarBarra(puntosCorto)}<div class="barra-label">${senalActivada ? '✅ Señal activada' : '⏳ Sin activación'}</div></div>
-                    <div class="info-card"><h3>📈 MEDIO PLAZO</h3>${generarBarra(puntosMedio)}<div class="barra-label ${tendenciaClase}">Tendencia: ${tendenciaTexto}</div><div class="small" style="font-size:0.65rem;">basado en pendiente SMI diario</div></div>
+                    <div class="info-card"><h3>📈 MEDIO PLAZO</h3>${generarBarra(puntosMedio)}<div class="barra-label ${tendenciaClase}">Tendencia: ${tendenciaTexto}</div><div class="small" style="font-size:0.65rem;">basado en pendiente SMI diario real</div></div>
                     <div class="info-card"><h3>📆 LARGO PLAZO</h3>${generarBarra(puntosLargo)}<div class="barra-label">Contexto estructural</div></div>
                 </div>
                 <div class="seccion"><h3>💡 RECOMENDACIÓN TÉCNICA</h3><div class="recomendacion-texto">${recomendacionLimpia}</div></div>
         `;
-        // NIVELES
+        
         if (ultimo.soportes || ultimo.resistencias) {
             html += `<div class="seccion"><h3>📊 NIVELES CLAVE (orden real desde datos)</h3><div class="grid-2col">
                         <div><h4 style="margin-bottom:10px; color:#1e7e34;">📉 SOPORTES</h4><div class="lista-items">${formatearListaOrdenada(ultimo.soportes)}</div></div>
@@ -666,15 +691,16 @@
         resultadoDiv.classList.remove('hidden');
         resultadoDiv.innerHTML = '<div class="loading">🔎 Buscando empresa...</div>';
         try {
-            const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?nombre_empresa=ilike.%25${encodeURIComponent(input)}%25&order=fecha.desc&limit=40`, {
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?nombre_empresa=ilike.%25${encodeURIComponent(input)}%25&order=fecha.desc&limit=50`, {
                 headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
             });
             if (!response.ok) throw new Error();
-            const data = await response.json();
+            let data = await response.json();
             if (!data || data.length === 0) {
                 resultadoDiv.innerHTML = '<div class="error">❌ No encontrada. Prueba con: Santander, BBVA, Inditex, Iberdrola...</div><button class="btn-cerrar" onclick="cerrarDetalle()">← Volver</button>';
                 return;
             }
+            data.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
             mostrarDetalleCompletoConHistorial(data);
         } catch (e) {
             resultadoDiv.innerHTML = `<div class="error">Error en búsqueda</div><button class="btn-cerrar" onclick="cerrarDetalle()">← Volver</button>`;
@@ -686,7 +712,6 @@
     cargarSeñales();
     window.verDetalle = verDetalle;
     window.cerrarDetalle = cerrarDetalle;
-    window.buscarEmpresa = buscarEmpresa;
 </script>
 </body>
 </html>
