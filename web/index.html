@@ -613,13 +613,11 @@
             for (let [ticker, arr] of tickerMap.entries()) {
                 if (arr.length === 0) continue;
                 
-                // IMPORTANTE: arr ya viene ordenado por fecha.desc (más reciente primero)
-                const ultimo = arr[0];  // El más reciente está en el índice 0
-                
+                const ultimo = arr[0];  // ← CAMBIADO: más reciente está al inicio
                 let variacion = null;
                 const fechaUltimo = new Date(ultimo.fecha).toISOString().split('T')[0];
                 
-                for (let i = 1; i < arr.length; i++) {  // empezar desde 1, no desde length-2
+                for (let i = 1; i < arr.length; i++) {  // ← CAMBIADO: empezar desde 1
                     const registro = arr[i];
                     const fechaReg = new Date(registro.fecha).toISOString().split('T')[0];
                     if (fechaReg !== fechaUltimo) {
@@ -631,7 +629,7 @@
                 }
                 
                 ultimosConVariacion.push({ ...ultimo, variacionVsAnterior: variacion });
-            }
+            } 
             
             const señalEmpresas = ultimosConVariacion.filter(a => CASOS_SEÑAL.includes(a.caso_numero));
             señalEmpresas.sort((a,b) => {
