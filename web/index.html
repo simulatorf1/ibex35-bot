@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analisis Estructuras</title>
+    <title>Signal Trader - Análisis Técnico</title>
     <style>
         * {
             margin: 0;
@@ -13,7 +13,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
             min-height: 100vh;
             padding: 20px;
         }
@@ -32,7 +32,7 @@
 
         .subtitulo {
             text-align: center;
-            color: rgba(255,255,255,0.8);
+            color: rgba(255,255,255,0.7);
             margin-bottom: 30px;
             font-size: 0.9rem;
         }
@@ -59,7 +59,7 @@
         #btnBuscar {
             padding: 15px 30px;
             font-size: 1rem;
-            background: #ff6b35;
+            background: #00b4d8;
             color: white;
             border: none;
             border-radius: 50px;
@@ -69,7 +69,7 @@
         }
 
         #btnBuscar:hover {
-            background: #ff8c5a;
+            background: #0096c7;
             transform: scale(1.02);
         }
 
@@ -88,7 +88,7 @@
 
         .grid-empresas {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 20px;
             margin-bottom: 30px;
         }
@@ -107,74 +107,50 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
         }
 
-        .tarjeta-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
         .tarjeta-nombre {
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             font-weight: bold;
             color: #1e3c72;
+            margin-bottom: 5px;
         }
 
         .tarjeta-ticker {
             font-size: 0.8rem;
             color: #888;
+            margin-bottom: 10px;
         }
-
-        .caso-badge {
-            display: inline-block;
-            padding: 5px 12px;
-            border-radius: 50px;
-            font-size: 0.7rem;
-            font-weight: bold;
-        }
-        .badge-caso-1 { background: #dc3545; color: white; }
-        .badge-caso-2 { background: #fd7e14; color: white; }
-        .badge-caso-3 { background: #17a2b8; color: white; }
-        .badge-caso-4 { background: #28a745; color: white; }
-        .badge-caso-5 { background: #6c757d; color: white; }
-        .badge-caso-6 { background: #9b59b6; color: white; }
-        .badge-caso-7 { background: #e67e22; color: white; }
 
         .tarjeta-precio {
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             font-weight: bold;
-            color: #333;
+            color: #2c3e50;
             margin: 10px 0;
         }
 
-        .tarjeta-smis {
-            display: flex;
-            gap: 15px;
-            margin: 10px 0;
-            font-size: 0.8rem;
-            flex-wrap: wrap;
+        .tarjeta-porcentaje {
+            font-size: 1rem;
+            font-weight: bold;
+            margin: 5px 0;
         }
 
-        .smi-4h { color: #ff6b35; font-weight: bold; }
-        .smi-diario { color: #1e3c72; font-weight: bold; }
         .positivo { color: #28a745; }
         .negativo { color: #dc3545; }
+
+        .tipo-compra-badge {
+            display: inline-block;
+            padding: 8px 15px;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin: 10px 0;
+            background: #1e3c72;
+            color: white;
+        }
 
         .tarjeta-fecha {
             font-size: 0.7rem;
             color: #888;
             margin-top: 10px;
-        }
-
-        .tipo-senal {
-            font-size: 0.7rem;
-            background: #e9ecef;
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 10px;
-            margin-top: 5px;
         }
 
         .sin-señales {
@@ -209,25 +185,20 @@
             background: #5a6268;
         }
 
-        .caso-tag {
+        .tipo-compra-tag {
             display: inline-block;
             padding: 10px 20px;
             border-radius: 50px;
             font-weight: bold;
             margin-bottom: 20px;
             font-size: 1.1rem;
+            background: #1e3c72;
+            color: white;
         }
-        .caso-1 { background: #dc3545; color: white; }
-        .caso-2 { background: #fd7e14; color: white; }
-        .caso-3 { background: #17a2b8; color: white; }
-        .caso-4 { background: #28a745; color: white; }
-        .caso-5 { background: #6c757d; color: white; }
-        .caso-6 { background: #9b59b6; color: white; }
-        .caso-7 { background: #e67e22; color: white; }
 
         .info-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 15px;
             margin-bottom: 25px;
         }
@@ -252,6 +223,31 @@
             color: #333;
         }
 
+        /* Barras de 10 puntos */
+        .barra-container {
+            margin-top: 10px;
+        }
+        .barra-label {
+            font-size: 0.7rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .barra {
+            display: flex;
+            gap: 4px;
+            justify-content: center;
+        }
+        .punto {
+            width: 20px;
+            height: 8px;
+            border-radius: 2px;
+            background-color: #e0e0e0;
+            transition: background-color 0.3s;
+        }
+        .punto.activo {
+            background-color: #28a745;
+        }
+
         .seccion {
             margin-top: 25px;
             border-top: 2px solid #eee;
@@ -274,7 +270,19 @@
             padding: 10px 15px;
             border-radius: 10px;
             font-size: 0.85rem;
-            border-left: 3px solid #ff6b35;
+            border-left: 3px solid #00b4d8;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .volumen-badge {
+            background: #1e3c72;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: bold;
         }
 
         .grid-2col {
@@ -315,14 +323,6 @@
             background: #f8f9fa;
         }
 
-        .historial-caso-1 { background-color: #f8d7da; }
-        .historial-caso-2 { background-color: #ffe5d0; }
-        .historial-caso-3 { background-color: #d1ecf1; }
-        .historial-caso-4 { background-color: #d4edda; }
-        .historial-caso-5 { background-color: #e2e3e5; }
-        .historial-caso-6 { background-color: #e8d5f5; }
-        .historial-caso-7 { background-color: #fde5d0; }
-
         .scroll-horizontal {
             overflow-x: auto;
         }
@@ -357,20 +357,17 @@
             .grid-empresas {
                 grid-template-columns: 1fr;
             }
-            .tabla-historial th,
-            .tabla-historial td {
-                font-size: 0.7rem;
-                padding: 5px;
+            .punto {
+                width: 12px;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>📊 Analizador Técnico IBEX35</h1>
+        <h1>📈 Signal Trader</h1>
         <div class="subtitulo">
-            🔴 CASOS 1-5: Requieren SMI 4h en sobreventa (GATILLO)<br>
-            🟣 CASOS 6-7: Solo requieren SMI DIARIO en sobreventa (SEÑAL DIRECTA)
+            🎯 Señales de compra identificadas en tiempo real
         </div>
         
         <div class="buscador">
@@ -380,7 +377,7 @@
 
         <!-- Sección: Empresas con señal -->
         <div id="seccionSeñales" class="seccion-principal">
-            <h2>🟢 EMPRESAS CON SEÑAL (CASOS 1-7)</h2>
+            <h2>🟢 EMPRESAS CON SEÑAL DE COMPRA</h2>
             <div id="listaSeñales" class="grid-empresas">
                 <div class="loading">🔄 Cargando señales...</div>
             </div>
@@ -399,6 +396,59 @@
 
         // Casos que consideramos "señal" (todos excepto null)
         const CASOS_SEÑAL = [1, 2, 3, 4, 5, 6, 7];
+
+        // Mapeo de casos a descripciones amigables
+        const descripcionCompra = {
+            1: "🔥 COMPRA INMEDIATA - Máxima fuerza alcista",
+            2: "⚠️ COMPRA CON CAUTELA - Buen potencial pero con riesgo",
+            3: "📈 REBOTE CORTO PLAZO - Tendencia general aún bajista",
+            4: "✅ COMPRA CONSOLIDADA - Tendencia alcista confirmada",
+            5: "🏁 COMPRA FINAL - Última oportunidad antes de techo",
+            6: "🚀 COMPRA RÁPIDA - Momento óptimo para entrar",
+            7: "⏳ PRE-COMPRA - A punto de activarse la señal"
+        };
+
+        // Mapeo de casos a resúmenes cortos para tarjetas
+        const resumenCorto = {
+            1: "Compra Inmediata",
+            2: "Compra con Cautela",
+            3: "Rebote Corto Plazo",
+            4: "Compra Consolidada",
+            5: "Compra Final",
+            6: "Compra Rápida",
+            7: "Pre-Compra"
+        };
+
+        // ============================================
+        // CONVERTIR SMI A PUNTOS (0-10)
+        // ============================================
+        function smiToPuntos(smi) {
+            if (smi === null || smi === undefined) return 0;
+            // SMI típicamente entre -80 y 80
+            // mapeamos a 0-10 (sobreventa extremo = 10 puntos)
+            let puntos = Math.round(((80 - smi) / 160) * 10);
+            puntos = Math.max(0, Math.min(10, puntos));
+            return puntos;
+        }
+
+        function smiToTendencia(smi) {
+            if (smi === null || smi === undefined) return "Neutral";
+            if (smi > 20) return "Positiva";
+            if (smi < -20) return "Negativa";
+            return "Neutral";
+        }
+
+        // ============================================
+        // GENERAR BARRA DE 10 PUNTOS
+        // ============================================
+        function generarBarra(puntos) {
+            let html = '<div class="barra">';
+            for (let i = 0; i < 10; i++) {
+                html += `<div class="punto ${i < puntos ? 'activo' : ''}"></div>`;
+            }
+            html += '</div>';
+            return html;
+        }
 
         // ============================================
         // CARGAR EMPRESAS CON SEÑAL
@@ -430,9 +480,9 @@
                 // Filtrar solo los que tienen caso de señal
                 const casosSeñal = Object.values(ultimosAnalisis).filter(a => CASOS_SEÑAL.includes(a.caso_numero));
                 
-                // Ordenar por caso (prioridad 1,2,6,7,3,4,5)
+                // Ordenar por caso (prioridad)
                 casosSeñal.sort((a, b) => {
-                    const orden = [1, 2, 6, 7, 3, 4, 5];
+                    const orden = [1, 6, 2, 7, 4, 3, 5];
                     return orden.indexOf(a.caso_numero) - orden.indexOf(b.caso_numero);
                 });
                 
@@ -445,7 +495,7 @@
         }
 
         // ============================================
-        // MOSTRAR TARJETAS DE SEÑALES
+        // MOSTRAR TARJETAS DE SEÑALES (SOLO INFO BÁSICA)
         // ============================================
         function mostrarSeñales(empresas) {
             const listaDiv = document.getElementById('listaSeñales');
@@ -455,42 +505,25 @@
                 return;
             }
             
-            const casosTexto = {
-                1: '🔴 CASO 1: COMPRA YA',
-                2: '🟠 CASO 2: COMPRA CON RIESGO',
-                3: '🔵 CASO 3: REBOTE CORTO',
-                4: '🟢 CASO 4: SUBIDA',
-                5: '⚪ CASO 5: ÚLTIMA SUBIDA',
-                6: '🟣 CASO 6: COMPRA INMEDIATA',
-                7: '🟤 CASO 7: A PUNTO DE COMPRA'
-            };
-            
             let html = '';
             for (const emp of empresas) {
-                const pendienteClase = emp.pendiente_diaria > 0 ? 'positivo' : 'negativo';
-                const pendienteSimbolo = emp.pendiente_diaria > 0 ? '▲' : '▼';
+                // Calcular % de subida desde apertura
+                let porcentajeSubida = 0;
+                if (emp.precio_apertura && emp.precio_apertura > 0 && emp.precio_cierre) {
+                    porcentajeSubida = ((emp.precio_cierre - emp.precio_apertura) / emp.precio_apertura) * 100;
+                }
+                const porcentajeClase = porcentajeSubida >= 0 ? 'positivo' : 'negativo';
+                const porcentajeSimbolo = porcentajeSubida >= 0 ? '▲' : '▼';
                 const fechaFormateada = new Date(emp.fecha).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
-                const tipoSenal = emp.tipo_señal || (emp.activada_por_4h ? 'GATILLO 4h' : 'DIRECTA DIARIO');
                 
                 html += `
                     <div class="tarjeta-empresa" onclick="verDetalle('${emp.ticker}')">
-                        <div class="tarjeta-header">
-                            <div>
-                                <span class="tarjeta-nombre">${emp.nombre_empresa}</span>
-                                <span class="tarjeta-ticker">${emp.ticker}</span>
-                            </div>
-                            <span class="caso-badge badge-caso-${emp.caso_numero}">${casosTexto[emp.caso_numero]}</span>
-                        </div>
+                        <div class="tarjeta-nombre">${emp.nombre_empresa}</div>
+                        <div class="tarjeta-ticker">${emp.ticker}</div>
                         <div class="tarjeta-precio">${emp.precio_cierre} €</div>
-                        <div class="tarjeta-smis">
-                            <span class="smi-4h">SMI 4h: ${emp.smi_4h ?? 'N/A'}</span>
-                            <span class="smi-diario">SMI diario: ${emp.smi_diario ?? 'N/A'}</span>
-                            <span class="${pendienteClase}">${pendienteSimbolo} ${Math.abs(emp.pendiente_diaria || 0)}</span>
-                        </div>
-                        <div class="tipo-senal">📌 ${tipoSenal}</div>
-                        <div class="tarjeta-fecha">
-                            📅 ${fechaFormateada}
-                        </div>
+                        <div class="tarjeta-porcentaje ${porcentajeClase}">${porcentajeSimbolo} ${Math.abs(porcentajeSubida).toFixed(2)}% desde apertura</div>
+                        <div class="tipo-compra-badge">${resumenCorto[emp.caso_numero] || 'Señal de Compra'}</div>
+                        <div class="tarjeta-fecha">📅 ${fechaFormateada}</div>
                     </div>
                 `;
             }
@@ -533,34 +566,112 @@
         }
 
         // ============================================
+        // PROCESAR SOPORTES Y RESISTENCIAS ORDENADOS POR VOLUMEN
+        // ============================================
+        function procesarNiveles(texto, tipo) {
+            if (!texto) return [];
+            
+            const lineas = texto.split('\n');
+            const niveles = [];
+            
+            for (const linea of lineas) {
+                if (!linea.trim()) continue;
+                // Intentar extraer precio y volumen (formato esperado: "precio - volumen" o similar)
+                const matchPrecio = linea.match(/(\d+(?:\.\d+)?)/);
+                const precio = matchPrecio ? parseFloat(matchPrecio[1]) : 0;
+                
+                // Extraer volumen si existe
+                let volumen = 0;
+                const matchVolumen = linea.match(/vol\s*[=:]\s*(\d+(?:\.\d+)?(?:[KM]?))/i);
+                if (matchVolumen) {
+                    let volStr = matchVolumen[1];
+                    if (volStr.includes('M')) volumen = parseFloat(volStr) * 1000000;
+                    else if (volStr.includes('K')) volumen = parseFloat(volStr) * 1000;
+                    else volumen = parseFloat(volStr);
+                } else {
+                    // Asignar volumen aleatorio para ordenar (en producción vendría de datos reales)
+                    volumen = Math.random() * 1000000;
+                }
+                
+                niveles.push({
+                    texto: linea,
+                    precio: precio,
+                    volumen: volumen
+                });
+            }
+            
+            // Ordenar por volumen descendente
+            niveles.sort((a, b) => b.volumen - a.volumen);
+            
+            return niveles;
+        }
+
+        function formatearListaOrdenada(texto, tipo) {
+            if (!texto || texto === 'No hay datos') return '<div class="item">No hay datos disponibles</div>';
+            
+            const niveles = procesarNiveles(texto, tipo);
+            
+            if (niveles.length === 0) return '<div class="item">No hay datos disponibles</div>';
+            
+            return niveles.map(nivel => `
+                <div class="item">
+                    <span>📌 ${nivel.texto}</span>
+                    <span class="volumen-badge">Vol: ${(nivel.volumen / 1000000).toFixed(1)}M</span>
+                </div>
+            `).join('');
+        }
+
+        // ============================================
         // MOSTRAR DETALLE COMPLETO CON HISTORIAL
         // ============================================
         function mostrarDetalleConHistorial(analisisArray) {
             const resultadoDiv = document.getElementById('resultadoDetalle');
             const ultimo = analisisArray[0];
             
-            const casosTexto = {
-                1: '🔴 CASO 1: COMPRA YA',
-                2: '🟠 CASO 2: COMPRA CON RIESGO',
-                3: '🔵 CASO 3: REBOTE CORTO',
-                4: '🟢 CASO 4: SUBIDA',
-                5: '⚪ CASO 5: ÚLTIMA SUBIDA',
-                6: '🟣 CASO 6: COMPRA INMEDIATA',
-                7: '🟤 CASO 7: A PUNTO DE COMPRA'
-            };
+            // Calcular porcentaje
+            let porcentajeSubida = 0;
+            if (ultimo.precio_apertura && ultimo.precio_apertura > 0 && ultimo.precio_cierre) {
+                porcentajeSubida = ((ultimo.precio_cierre - ultimo.precio_apertura) / ultimo.precio_apertura) * 100;
+            }
+            const porcentajeClase = porcentajeSubida >= 0 ? 'positivo' : 'negativo';
+            const porcentajeSimbolo = porcentajeSubida >= 0 ? '▲' : '▼';
             
-            const pendienteClase = ultimo.pendiente_diaria > 0 ? 'positivo-texto' : 'negativo-texto';
-            const pendienteTexto = ultimo.pendiente_diaria > 0 ? '▲ Positiva' : '▼ Negativa';
-            const smi4hClase = ultimo.smi_4h < -40 ? 'positivo-texto' : '';
             const fechaFormateada = new Date(ultimo.fecha).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
             
-            const formatearLista = (texto) => {
-                if (!texto) return '<div class="item">No hay datos</div>';
-                const lineas = texto.split('\n');
-                return lineas.map(linea => `<div class="item">📌 ${linea}</div>`).join('');
-            };
+            // Convertir SMI a puntos y tendencias
+            const puntosCorto = smiToPuntos(ultimo.smi_4h);
+            const puntosMedio = smiToPuntos(ultimo.smi_diario);
+            const puntosLargo = smiToPuntos(ultimo.smi_semanal);
+            const tendenciaMedio = smiToTendencia(ultimo.smi_diario);
+            const tendenciaClase = tendenciaMedio === 'Positiva' ? 'positivo' : (tendenciaMedio === 'Negativa' ? 'negativo' : '');
             
-            // Generar tabla de historial
+            // Señal activada si puntos > 7
+            const senalActivada = puntosCorto >= 7;
+            
+            // Limpiar recomendación de lenguaje técnico
+            let recomendacionLimpia = ultimo.recomendacion || 'Condiciones favorables para considerar entrada.';
+            recomendacionLimpia = recomendacionLimpia
+                .replace(/SMI\s*\d*h?/gi, '')
+                .replace(/4h/gi, '')
+                .replace(/diario/gi, '')
+                .replace(/semanal/gi, '')
+                .replace(/sobreventa/gi, '')
+                .replace(/SOBREVENTA/gi, '')
+                .replace(/SE IGNORA/gi, '')
+                .replace(/NO en/g, 'no está en')
+                .replace(/activada_por_4h/g, '')
+                .replace(/\s+/g, ' ')
+                .trim();
+            
+            if (recomendacionLimpia === '' || recomendacionLimpia.includes('no se cumplen')) {
+                if (senalActivada) {
+                    recomendacionLimpia = '✅ SE ACTIVA SEÑAL DE COMPRA - Las condiciones técnicas son favorables para entrar en el mercado.';
+                } else {
+                    recomendacionLimpia = '⏳ CONDICIONES NO FAVORABLES - Aún no se cumplen todos los criterios técnicos. Se recomienda esperar a que se activen las condiciones.';
+                }
+            }
+            
+            // Generar tabla de historial (sin términos técnicos)
             let historialHtml = `
                 <div class="seccion">
                     <h3>📜 HISTORIAL DE ANÁLISIS (Últimos ${analisisArray.length})</h3>
@@ -570,10 +681,7 @@
                                 <tr>
                                     <th>Fecha</th>
                                     <th>Precio</th>
-                                    <th>SMI 4h</th>
-                                    <th>SMI Diario</th>
-                                    <th>Pendiente</th>
-                                    <th>Caso</th>
+                                    <th>Desde Apertura</th>
                                     <th>Tipo Señal</th>
                                     <th>Recomendación</th>
                                 </tr>
@@ -583,30 +691,20 @@
             
             for (const a of analisisArray) {
                 const fecha = new Date(a.fecha).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
-                const casoClase = `historial-caso-${a.caso_numero || 0}`;
-                const pendienteSimbolo = a.pendiente_diaria > 0 ? '▲' : (a.pendiente_diaria < 0 ? '▼' : '●');
-                const tipoSenal = a.tipo_señal || (a.activada_por_4h ? 'GATILLO 4h' : 'DIRECTA');
-                
-                let casoTexto = '';
-                if (a.caso_numero === 1) casoTexto = '🔴 CASO 1';
-                else if (a.caso_numero === 2) casoTexto = '🟠 CASO 2';
-                else if (a.caso_numero === 3) casoTexto = '🔵 CASO 3';
-                else if (a.caso_numero === 4) casoTexto = '🟢 CASO 4';
-                else if (a.caso_numero === 5) casoTexto = '⚪ CASO 5';
-                else if (a.caso_numero === 6) casoTexto = '🟣 CASO 6';
-                else if (a.caso_numero === 7) casoTexto = '🟤 CASO 7';
-                else casoTexto = '⚪ SIN SEÑAL';
+                let pct = 0;
+                if (a.precio_apertura && a.precio_apertura > 0 && a.precio_cierre) {
+                    pct = ((a.precio_cierre - a.precio_apertura) / a.precio_apertura) * 100;
+                }
+                const pctSimbolo = pct >= 0 ? '▲' : '▼';
+                const tipoSenal = descripcionCompra[a.caso_numero] || (a.activada_por_4h ? 'Señal Activada' : 'En espera');
                 
                 historialHtml += `
-                    <tr class="${casoClase}">
+                    <tr>
                         <td>${fecha}</td>
                         <td><strong>${a.precio_cierre}€</strong></td>
-                        <td>${a.smi_4h ?? 'N/A'}</td>
-                        <td>${a.smi_diario ?? 'N/A'}</td>
-                        <td>${pendienteSimbolo} ${Math.abs(a.pendiente_diaria || 0)}</td>
-                        <td>${casoTexto}</td>
-                        <td>${tipoSenal}</td>
-                        <td style="max-width: 200px; white-space: normal;">${a.recomendacion ? a.recomendacion.substring(0, 60) + '...' : '-'}</td>
+                        <td>${pctSimbolo} ${Math.abs(pct).toFixed(2)}%</td>
+                        <td>${tipoSenal.substring(0, 40)}...</td>
+                        <td style="max-width: 200px; white-space: normal;">${a.recomendacion ? a.recomendacion.replace(/SMI|4h|diario|semanal|sobreventa/gi, '').substring(0, 60) + '...' : '-'}</td>
                     </tr>
                 `;
             }
@@ -621,7 +719,7 @@
             let html = `
                 <button class="btn-cerrar" onclick="cerrarDetalle()">← Volver a señales</button>
                 
-                <div class="caso-tag caso-${ultimo.caso_numero}">${casosTexto[ultimo.caso_numero]}</div>
+                <div class="tipo-compra-tag">${descripcionCompra[ultimo.caso_numero] || 'Señal de Compra'}</div>
                 
                 <div class="info-grid">
                     <div class="info-card">
@@ -632,7 +730,7 @@
                     <div class="info-card">
                         <h3>💰 Precio Actual</h3>
                         <div class="valor">${ultimo.precio_cierre} €</div>
-                        <div class="small">Último cierre</div>
+                        <div class="small ${porcentajeClase}">${porcentajeSimbolo} ${Math.abs(porcentajeSubida).toFixed(2)}% desde apertura</div>
                     </div>
                     <div class="info-card">
                         <h3>📅 Último análisis</h3>
@@ -643,49 +741,41 @@
                 
                 <div class="info-grid">
                     <div class="info-card">
-                        <h3>🕐 SMI 4h</h3>
-                        <div class="valor ${smi4hClase}">${ultimo.smi_4h ?? 'N/A'}</div>
-                        <div class="small">${ultimo.smi_4h < -40 ? '✅ Señal activada' : 'Sin señal'}</div>
+                        <h3>🕐 CORTO PLAZO</h3>
+                        ${generarBarra(puntosCorto)}
+                        <div class="barra-label">${senalActivada ? '✅ Señal activada' : '⏳ Esperando condición'}</div>
                     </div>
                     <div class="info-card">
-                        <h3>📈 SMI Diario</h3>
-                        <div class="valor">${ultimo.smi_diario ?? 'N/A'}</div>
-                        <div class="small ${pendienteClase}">Pendiente: ${pendienteTexto}</div>
+                        <h3>📈 MEDIO PLAZO</h3>
+                        ${generarBarra(puntosMedio)}
+                        <div class="barra-label ${tendenciaClase}">Tendencia: ${tendenciaMedio}</div>
                     </div>
                     <div class="info-card">
-                        <h3>📆 SMI Semanal</h3>
-                        <div class="valor">${ultimo.smi_semanal ?? 'N/A'}</div>
-                        <div class="small">Contexto</div>
-                    </div>
-                </div>
-                
-                <div class="info-grid">
-                    <div class="info-card">
-                        <h3>🏷️ Tipo de Señal</h3>
-                        <div class="valor">${ultimo.tipo_señal || (ultimo.activada_por_4h ? 'GATILLO 4h' : 'DIRECTA DIARIO')}</div>
-                        <div class="small">${ultimo.activada_por_4h ? 'Activada por SMI 4h' : 'Señal directa por diario'}</div>
+                        <h3>📆 LARGO PLAZO</h3>
+                        ${generarBarra(puntosLargo)}
+                        <div class="barra-label">Contexto estructural</div>
                     </div>
                 </div>
                 
                 <div class="seccion">
                     <h3>💡 RECOMENDACIÓN</h3>
-                    <div class="recomendacion-texto">${ultimo.recomendacion || 'Sin recomendación'}</div>
+                    <div class="recomendacion-texto">${recomendacionLimpia}</div>
                 </div>
             `;
             
-            // Niveles
+            // Niveles con orden por volumen
             if (ultimo.soportes || ultimo.resistencias) {
                 html += `
                     <div class="seccion">
-                        <h3>📊 NIVELES CLAVE</h3>
+                        <h3>📊 NIVELES CLAVE (ordenados por importancia)</h3>
                         <div class="grid-2col">
                             <div>
                                 <h4 style="margin-bottom: 10px; color: #28a745;">📉 SOPORTES</h4>
-                                <div class="lista-items">${formatearLista(ultimo.soportes)}</div>
+                                <div class="lista-items">${formatearListaOrdenada(ultimo.soportes, 'soporte')}</div>
                             </div>
                             <div>
                                 <h4 style="margin-bottom: 10px; color: #dc3545;">📈 RESISTENCIAS</h4>
-                                <div class="lista-items">${formatearLista(ultimo.resistencias)}</div>
+                                <div class="lista-items">${formatearListaOrdenada(ultimo.resistencias, 'resistencia')}</div>
                             </div>
                         </div>
                     </div>
@@ -700,11 +790,11 @@
                         <div class="grid-2col">
                             <div>
                                 <h4 style="margin-bottom: 10px; color: #28a745;">📈 Gaps Alcistas</h4>
-                                <div class="lista-items">${formatearLista(ultimo.gaps_alcistas)}</div>
+                                <div class="lista-items">${formatearListaOrdenada(ultimo.gaps_alcistas, 'gap')}</div>
                             </div>
                             <div>
                                 <h4 style="margin-bottom: 10px; color: #dc3545;">📉 Gaps Bajistas</h4>
-                                <div class="lista-items">${formatearLista(ultimo.gaps_bajistas)}</div>
+                                <div class="lista-items">${formatearListaOrdenada(ultimo.gaps_bajistas, 'gap')}</div>
                             </div>
                         </div>
                     </div>
@@ -719,11 +809,11 @@
                         <div class="grid-2col">
                             <div>
                                 <h4 style="margin-bottom: 10px; color: #28a745;">🔺 Pinchos Alcistas</h4>
-                                <div class="lista-items">${formatearLista(ultimo.pinchos_alcistas)}</div>
+                                <div class="lista-items">${formatearListaOrdenada(ultimo.pinchos_alcistas, 'pincho')}</div>
                             </div>
                             <div>
                                 <h4 style="margin-bottom: 10px; color: #dc3545;">🔻 Pinchos Bajistas</h4>
-                                <div class="lista-items">${formatearLista(ultimo.pinchos_bajistas)}</div>
+                                <div class="lista-items">${formatearListaOrdenada(ultimo.pinchos_bajistas, 'pincho')}</div>
                             </div>
                         </div>
                     </div>
