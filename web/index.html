@@ -566,7 +566,8 @@
         }
 
         // ============================================
-        // PROCESAR SOPORTES Y RESISTENCIAS ORDENADOS POR VOLUMEN
+        // ============================================
+        // PROCESAR SOPORTES Y RESISTENCIAS (SIN VOLUMEN FALSO)
         // ============================================
         function procesarNiveles(texto, tipo) {
             if (!texto) return [];
@@ -576,35 +577,17 @@
             
             for (const linea of lineas) {
                 if (!linea.trim()) continue;
-                // Intentar extraer precio y volumen (formato esperado: "precio - volumen" o similar)
-                const matchPrecio = linea.match(/(\d+(?:\.\d+)?)/);
-                const precio = matchPrecio ? parseFloat(matchPrecio[1]) : 0;
                 
-                // Extraer volumen si existe
-                let volumen = 0;
-                const matchVolumen = linea.match(/vol\s*[=:]\s*(\d+(?:\.\d+)?(?:[KM]?))/i);
-                if (matchVolumen) {
-                    let volStr = matchVolumen[1];
-                    if (volStr.includes('M')) volumen = parseFloat(volStr) * 1000000;
-                    else if (volStr.includes('K')) volumen = parseFloat(volStr) * 1000;
-                    else volumen = parseFloat(volStr);
-                } else {
-                    // Asignar volumen aleatorio para ordenar (en producción vendría de datos reales)
-                    volumen = Math.random() * 1000000;
-                }
-                
+                // Solo guardar el texto, sin inventar volumen
                 niveles.push({
-                    texto: linea,
-                    precio: precio,
-                    volumen: volumen
+                    texto: linea
                 });
             }
             
-            // Ordenar por volumen descendente
-            niveles.sort((a, b) => b.volumen - a.volumen);
-            
+            // Mantener el orden original en que vienen los datos
             return niveles;
         }
+
 
         function formatearListaOrdenada(texto, tipo) {
             if (!texto || texto === 'No hay datos') return '<div class="item">No hay datos disponibles</div>';
@@ -615,8 +598,7 @@
             
             return niveles.map(nivel => `
                 <div class="item">
-                    <span>📌 ${nivel.texto}</span>
-                    <span class="volumen-badge">Vol: ${(nivel.volumen / 1000000).toFixed(1)}M</span>
+                    📌 ${nivel.texto}
                 </div>
             `).join('');
         }
