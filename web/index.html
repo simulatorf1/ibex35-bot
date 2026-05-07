@@ -513,7 +513,7 @@
             nivelesArray.sort((a,b) => a - b);
         }
         
-        return nivelesArray.slice(0, 3).map(n => `${n.toFixed(3)} €`);
+        return nivelesArray.slice(0, 3).map(n => `${n.toFixed(2)} €`);
     }
 
     function formatearNiveles(texto, tipo) {
@@ -534,7 +534,7 @@
             const numMatch = linea.match(/([\d\.]+)[€\s]/);
             if (numMatch) {
                 let num = parseFloat(numMatch[1].replace(/\./g, ''));
-                if (!isNaN(num)) mechas.push(`${num.toFixed(3)} €`);
+                if (!isNaN(num)) mechas.push(`${num.toFixed(2)} €`);
             } else if (linea.length > 0) {
                 mechas.push(linea.substring(0, 30));
             }
