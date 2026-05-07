@@ -479,41 +479,46 @@
     function extraerTresNivelesLimpiar(texto, tipo) {
         if (!texto || texto === 'No hay datos') return [];
         const lineas = texto.split('\n');
-        const nivelesTexto = [];
+        const numeros = [];
         
         for (let linea of lineas) {
             linea = linea.trim();
             if (!linea) continue;
-            // Extraer el texto original del nivel (ej: "3.848-3.948€")
-            // Nos quedamos con el rango completo como viene
-            if (linea.includes('-')) {
-                // Es un rango, lo dejamos igual pero sin el (XX toques)
-                let limpia = linea.replace(/\s*\(\d+\s*toques\)/i, '').trim();
-                nivelesTexto.push(limpia);
-            } else if (linea.match(/[\d\.]+[€\s]/)) {
-                let limpia = linea.replace(/\s*\(\d+\s*toques\)/i, '').trim();
-                nivelesTexto.push(limpia);
+            
+            // Extraer números individuales del rango: "3.848-3.948€" -> sacamos 3.848 y 3.948
+            const rangoMatch = linea.match(/([\d\.]+)\s*-\s*([\d\.]+)/);
+            if (rangoMatch) {
+                let num1 = rangoMatch[1].replace(/\./g, '');
+                let num2 = rangoMatch[2].replace(/\./g, '');
+                numeros.push(parseFloat(num1));
+                numeros.push(parseFloat(num2));
+            } else {
+                // Si es un número suelto
+                const numMatch = linea.match(/([\d\.]+)/);
+                if (numMatch) {
+                    let num = parseFloat(numMatch[1].replace(/\./g, ''));
+                    numeros.push(num);
+                }
             }
-            if (nivelesTexto.length >= 3) break;
         }
+        
+        // Eliminar duplicados
+        const unicos = [...new Set(numeros)];
         
         if (tipo === 'soporte') {
-            // Soporte: ordenar por el número más alto primero (segundo número del rango o el único)
-            nivelesTexto.sort((a, b) => {
-                let numA = parseFloat(a.match(/[\d\.]+(?:€)?$/)?.[0]?.replace(/\./g, '') || '0');
-                let numB = parseFloat(b.match(/[\d\.]+(?:€)?$/)?.[0]?.replace(/\./g, '') || '0');
-                return numB - numA;
-            });
+            // Soportes: ordenar de MAYOR a MENOR (los más cercanos al precio arriba)
+            unicos.sort((a, b) => b - a);
         } else {
-            // Resistencia: ordenar por el número más bajo primero
-            nivelesTexto.sort((a, b) => {
-                let numA = parseFloat(a.match(/[\d\.]+(?:€)?$/)?.[0]?.replace(/\./g, '') || '0');
-                let numB = parseFloat(b.match(/[\d\.]+(?:€)?$/)?.[0]?.replace(/\./g, '') || '0');
-                return numA - numB;
-            });
+            // Resistencias: ordenar de MENOR a MAYOR
+            unicos.sort((a, b) => a - b);
         }
         
-        return nivelesTexto.slice(0, 3);
+        // Devolver solo los 3 primeros como string formateado
+        return unicos.slice(0, 3).map(n => {
+            // Si es número grande (ej 3848) mostrarlo con 2 decimales
+            if (n > 100) return `${n.toFixed(2)} €`;
+            return `${n} €`;
+        });
     }
 
     function formatearNiveles(texto, tipo) {
