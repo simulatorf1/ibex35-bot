@@ -613,11 +613,14 @@
             for (let [ticker, arr] of tickerMap.entries()) {
                 if (arr.length === 0) continue;
                 
-                const ultimo = arr[0];  // ← CAMBIADO: más reciente está al inicio
+                // Ordenar para encontrar el más reciente (sin modificar el original)
+                const masReciente = [...arr].sort((a, b) => new Date(b.fecha) - new Date(a.fecha))[0];
+                const ultimo = masReciente;
+                
                 let variacion = null;
                 const fechaUltimo = new Date(ultimo.fecha).toISOString().split('T')[0];
                 
-                // Consultar directamente el último precio del día anterior
+                // Consultar el precio del día anterior
                 const responseAyer = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?ticker=eq.${ticker}&fecha=lt.${fechaUltimo}T00:00:00&order=fecha.desc&limit=1`, {
                     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
                 });
@@ -631,7 +634,7 @@
                 }
                 
                 ultimosConVariacion.push({ ...ultimo, variacionVsAnterior: variacion });
-            } 
+            }
             
             const señalEmpresas = ultimosConVariacion.filter(a => CASOS_SEÑAL.includes(a.caso_numero));
             señalEmpresas.sort((a,b) => {
