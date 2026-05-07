@@ -444,31 +444,35 @@
     function calcularPorcentajeVsDiaAnterior(analisisArrayAsc) {
         if (!analisisArrayAsc || analisisArrayAsc.length === 0) return new Map();
         
-        const mapaPorDia = new Map();
-        
-        // Obtener el último precio de cada día
+        // 1. Obtener el último precio de cada día calendario
+        const ultimoPrecioPorDia = new Map(); // key: "YYYY-MM-DD", value: precio_cierre
         for (const registro of analisisArrayAsc) {
             const fechaKey = new Date(registro.fecha).toISOString().split('T')[0];
-            mapaPorDia.set(fechaKey, registro.precio_cierre);
+            // Sobrescribe para quedarnos con el último precio de ese día
+            ultimoPrecioPorDia.set(fechaKey, registro.precio_cierre);
         }
         
-        const variaciones = new Map();
-        const diasArray = Array.from(mapaPorDia.keys()).sort();
+        // 2. Obtener array ordenado de días
+        const diasArray = Array.from(ultimoPrecioPorDia.keys()).sort();
         
+        // 3. Crear un mapa: día -> precio del día anterior
+        const precioDiaAnterior = new Map();
+        for (let i = 0; i < diasArray.length; i++) {
+            if (i > 0) {
+                precioDiaAnterior.set(diasArray[i], ultimoPrecioPorDia.get(diasArray[i - 1]));
+            }
+        }
+        
+        // 4. Calcular variación para cada registro
+        const variaciones = new Map();
         for (let i = 0; i < analisisArrayAsc.length; i++) {
             const registro = analisisArrayAsc[i];
-            const fechaReg = new Date(registro.fecha).toISOString().split('T')[0];
-            const posDia = diasArray.indexOf(fechaReg);
+            const fechaKey = new Date(registro.fecha).toISOString().split('T')[0];
+            const precioAnterior = precioDiaAnterior.get(fechaKey);
             
-            if (posDia > 0) {
-                const diaAnterior = diasArray[posDia - 1];
-                const precioAnterior = mapaPorDia.get(diaAnterior);
-                if (precioAnterior && precioAnterior > 0) {
-                    const variacion = ((registro.precio_cierre - precioAnterior) / precioAnterior) * 100;
-                    variaciones.set(i, variacion);
-                } else {
-                    variaciones.set(i, null);
-                }
+            if (precioAnterior && precioAnterior > 0) {
+                const variacion = ((registro.precio_cierre - precioAnterior) / precioAnterior) * 100;
+                variaciones.set(i, variacion);
             } else {
                 variaciones.set(i, null);
             }
