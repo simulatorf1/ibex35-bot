@@ -448,11 +448,29 @@
     }
 
     function calcularTendenciaPorPendiente(analisisArray) {
+        // analisisArray viene ordenado de más RECIENTE a más ANTIGUO (por cómo se usa en el código)
         if (!analisisArray || analisisArray.length < 2) return { texto: "Espera", clase: "tendencia-espera" };
-        const ultimo = analisisArray[0];
-        const anterior = analisisArray[1];
-        if (ultimo.smi_diario === null || anterior.smi_diario === null) return { texto: "Espera", clase: "tendencia-espera" };
-        const diff = ultimo.smi_diario - anterior.smi_diario;
+        
+        const hoy = analisisArray[0];
+        const fechaHoy = new Date(hoy.fecha).toDateString();
+        
+        // Buscar el primer registro que sea de un día diferente al de hoy
+        let diaAnterior = null;
+        for (let i = 1; i < analisisArray.length; i++) {
+            const registro = analisisArray[i];
+            const fechaRegistro = new Date(registro.fecha).toDateString();
+            if (fechaRegistro !== fechaHoy) {
+                diaAnterior = registro;
+                break;
+            }
+        }
+        
+        if (!diaAnterior || hoy.smi_diario === null || diaAnterior.smi_diario === null) {
+            return { texto: "Espera", clase: "tendencia-espera" };
+        }
+        
+        const diff = hoy.smi_diario - diaAnterior.smi_diario;
+        
         if (diff > 0.3) return { texto: "Positiva ▲", clase: "tendencia-positiva" };
         if (diff < -0.3) return { texto: "Negativa ▼", clase: "tendencia-negativa" };
         return { texto: "Espera", clase: "tendencia-espera" };
