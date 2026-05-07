@@ -440,6 +440,43 @@
         1: "Compra Inmediata", 2: "Compra Cautela", 3: "Rebote Corto", 4: "Compra Consolidada", 5: "Compra Final", 6: "Compra Rápida", 7: "Pre-Compra"
     };
 
+    // NUEVA FUNCIÓN: calcular porcentaje respecto al último precio del día anterior calendario
+    function calcularPorcentajeVsDiaAnterior(analisisArrayAsc) {
+        if (!analisisArrayAsc || analisisArrayAsc.length === 0) return new Map();
+        
+        const mapaPorDia = new Map();
+        
+        // Obtener el último precio de cada día
+        for (const registro of analisisArrayAsc) {
+            const fechaKey = new Date(registro.fecha).toISOString().split('T')[0];
+            mapaPorDia.set(fechaKey, registro.precio_cierre);
+        }
+        
+        const variaciones = new Map();
+        const diasArray = Array.from(mapaPorDia.keys()).sort();
+        
+        for (let i = 0; i < analisisArrayAsc.length; i++) {
+            const registro = analisisArrayAsc[i];
+            const fechaReg = new Date(registro.fecha).toISOString().split('T')[0];
+            const posDia = diasArray.indexOf(fechaReg);
+            
+            if (posDia > 0) {
+                const diaAnterior = diasArray[posDia - 1];
+                const precioAnterior = mapaPorDia.get(diaAnterior);
+                if (precioAnterior && precioAnterior > 0) {
+                    const variacion = ((registro.precio_cierre - precioAnterior) / precioAnterior) * 100;
+                    variaciones.set(i, variacion);
+                } else {
+                    variaciones.set(i, null);
+                }
+            } else {
+                variaciones.set(i, null);
+            }
+        }
+        
+        return variaciones;
+    }
+
     function smiToPuntos(smi) {
         if (smi === null || smi === undefined) return 0;
         let puntos = Math.round(((80 - smi) / 160) * 10);
@@ -448,13 +485,11 @@
     }
 
     function calcularTendenciaPorPendiente(analisisArray) {
-        // analisisArray viene ordenado de más RECIENTE a más ANTIGUO (por cómo se usa en el código)
         if (!analisisArray || analisisArray.length < 2) return { texto: "Espera", clase: "tendencia-espera" };
         
         const hoy = analisisArray[0];
         const fechaHoy = new Date(hoy.fecha).toDateString();
         
-        // Buscar el primer registro que sea de un día diferente al de hoy
         let diaAnterior = null;
         for (let i = 1; i < analisisArray.length; i++) {
             const registro = analisisArray[i];
@@ -493,7 +528,6 @@
         return html;
     }
 
-    // FUNCIÓN NUEVA: extraer hasta 3 niveles únicos (sin rangos, sin toques)
     function extraerTresNivelesLimpiar(texto, tipo) {
         if (!texto || texto === 'No hay datos') return [];
         const lineas = texto.split('\n');
@@ -503,11 +537,10 @@
             linea = linea.trim();
             if (!linea) continue;
             
-            // Extraer números individuales del rango: "3.848-3.948€" -> sacamos "3.848" y "3.948"
             const rangoMatch = linea.match(/([\d\.]+)\s*-\s*([\d\.]+)/);
             if (rangoMatch) {
-                numerosTexto.push(rangoMatch[1]);  // mantiene "3.848"
-                numerosTexto.push(rangoMatch[2]);  // mantiene "3.948"
+                numerosTexto.push(rangoMatch[1]);
+                numerosTexto.push(rangoMatch[2]);
             } else {
                 const numMatch = linea.match(/([\d\.]+)/);
                 if (numMatch) {
@@ -516,10 +549,8 @@
             }
         }
         
-        // Eliminar duplicados manteniendo el texto original
         const unicos = [...new Map(numerosTexto.map(n => [n, n])).values()];
         
-        // Convertir a número SOLO para ordenar, pero conservamos el texto original
         const conNumero = unicos.map(txt => ({ txt, num: parseFloat(txt.replace(/\./g, '')) }));
         
         if (tipo === 'soporte') {
@@ -528,7 +559,6 @@
             conNumero.sort((a, b) => a.num - b.num);
         }
         
-        // Devolver solo los 3 primeros con el texto ORIGINAL (ej: "3.848" o "3.948")
         return conNumero.slice(0, 3).map(item => `${item.txt} €`);
     }
 
@@ -538,7 +568,6 @@
         return niveles.map(n => `<div class="item">📍 ${n}</div>`).join('');
     }
 
-    // formatear mechas (antes pinchos) sin toques
     function extraerTresMechas(texto) {
         if (!texto || texto === 'No hay datos') return [];
         const lineas = texto.split('\n');
@@ -546,7 +575,6 @@
         for (let linea of lineas) {
             linea = linea.trim();
             if (!linea) continue;
-            // Limpiar solo el texto de toques si existe
             let limpia = linea.replace(/\s*\(\d+\s*toques\)/i, '').trim();
             mechas.push(limpia);
             if (mechas.length >= 3) break;
@@ -581,13 +609,13 @@
             for (let [ticker, arr] of tickerMap.entries()) {
                 if (arr.length === 0) continue;
                 const ultimo = arr[arr.length - 1];
-                let variacion = null;
-                if (arr.length >= 2) {
-                    const anterior = arr[arr.length - 2];
-                    if (anterior.precio_cierre && anterior.precio_cierre > 0) {
-                        variacion = ((ultimo.precio_cierre - anterior.precio_cierre) / anterior.precio_cierre) * 100;
-                    }
-                }
+                
+                // NUEVO CÁLCULO: porcentaje vs último precio del día anterior
+                const arrOrdenado = [...arr].sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
+                const variacionesMap = calcularPorcentajeVsDiaAnterior(arrOrdenado);
+                const idxUltimo = arrOrdenado.length - 1;
+                let variacion = variacionesMap.get(idxUltimo) || null;
+                
                 ultimosConVariacion.push({ ...ultimo, variacionVsAnterior: variacion });
             }
             
@@ -653,13 +681,11 @@
         const resultadoDiv = document.getElementById('resultadoDetalle');
         const ultimo = analisisArrayAsc[analisisArrayAsc.length - 1];
         
-        let variacionUltimo = null;
-        if (analisisArrayAsc.length >= 2) {
-            const anterior = analisisArrayAsc[analisisArrayAsc.length - 2];
-            if (anterior.precio_cierre && anterior.precio_cierre > 0) {
-                variacionUltimo = ((ultimo.precio_cierre - anterior.precio_cierre) / anterior.precio_cierre) * 100;
-            }
-        }
+        // NUEVO CÁLCULO: variación del último registro vs día anterior
+        const variacionesMap = calcularPorcentajeVsDiaAnterior(analisisArrayAsc);
+        const idxUltimo = analisisArrayAsc.length - 1;
+        let variacionUltimo = variacionesMap.get(idxUltimo) || null;
+        
         const pctValor = variacionUltimo !== null ? variacionUltimo : 0;
         const clasePct = pctValor >= 0 ? 'positivo' : 'negativo';
         const simbolo = pctValor >= 0 ? '▲' : '▼';
@@ -674,8 +700,6 @@
         const tendenciaClase = tendenciaObj.clase;
         const senalActivada = puntosCorto >= 7;
         
-        // Recomendación limpia y profesional
-        let recomendacionRaw = ultimo.recomendacion || '';
         let recomendacionLimpia = "";
         if (ultimo.caso_numero === 1) recomendacionLimpia = "🔥 COMPRA INMEDIATA: Señal directa activada. Condiciones de máxima fuerza alcista. Ejecutar entrada.";
         else if (ultimo.caso_numero === 2) recomendacionLimpia = "⚠️ COMPRA CON CAUTELA: Buen potencial pero con riesgo. Ajustar tamaño de posición.";
@@ -690,12 +714,10 @@
         for (let i = analisisArrayAsc.length - 1; i >= 0; i--) {
             const a = analisisArrayAsc[i];
             const fechaItem = new Date(a.fecha).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
-            let variacionItem = null;
-            if (i > 0) {
-                const prev = analisisArrayAsc[i - 1];
-                if (prev.precio_cierre && prev.precio_cierre > 0)
-                    variacionItem = ((a.precio_cierre - prev.precio_cierre) / prev.precio_cierre) * 100;
-            }
+            
+            // NUEVO CÁLCULO: variación de cada registro vs su día anterior
+            let variacionItem = variacionesMap.get(i) || null;
+            
             const pctShow = variacionItem !== null ? `${variacionItem >= 0 ? '▲' : '▼'} ${Math.abs(variacionItem).toFixed(2)}%` : '--';
             const tipoSenal = resumenCorto[a.caso_numero] || (a.activada_por_4h ? 'Señal activa' : 'Sin señal');
             historialHtml += `<tr><td>${fechaItem}</td><td><strong>${a.precio_cierre}€</strong></td><td class="${variacionItem !== null && variacionItem >= 0 ? 'positivo' : 'negativo'}">${pctShow}</td><td>${tipoSenal}</td></tr>`;
@@ -719,7 +741,6 @@
                 <div class="seccion"><h3>💡 RECOMENDACIÓN TÉCNICA</h3><div class="recomendacion-texto" style="${(ultimo.caso_numero === 1 || ultimo.caso_numero === 4 || ultimo.caso_numero === 6) ? 'background:#1e7e34; color:white; font-weight:bold;' : ''}">${recomendacionLimpia}</div></div>
         `;
         
-        // niveles clave: solo 3 soportes y 3 resistencias, sin rangos ni toques
         if (ultimo.soportes || ultimo.resistencias) {
             html += `<div class="seccion"><h3>📊 NIVELES CLAVE</h3><div class="grid-2col">
                         <div><h4 style="margin-bottom:10px; color:#1e7e34;">📉 SOPORTES (3 principales)</h4><div class="lista-items">${formatearNiveles(ultimo.soportes, 'soporte')}</div></div>
