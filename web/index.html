@@ -613,15 +613,14 @@
             for (let [ticker, arr] of tickerMap.entries()) {
                 if (arr.length === 0) continue;
                 
-                // Ordenar de más RECIENTE a más ANTIGUO
-                const arrRecientePrimero = [...arr].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-                const ultimo = arrRecientePrimero[0];
+                // IMPORTANTE: arr ya viene ordenado por fecha.desc (más reciente primero)
+                const ultimo = arr[0];  // El más reciente está en el índice 0
                 
                 let variacion = null;
                 const fechaUltimo = new Date(ultimo.fecha).toISOString().split('T')[0];
                 
-                for (let i = 1; i < arrRecientePrimero.length; i++) {
-                    const registro = arrRecientePrimero[i];
+                for (let i = 1; i < arr.length; i++) {  // empezar desde 1, no desde length-2
+                    const registro = arr[i];
                     const fechaReg = new Date(registro.fecha).toISOString().split('T')[0];
                     if (fechaReg !== fechaUltimo) {
                         if (registro.precio_cierre && registro.precio_cierre > 0) {
