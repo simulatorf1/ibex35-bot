@@ -478,42 +478,42 @@
     // FUNCIÓN NUEVA: extraer hasta 3 niveles únicos (sin rangos, sin toques)
     function extraerTresNivelesLimpiar(texto, tipo) {
         if (!texto || texto === 'No hay datos') return [];
-        // formato típico: "3.848-3.948€ (36 toques)" o "3.712-3.79€ (19 toques)"
         const lineas = texto.split('\n');
-        const nivelesNumericos = new Set();
+        const nivelesTexto = [];
         
         for (let linea of lineas) {
             linea = linea.trim();
             if (!linea) continue;
-            // Buscar patrón como "3.848-3.948€"
-            const rangoMatch = linea.match(/([\d\.]+)\s*-\s*([\d\.]+)[€\s]/);
-            if (rangoMatch) {
-                let izquierda = parseFloat(rangoMatch[1].replace(/\./g, ''));
-                let derecha = parseFloat(rangoMatch[2].replace(/\./g, ''));
-                if (!isNaN(izquierda)) nivelesNumericos.add(izquierda);
-                if (!isNaN(derecha)) nivelesNumericos.add(derecha);
-            } else {
-                // intentar capturar número suelto
-                const numMatch = linea.match(/([\d\.]+)[€\s]/);
-                if (numMatch) {
-                    let num = parseFloat(numMatch[1].replace(/\./g, ''));
-                    if (!isNaN(num)) nivelesNumericos.add(num);
-                }
+            // Extraer el texto original del nivel (ej: "3.848-3.948€")
+            // Nos quedamos con el rango completo como viene
+            if (linea.includes('-')) {
+                // Es un rango, lo dejamos igual pero sin el (XX toques)
+                let limpia = linea.replace(/\s*\(\d+\s*toques\)/i, '').trim();
+                nivelesTexto.push(limpia);
+            } else if (linea.match(/[\d\.]+[€\s]/)) {
+                let limpia = linea.replace(/\s*\(\d+\s*toques\)/i, '').trim();
+                nivelesTexto.push(limpia);
             }
+            if (nivelesTexto.length >= 3) break;
         }
-        
-        let nivelesArray = Array.from(nivelesNumericos);
-        nivelesArray.sort((a,b) => a - b); // orden numérico asc
         
         if (tipo === 'soporte') {
-            // soportes: de mayor a menor (los más cercanos al precio actual primero)
-            nivelesArray.sort((a,b) => b - a);
+            // Soporte: ordenar por el número más alto primero (segundo número del rango o el único)
+            nivelesTexto.sort((a, b) => {
+                let numA = parseFloat(a.match(/[\d\.]+(?:€)?$/)?.[0]?.replace(/\./g, '') || '0');
+                let numB = parseFloat(b.match(/[\d\.]+(?:€)?$/)?.[0]?.replace(/\./g, '') || '0');
+                return numB - numA;
+            });
         } else {
-            // resistencias: de menor a mayor (los más cercanos primero)
-            nivelesArray.sort((a,b) => a - b);
+            // Resistencia: ordenar por el número más bajo primero
+            nivelesTexto.sort((a, b) => {
+                let numA = parseFloat(a.match(/[\d\.]+(?:€)?$/)?.[0]?.replace(/\./g, '') || '0');
+                let numB = parseFloat(b.match(/[\d\.]+(?:€)?$/)?.[0]?.replace(/\./g, '') || '0');
+                return numA - numB;
+            });
         }
         
-        return nivelesArray.slice(0, 3).map(n => `${n.toFixed(2)} €`);
+        return nivelesTexto.slice(0, 3);
     }
 
     function formatearNiveles(texto, tipo) {
@@ -530,19 +530,13 @@
         for (let linea of lineas) {
             linea = linea.trim();
             if (!linea) continue;
-            // intentar extraer número principal
-            const numMatch = linea.match(/([\d\.]+)[€\s]/);
-            if (numMatch) {
-                let num = parseFloat(numMatch[1].replace(/\./g, ''));
-                if (!isNaN(num)) mechas.push(`${num.toFixed(2)} €`);
-            } else if (linea.length > 0) {
-                mechas.push(linea.substring(0, 30));
-            }
+            // Limpiar solo el texto de toques si existe
+            let limpia = linea.replace(/\s*\(\d+\s*toques\)/i, '').trim();
+            mechas.push(limpia);
             if (mechas.length >= 3) break;
         }
         return mechas.slice(0, 3);
     }
-
     function formatearMechas(texto) {
         const items = extraerTresMechas(texto);
         if (items.length === 0) return '<div class="item">Sin velas destacadas</div>';
