@@ -1,8 +1,15 @@
 {
-  "outputDirectory": "web",
-  "rewrites": [
-    { "source": "/style.css", "destination": "/web/style.css" },
-    { "source": "/script.js", "destination": "/web/script.js" },
-    { "source": "/(.*)", "destination": "/web/index.html" }
+  "version": 2,
+  "builds": [
+    {
+      "src": "web/index.html",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/web/index.html"
+    }
   ]
 }
