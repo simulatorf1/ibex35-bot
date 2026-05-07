@@ -479,46 +479,39 @@
     function extraerTresNivelesLimpiar(texto, tipo) {
         if (!texto || texto === 'No hay datos') return [];
         const lineas = texto.split('\n');
-        const numeros = [];
+        const numerosTexto = [];
         
         for (let linea of lineas) {
             linea = linea.trim();
             if (!linea) continue;
             
-            // Extraer números individuales del rango: "3.848-3.948€" -> sacamos 3.848 y 3.948
+            // Extraer números individuales del rango: "3.848-3.948€" -> sacamos "3.848" y "3.948"
             const rangoMatch = linea.match(/([\d\.]+)\s*-\s*([\d\.]+)/);
             if (rangoMatch) {
-                let num1 = rangoMatch[1].replace(/\./g, '');
-                let num2 = rangoMatch[2].replace(/\./g, '');
-                numeros.push(parseFloat(num1));
-                numeros.push(parseFloat(num2));
+                numerosTexto.push(rangoMatch[1]);  // mantiene "3.848"
+                numerosTexto.push(rangoMatch[2]);  // mantiene "3.948"
             } else {
-                // Si es un número suelto
                 const numMatch = linea.match(/([\d\.]+)/);
                 if (numMatch) {
-                    let num = parseFloat(numMatch[1].replace(/\./g, ''));
-                    numeros.push(num);
+                    numerosTexto.push(numMatch[1]);
                 }
             }
         }
         
-        // Eliminar duplicados
-        const unicos = [...new Set(numeros)];
+        // Eliminar duplicados manteniendo el texto original
+        const unicos = [...new Map(numerosTexto.map(n => [n, n])).values()];
+        
+        // Convertir a número SOLO para ordenar, pero conservamos el texto original
+        const conNumero = unicos.map(txt => ({ txt, num: parseFloat(txt.replace(/\./g, '')) }));
         
         if (tipo === 'soporte') {
-            // Soportes: ordenar de MAYOR a MENOR (los más cercanos al precio arriba)
-            unicos.sort((a, b) => b - a);
+            conNumero.sort((a, b) => b.num - a.num);
         } else {
-            // Resistencias: ordenar de MENOR a MAYOR
-            unicos.sort((a, b) => a - b);
+            conNumero.sort((a, b) => a.num - b.num);
         }
         
-        // Devolver solo los 3 primeros como string formateado
-        return unicos.slice(0, 3).map(n => {
-            // Si es número grande (ej 3848) mostrarlo con 2 decimales
-            if (n > 100) return `${n.toFixed(2)} €`;
-            return `${n} €`;
-        });
+        // Devolver solo los 3 primeros con el texto ORIGINAL (ej: "3.848" o "3.948")
+        return conNumero.slice(0, 3).map(item => `${item.txt} €`);
     }
 
     function formatearNiveles(texto, tipo) {
