@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Análisis estructuras</title>
     <style>
         * {
@@ -12,861 +12,681 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, 'Roboto', sans-serif;
+            background: #f0f2f5;
             min-height: 100vh;
-            padding: 20px;
+            padding: 24px 20px;
+            color: #1a2634;
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1440px;
             margin: 0 auto;
         }
 
+        /* Cabecera profesional */
+        .header-professional {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 24px 32px;
+            margin-bottom: 32px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.05);
+            border: 1px solid #eef2f6;
+        }
+
         h1 {
-            text-align: center;
-            color: white;
-            margin-bottom: 10px;
-            font-size: 2rem;
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: #0b2b3b;
+            letter-spacing: -0.3px;
+            margin-bottom: 6px;
         }
 
         .subtitulo {
-            text-align: center;
-            color: rgba(255,255,255,0.7);
-            margin-bottom: 30px;
+            color: #5e6f8d;
             font-size: 0.9rem;
+            font-weight: 400;
         }
 
+        /* buscador refinado */
         .buscador {
             display: flex;
-            gap: 15px;
+            gap: 12px;
             justify-content: center;
-            margin-bottom: 40px;
+            margin-bottom: 32px;
             flex-wrap: wrap;
         }
 
         #inputEmpresa {
             flex: 1;
-            max-width: 400px;
-            padding: 15px 20px;
-            font-size: 1rem;
-            border: none;
-            border-radius: 50px;
+            max-width: 420px;
+            padding: 14px 20px;
+            font-size: 0.95rem;
+            border: 1px solid #cfdfed;
+            border-radius: 60px;
             outline: none;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            background: #ffffff;
+            transition: all 0.2s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+        }
+
+        #inputEmpresa:focus {
+            border-color: #2c7da0;
+            box-shadow: 0 0 0 3px rgba(44,125,160,0.1);
         }
 
         #btnBuscar {
-            padding: 15px 30px;
-            font-size: 1rem;
-            background: #00b4d8;
+            padding: 14px 28px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            background: #1e4668;
             color: white;
             border: none;
-            border-radius: 50px;
+            border-radius: 60px;
             cursor: pointer;
-            font-weight: bold;
-            transition: transform 0.2s, background 0.2s;
+            transition: all 0.2s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
 
         #btnBuscar:hover {
-            background: #0096c7;
-            transform: scale(1.02);
+            background: #0f3552;
+            transform: translateY(-1px);
         }
 
+        /* secciones */
         .seccion-principal {
+            background: transparent;
             margin-bottom: 40px;
         }
 
         .seccion-principal h2 {
-            color: white;
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #1a3e50;
             margin-bottom: 20px;
             display: flex;
             align-items: center;
-            gap: 10px;
-            font-size: 1.5rem;
+            gap: 8px;
+            border-left: 5px solid #2c7da0;
+            padding-left: 16px;
         }
 
         .grid-empresas {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+            gap: 22px;
         }
 
+        /* tarjetas nuevas: blanco profesional */
         .tarjeta-empresa {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 20px 22px;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            animation: fadeIn 0.3s ease;
+            transition: all 0.2s ease;
+            border: 1px solid #e6edf4;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
         }
 
         .tarjeta-empresa:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -12px rgba(0, 0, 0, 0.1);
+            border-color: #cbdde9;
         }
 
         .tarjeta-nombre {
-            font-size: 1.3rem;
-            font-weight: bold;
-            color: #1e3c72;
-            margin-bottom: 5px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #1e3a5f;
+            margin-bottom: 4px;
         }
 
         .tarjeta-ticker {
-            font-size: 0.8rem;
-            color: #888;
-            margin-bottom: 10px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #6c86a3;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 12px;
         }
 
         .tarjeta-precio {
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: #2c3e50;
-            margin: 10px 0;
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: #0b2b3b;
+            margin: 12px 0 6px;
         }
 
         .tarjeta-porcentaje {
-            font-size: 1rem;
-            font-weight: bold;
-            margin: 5px 0;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin: 4px 0;
         }
 
-        .positivo { color: #28a745; }
-        .negativo { color: #dc3545; }
+        .positivo { color: #1e7e34; background: #e9f6ec; display: inline-block; padding: 2px 10px; border-radius: 30px; }
+        .negativo { color: #b91c1c; background: #fee9e9; display: inline-block; padding: 2px 10px; border-radius: 30px; }
 
         .tipo-compra-badge {
             display: inline-block;
-            padding: 8px 15px;
-            border-radius: 50px;
-            font-size: 0.75rem;
-            font-weight: bold;
-            margin: 10px 0;
-            background: #1e3c72;
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            margin: 12px 0 8px;
+            background: #eef2fa;
+            color: #1e4668;
+            letter-spacing: 0.2px;
+        }
+
+        /* badge específico para señal compra destacada (1,6,4) */
+        .tipo-compra-badge.strong-buy {
+            background: #1e7e34;
             color: white;
         }
 
         .tarjeta-fecha {
             font-size: 0.7rem;
-            color: #888;
-            margin-top: 10px;
+            color: #8ba0bc;
+            margin-top: 12px;
+            border-top: 1px solid #ecf3f9;
+            padding-top: 12px;
         }
 
-        .sin-señales {
-            background: rgba(255,255,255,0.1);
-            border-radius: 15px;
-            padding: 40px;
-            text-align: center;
-            color: white;
-        }
-
+        /* detalle */
         .resultado-detalle {
             background: white;
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            margin-top: 20px;
-            animation: fadeIn 0.3s ease;
+            border-radius: 28px;
+            padding: 28px 32px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+            margin-top: 8px;
+            border: 1px solid #e9f0f5;
         }
 
         .btn-cerrar {
-            background: #6c757d;
-            color: white;
+            background: #eef2fa;
+            color: #1e4668;
             border: none;
-            padding: 10px 20px;
-            border-radius: 50px;
+            padding: 10px 24px;
+            border-radius: 40px;
+            font-weight: 600;
             cursor: pointer;
-            margin-bottom: 20px;
-            font-size: 0.9rem;
+            margin-bottom: 28px;
+            transition: all 0.2s;
+            font-size: 0.85rem;
         }
 
         .btn-cerrar:hover {
-            background: #5a6268;
+            background: #e2e8f2;
         }
 
         .tipo-compra-tag {
             display: inline-block;
-            padding: 10px 20px;
-            border-radius: 50px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            font-size: 1.1rem;
-            background: #1e3c72;
+            padding: 10px 24px;
+            border-radius: 40px;
+            font-weight: 700;
+            margin-bottom: 28px;
+            font-size: 1rem;
+            background: #1e4668;
             color: white;
+            letter-spacing: -0.2px;
         }
 
         .info-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 1.2rem;
+            margin-bottom: 32px;
         }
 
         .info-card {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 12px;
+            background: #fafcff;
+            padding: 1.1rem;
+            border-radius: 20px;
             text-align: center;
+            border: 1px solid #eef2f8;
         }
 
         .info-card h3 {
-            font-size: 0.8rem;
-            color: #666;
-            margin-bottom: 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #5f7f9e;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
             text-transform: uppercase;
         }
 
         .info-card .valor {
             font-size: 1.4rem;
-            font-weight: bold;
-            color: #333;
+            font-weight: 700;
+            color: #1a3e50;
         }
 
-        /* Barras de 10 puntos */
-        .barra-container {
-            margin-top: 10px;
-        }
-        .barra-label {
-            font-size: 0.7rem;
-            color: #666;
-            margin-bottom: 5px;
-        }
+        /* Barras refinadas */
         .barra {
             display: flex;
-            gap: 4px;
+            gap: 5px;
             justify-content: center;
+            margin: 12px 0 8px;
         }
         .punto {
-            width: 20px;
-            height: 8px;
-            border-radius: 2px;
-            background-color: #e0e0e0;
-            transition: background-color 0.3s;
+            width: 24px;
+            height: 6px;
+            border-radius: 3px;
+            background-color: #e2e9f2;
+            transition: all 0.2s;
         }
         .punto.activo {
-            background-color: #28a745;
+            background-color: #2c7da0;
         }
 
+        .barra-label {
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+
+        .tendencia-positiva { color: #1e7e34; font-weight: 600; }
+        .tendencia-negativa { color: #b91c1c; font-weight: 600; }
+        .tendencia-espera { color: #e68a2e; font-weight: 600; }
+
         .seccion {
-            margin-top: 25px;
-            border-top: 2px solid #eee;
-            padding-top: 20px;
+            margin-top: 32px;
+            border-top: 1px solid #eef3fc;
+            padding-top: 28px;
         }
 
         .seccion h3 {
-            margin-bottom: 15px;
-            color: #1e3c72;
+            margin-bottom: 18px;
+            color: #1e4668;
+            font-weight: 600;
+            font-size: 1.2rem;
         }
 
         .lista-items {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
         }
 
         .item {
-            background: #f8f9fa;
-            padding: 10px 15px;
-            border-radius: 10px;
+            background: #f9fbfe;
+            padding: 12px 16px;
+            border-radius: 14px;
             font-size: 0.85rem;
-            border-left: 3px solid #00b4d8;
+            border-left: 3px solid #2c7da0;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-        }
-
-        .volumen-badge {
-            background: #1e3c72;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            font-weight: bold;
+            color: #2c3f57;
         }
 
         .grid-2col {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            gap: 24px;
         }
 
         .recomendacion-texto {
-            font-size: 1.1rem;
-            line-height: 1.5;
-            background: #e9ecef;
-            padding: 15px;
-            border-radius: 12px;
-            margin-top: 10px;
+            font-size: 1rem;
+            line-height: 1.45;
+            background: #f0f6fe;
+            padding: 18px 22px;
+            border-radius: 20px;
+            color: #1e3a5f;
+            font-weight: 500;
         }
 
         .tabla-historial {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 15px;
-        }
-
-        .tabla-historial th,
-        .tabla-historial td {
-            padding: 10px;
-            text-align: center;
-            border-bottom: 1px solid #ddd;
+            font-size: 0.8rem;
+            background: white;
+            border-radius: 18px;
+            overflow: hidden;
         }
 
         .tabla-historial th {
-            background: #1e3c72;
+            background: #1e3a5f;
             color: white;
-            font-weight: bold;
+            padding: 12px 8px;
+            font-weight: 600;
         }
 
-        .tabla-historial tr:hover {
-            background: #f8f9fa;
+        .tabla-historial td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #e9f0f5;
         }
 
         .scroll-horizontal {
             overflow-x: auto;
+            border-radius: 18px;
         }
 
         .error {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 15px;
-            border-radius: 10px;
+            background: #fff0f0;
+            color: #b91c1c;
+            padding: 20px;
+            border-radius: 24px;
             text-align: center;
+            font-weight: 500;
         }
 
         .loading {
             text-align: center;
-            padding: 40px;
-            color: white;
+            padding: 50px;
+            color: #4a6885;
+            background: white;
+            border-radius: 28px;
         }
 
         .hidden {
             display: none;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @media (max-width: 768px) {
-            .grid-2col {
-                grid-template-columns: 1fr;
-            }
-            .grid-empresas {
-                grid-template-columns: 1fr;
-            }
-            .punto {
-                width: 12px;
-            }
+        @media (max-width: 700px) {
+            .grid-2col { grid-template-columns: 1fr; }
+            .grid-empresas { grid-template-columns: 1fr; }
+            .resultado-detalle { padding: 20px; }
+            .punto { width: 16px; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-
-        
-        <div class="buscador">
-            <input type="text" id="inputEmpresa" placeholder="Buscar empresa específica (ej: Santander, BBVA...)" autocomplete="off">
-            <button id="btnBuscar">🔍 Analizar</button>
-        </div>
-
-        <!-- Sección: Empresas con señal -->
-        <div id="seccionSeñales" class="seccion-principal">
-            <h2>🟢 EMPRESAS CON SEÑAL DE COMPRA</h2>
-            <div id="listaSeñales" class="grid-empresas">
-                <div class="loading">🔄 Cargando señales...</div>
-            </div>
-        </div>
-
-        <!-- Sección: Resultado detallado -->
-        <div id="resultadoDetalle" class="hidden"></div>
+<div class="container">
+    <div class="header-professional">
+        <h1>📊 Análisis Estructuras · IBEX 35</h1>
+        <div class="subtitulo">Señales técnicas basadas en datos reales | SMI diario · Pendiente como indicador de tendencia</div>
     </div>
 
-    <script>
-        // ============================================
-        // CONFIGURACIÓN DE SUPABASE
-        // ============================================
-        const SUPABASE_URL = "https://klwcletpqqsabtdanldx.supabase.co";
-        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtsd2NsZXRwcXFzYWJ0ZGFubGR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4MDg2NTEsImV4cCI6MjA5MjM4NDY1MX0.nbs0tYbFOL-I8qIkgB7Ub_jcOwHTdzg0EcAp1DS6sCU";
+    <div class="buscador">
+        <input type="text" id="inputEmpresa" placeholder="Buscar por nombre (Santander, BBVA, Inditex, Iberdrola...)" autocomplete="off">
+        <button id="btnBuscar">🔍 Analizar ticker</button>
+    </div>
 
-        // Casos que consideramos "señal" (todos excepto null)
-        const CASOS_SEÑAL = [1, 2, 3, 4, 5, 6, 7];
+    <!-- Sección: Empresas con señal -->
+    <div id="seccionSeñales" class="seccion-principal">
+        <h2>🟢 SEÑALES ACTIVAS · COMPRA</h2>
+        <div id="listaSeñales" class="grid-empresas">
+            <div class="loading">🔄 Cargando señales en tiempo real...</div>
+        </div>
+    </div>
 
-        // Mapeo de casos a descripciones amigables
-        const descripcionCompra = {
-            1: "🔥 COMPRA INMEDIATA - Máxima fuerza alcista",
-            2: "⚠️ COMPRA CON CAUTELA - Buen potencial pero con riesgo",
-            3: "📈 REBOTE CORTO PLAZO - Tendencia general aún bajista",
-            4: "✅ COMPRA CONSOLIDADA - Tendencia alcista confirmada",
-            5: "🏁 COMPRA FINAL - Última oportunidad antes de techo",
-            6: "🚀 COMPRA RÁPIDA - Momento óptimo para entrar",
-            7: "⏳ PRE-COMPRA - A punto de activarse la señal"
-        };
+    <!-- Detalle -->
+    <div id="resultadoDetalle" class="hidden"></div>
+</div>
 
-        // Mapeo de casos a resúmenes cortos para tarjetas
-        const resumenCorto = {
-            1: "Compra Inmediata",
-            2: "Compra con Cautela",
-            3: "Rebote Corto Plazo",
-            4: "Compra Consolidada",
-            5: "Compra Final",
-            6: "Compra Rápida",
-            7: "Pre-Compra"
-        };
+<script>
+    // ============================================
+    // SUPABASE CREDENCIALES (reales)
+    // ============================================
+    const SUPABASE_URL = "https://klwcletpqqsabtdanldx.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtsd2NsZXRwcXFzYWJ0ZGFubGR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4MDg2NTEsImV4cCI6MjA5MjM4NDY1MX0.nbs0tYbFOL-I8qIkgB7Ub_jcOwHTdzg0EcAp1DS6sCU";
 
-        // ============================================
-        // CONVERTIR SMI A PUNTOS (0-10)
-        // ============================================
-        function smiToPuntos(smi) {
-            if (smi === null || smi === undefined) return 0;
-            // SMI típicamente entre -80 y 80
-            // mapeamos a 0-10 (sobreventa extremo = 10 puntos)
-            let puntos = Math.round(((80 - smi) / 160) * 10);
-            puntos = Math.max(0, Math.min(10, puntos));
-            return puntos;
+    const CASOS_SEÑAL = [1, 2, 3, 4, 5, 6, 7];
+    const descripcionCompra = {
+        1: "🔥 COMPRA INMEDIATA - Máxima fuerza alcista",
+        2: "⚠️ COMPRA CON CAUTELA - Buen potencial pero con riesgo",
+        3: "📈 REBOTE CORTO PLAZO - Tendencia general aún bajista",
+        4: "✅ COMPRA CONSOLIDADA - Tendencia alcista confirmada",
+        5: "🏁 COMPRA FINAL - Última oportunidad antes de techo",
+        6: "🚀 COMPRA RÁPIDA - Momento óptimo para entrar",
+        7: "⏳ PRE-COMPRA - A punto de activarse la señal"
+    };
+    const resumenCorto = {
+        1: "Compra Inmediata", 2: "Compra Cautela", 3: "Rebote Corto", 4: "Compra Consolidada", 5: "Compra Final", 6: "Compra Rápida", 7: "Pre-Compra"
+    };
+
+    // ========== SMI a puntos (sobreventa/sobrecompra) ==========
+    function smiToPuntos(smi) {
+        if (smi === null || smi === undefined) return 0;
+        let puntos = Math.round(((80 - smi) / 160) * 10);
+        puntos = Math.max(0, Math.min(10, puntos));
+        return puntos;
+    }
+
+    // ========== NUEVA LÓGICA TENDENCIA SEGÚN PENDIENTE REAL (datos históricos) ==========
+    // Para calcular pendiente del SMI diario usamos últimos 2 registros (más reciente y anterior) o tendencia implícita
+    // Dado que tenemos array historial por ticker, podemos calcular si el SMI diario ha subido o bajado entre la fecha anterior y la más reciente.
+    // Función que recibe lista de análisis ordenados por fecha DESC (el más reciente primero) y devuelve tendencia para el último registro.
+    function calcularTendenciaPorPendiente(analisisArray) {
+        if (!analisisArray || analisisArray.length < 2) return { texto: "Espera", clase: "tendencia-espera" };
+        // El primer elemento es el más reciente, segundo el anterior
+        const ultimo = analisisArray[0];
+        const anterior = analisisArray[1];
+        if (ultimo.smi_diario === null || anterior.smi_diario === null) return { texto: "Espera", clase: "tendencia-espera" };
+        const diff = ultimo.smi_diario - anterior.smi_diario;
+        if (diff > 0.3) return { texto: "Positiva ▲", clase: "tendencia-positiva" };
+        if (diff < -0.3) return { texto: "Negativa ▼", clase: "tendencia-negativa" };
+        return { texto: "Espera", clase: "tendencia-espera" };
+    }
+
+    // calcular porcentaje real respecto a precio apertura del mismo día (dato de la fila)
+    function calcularPorcentajeDesdeApertura(precioApertura, precioCierre) {
+        if (!precioApertura || !precioCierre || precioApertura === 0) return null;
+        return ((precioCierre - precioApertura) / precioApertura) * 100;
+    }
+
+    function generarBarra(puntos) {
+        let html = '<div class="barra">';
+        for (let i = 0; i < 10; i++) {
+            html += `<div class="punto ${i < puntos ? 'activo' : ''}"></div>`;
         }
+        html += '</div>';
+        return html;
+    }
 
-        function smiToTendencia(smi) {
-            if (smi === null || smi === undefined) return "Neutral";
-            if (smi > 20) return "Positiva";
-            if (smi < -20) return "Negativa";
-            return "Neutral";
-        }
+    // procesar niveles sin inventar volumen (mostrar texto literal)
+    function procesarNiveles(texto) {
+        if (!texto || texto === 'No hay datos') return [];
+        const lineas = texto.split('\n');
+        return lineas.filter(l => l.trim() !== '').map(l => ({ texto: l.trim() }));
+    }
 
-        // ============================================
-        // GENERAR BARRA DE 10 PUNTOS
-        // ============================================
-        function generarBarra(puntos) {
-            let html = '<div class="barra">';
-            for (let i = 0; i < 10; i++) {
-                html += `<div class="punto ${i < puntos ? 'activo' : ''}"></div>`;
-            }
-            html += '</div>';
-            return html;
-        }
+    function formatearListaOrdenada(texto) {
+        if (!texto || texto === 'No hay datos') return '<div class="item">No hay datos disponibles</div>';
+        const niveles = procesarNiveles(texto);
+        if (niveles.length === 0) return '<div class="item">Sin niveles relevantes</div>';
+        return niveles.map(n => `<div class="item">📌 ${n.texto}</div>`).join('');
+    }
 
-        // ============================================
-        // CARGAR EMPRESAS CON SEÑAL
-        // ============================================
-        async function cargarSeñales() {
-            const listaDiv = document.getElementById('listaSeñales');
-            
-            try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?select=*&order=fecha.desc&limit=200`, {
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Authorization': `Bearer ${SUPABASE_KEY}`
-                    }
-                });
-                
-                if (!response.ok) throw new Error('Error cargando empresas');
-                
-                const todosLosAnalisis = await response.json();
-                
-                // Agrupar por ticker y quedarse con el último
-                const ultimosAnalisis = {};
-                for (const analisis of todosLosAnalisis) {
-                    const ticker = analisis.ticker;
-                    if (!ultimosAnalisis[ticker] || new Date(analisis.fecha) > new Date(ultimosAnalisis[ticker].fecha)) {
-                        ultimosAnalisis[ticker] = analisis;
-                    }
+    // ========== CARGAR SEÑALES (tarjetas) ==========
+    async function cargarSeñales() {
+        const listaDiv = document.getElementById('listaSeñales');
+        try {
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?select=*&order=fecha.desc&limit=250`, {
+                headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+            });
+            if (!response.ok) throw new Error('Error cargando');
+            const todos = await response.json();
+            const ultimosPorTicker = {};
+            for (const a of todos) {
+                const ticker = a.ticker;
+                if (!ultimosPorTicker[ticker] || new Date(a.fecha) > new Date(ultimosPorTicker[ticker].fecha)) {
+                    ultimosPorTicker[ticker] = a;
                 }
-                
-                // Filtrar solo los que tienen caso de señal
-                const casosSeñal = Object.values(ultimosAnalisis).filter(a => CASOS_SEÑAL.includes(a.caso_numero));
-                
-                // Ordenar por caso (prioridad)
-                casosSeñal.sort((a, b) => {
-                    const orden = [1, 6, 2, 7, 4, 3, 5];
-                    return orden.indexOf(a.caso_numero) - orden.indexOf(b.caso_numero);
-                });
-                
-                mostrarSeñales(casosSeñal);
-                
-            } catch (error) {
-                console.error('Error:', error);
-                listaDiv.innerHTML = '<div class="sin-señales">❌ Error al cargar las señales</div>';
             }
+            const señalEmpresas = Object.values(ultimosPorTicker).filter(a => CASOS_SEÑAL.includes(a.caso_numero));
+            señalEmpresas.sort((a,b) => (a.caso_numero === 1 ? -1 : (b.caso_numero === 1 ? 1 : a.caso_numero - b.caso_numero)));
+            mostrarSeñales(señalEmpresas);
+        } catch (err) {
+            listaDiv.innerHTML = '<div class="sin-señales" style="background:white; padding:30px; border-radius:28px;">❌ Error al cargar señales</div>';
         }
+    }
 
-        // ============================================
-        // MOSTRAR TARJETAS DE SEÑALES (SOLO INFO BÁSICA)
-        // ============================================
-        function mostrarSeñales(empresas) {
-            const listaDiv = document.getElementById('listaSeñales');
-            
-            if (empresas.length === 0) {
-                listaDiv.innerHTML = '<div class="sin-señales">📭 No hay empresas con señal en este momento</div>';
+    function mostrarSeñales(empresas) {
+        const listaDiv = document.getElementById('listaSeñales');
+        if (empresas.length === 0) {
+            listaDiv.innerHTML = '<div style="background: white; border-radius: 28px; padding: 40px; text-align:center;">📭 No hay empresas con señal activa ahora mismo.</div>';
+            return;
+        }
+        let html = '';
+        for (const emp of empresas) {
+            const pct = calcularPorcentajeDesdeApertura(emp.precio_apertura, emp.precio_cierre);
+            const pctVal = pct !== null ? pct : 0;
+            const clasePct = pctVal >= 0 ? 'positivo' : 'negativo';
+            const simbolo = pctVal >= 0 ? '▲' : '▼';
+            const fechaFormateada = new Date(emp.fecha).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
+            const badgeStrong = (emp.caso_numero === 1 || emp.caso_numero === 6 || emp.caso_numero === 4) ? 'strong-buy' : '';
+            html += `
+                <div class="tarjeta-empresa" onclick="verDetalle('${emp.ticker}')">
+                    <div class="tarjeta-nombre">${emp.nombre_empresa || emp.ticker}</div>
+                    <div class="tarjeta-ticker">${emp.ticker}</div>
+                    <div class="tarjeta-precio">${emp.precio_cierre} €</div>
+                    <div class="tarjeta-porcentaje ${clasePct}">${simbolo} ${Math.abs(pctVal).toFixed(2)}% (vs apertura día)</div>
+                    <div class="tipo-compra-badge ${badgeStrong}">${resumenCorto[emp.caso_numero] || 'Señal'}</div>
+                    <div class="tarjeta-fecha">📅 ${fechaFormateada}</div>
+                </div>
+            `;
+        }
+        listaDiv.innerHTML = html;
+    }
+
+    // ========== DETALLE CON HISTORIAL + TENDENCIA POR PENDIENTE ==========
+    async function verDetalle(ticker) {
+        const seccionSeñales = document.getElementById('seccionSeñales');
+        const resultadoDiv = document.getElementById('resultadoDetalle');
+        seccionSeñales.classList.add('hidden');
+        resultadoDiv.classList.remove('hidden');
+        resultadoDiv.innerHTML = '<div class="loading">📊 Cargando análisis completo...</div>';
+        try {
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?ticker=eq.${encodeURIComponent(ticker)}&order=fecha.desc&limit=40`, {
+                headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+            });
+            if (!response.ok) throw new Error('Error');
+            const data = await response.json();
+            if (!data || data.length === 0) {
+                resultadoDiv.innerHTML = '<div class="error">❌ No se encontraron registros para este ticker</div><button class="btn-cerrar" onclick="cerrarDetalle()">← Volver</button>';
                 return;
             }
-            
-            let html = '';
-            for (const emp of empresas) {
-                // Calcular % de subida desde apertura
-                let porcentajeSubida = 0;
-                if (emp.precio_apertura && emp.precio_apertura > 0 && emp.precio_cierre) {
-                    porcentajeSubida = ((emp.precio_cierre - emp.precio_apertura) / emp.precio_apertura) * 100;
-                }
-                const porcentajeClase = porcentajeSubida >= 0 ? 'positivo' : 'negativo';
-                const porcentajeSimbolo = porcentajeSubida >= 0 ? '▲' : '▼';
-                const fechaFormateada = new Date(emp.fecha).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
-                
-                html += `
-                    <div class="tarjeta-empresa" onclick="verDetalle('${emp.ticker}')">
-                        <div class="tarjeta-nombre">${emp.nombre_empresa}</div>
-                        <div class="tarjeta-ticker">${emp.ticker}</div>
-                        <div class="tarjeta-precio">${emp.precio_cierre} €</div>
-                        <div class="tarjeta-porcentaje ${porcentajeClase}">${porcentajeSimbolo} ${Math.abs(porcentajeSubida).toFixed(2)}% desde apertura</div>
-                        <div class="tipo-compra-badge">${resumenCorto[emp.caso_numero] || 'Señal de Compra'}</div>
-                        <div class="tarjeta-fecha">📅 ${fechaFormateada}</div>
-                    </div>
-                `;
-            }
-            
-            listaDiv.innerHTML = html;
+            mostrarDetalleCompletoConHistorial(data);
+        } catch (err) {
+            resultadoDiv.innerHTML = `<div class="error">Error: ${err.message}</div><button class="btn-cerrar" onclick="cerrarDetalle()">← Volver</button>`;
+        }
+    }
+
+    function mostrarDetalleCompletoConHistorial(analisisArray) {
+        const resultadoDiv = document.getElementById('resultadoDetalle');
+        const ultimo = analisisArray[0];
+        const pctReal = calcularPorcentajeDesdeApertura(ultimo.precio_apertura, ultimo.precio_cierre);
+        const pctValor = pctReal !== null ? pctReal : 0;
+        const clasePct = pctValor >= 0 ? 'positivo' : 'negativo';
+        const simbolo = pctValor >= 0 ? '▲' : '▼';
+        const fechaFormateada = new Date(ultimo.fecha).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
+
+        const puntosCorto = smiToPuntos(ultimo.smi_4h);
+        const puntosMedio = smiToPuntos(ultimo.smi_diario);
+        const puntosLargo = smiToPuntos(ultimo.smi_semanal);
+
+        // TENDENCIA MEDIO PLAZO basada en PENDIENTE REAL del SMI diario (entre último y penúltimo)
+        const tendenciaObj = calcularTendenciaPorPendiente(analisisArray);
+        const tendenciaTexto = tendenciaObj.texto;
+        const tendenciaClase = tendenciaObj.clase;
+
+        const senalActivada = puntosCorto >= 7;
+
+        let recomendacionLimpia = ultimo.recomendacion || 'Condiciones técnicas bajo análisis.';
+        recomendacionLimpia = recomendacionLimpia.replace(/SMI\s*\d*h?/gi, '').replace(/4h|diario|semanal|sobreventa/gi, '').replace(/activada_por_4h/g, '').replace(/\s+/g, ' ').trim();
+        if (recomendacionLimpia === '' || recomendacionLimpia.includes('no se cumplen')) {
+            recomendacionLimpia = senalActivada ? '✅ SE ACTIVA SEÑAL DE COMPRA - Condiciones técnicas favorables.' : '⏳ Condiciones no favorables, se recomienda esperar confirmación.';
         }
 
-        // ============================================
-        // VER DETALLE DE EMPRESA CON HISTORIAL
-        // ============================================
-        async function verDetalle(ticker) {
-            const seccionSeñales = document.getElementById('seccionSeñales');
-            const resultadoDiv = document.getElementById('resultadoDetalle');
-            
-            seccionSeñales.classList.add('hidden');
-            resultadoDiv.classList.remove('hidden');
-            resultadoDiv.innerHTML = '<div class="loading">🔄 Cargando datos...</div>';
-            
-            try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?ticker=eq.${encodeURIComponent(ticker)}&order=fecha.desc&limit=30`, {
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Authorization': `Bearer ${SUPABASE_KEY}`
-                    }
-                });
-                
-                if (!response.ok) throw new Error('Error cargando detalle');
-                
-                const data = await response.json();
-                
-                if (data && data.length > 0) {
-                    mostrarDetalleConHistorial(data);
-                } else {
-                    resultadoDiv.innerHTML = '<div class="error">No se encontraron datos</div>';
-                }
-                
-            } catch (error) {
-                resultadoDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+        // HISTORIAL tabla sin términos técnicos densos
+        let historialHtml = `
+            <div class="seccion">
+                <h3>📜 HISTORIAL DE ANÁLISIS (últimos ${Math.min(analisisArray.length, 20)})</h3>
+                <div class="scroll-horizontal">
+                    <table class="tabla-historial">
+                        <thead><tr><th>Fecha</th><th>Precio cierre</th><th>Var vs apertura</th><th>Tipo señal</th><th>Recomendación breve</th></tr></thead>
+                        <tbody>
+        `;
+        for (const a of analisisArray.slice(0, 20)) {
+            const fechaItem = new Date(a.fecha).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
+            let pctItem = null;
+            if (a.precio_apertura && a.precio_apertura > 0 && a.precio_cierre) {
+                pctItem = ((a.precio_cierre - a.precio_apertura) / a.precio_apertura) * 100;
             }
+            const pctShow = pctItem !== null ? `${pctItem >= 0 ? '▲' : '▼'} ${Math.abs(pctItem).toFixed(2)}%` : '--';
+            const tipoSenal = descripcionCompra[a.caso_numero] ? descripcionCompra[a.caso_numero].substring(0, 45) : (a.activada_por_4h ? 'Señal activa' : 'Sin señal');
+            const recShort = a.recomendacion ? a.recomendacion.replace(/SMI|4h|diario|semanal|sobreventa/gi, '').substring(0, 55) + '...' : '-';
+            historialHtml += `<tr><td>${fechaItem}</td><td><strong>${a.precio_cierre}€</strong></td><td class="${pctItem !== null && pctItem >= 0 ? 'positivo' : 'negativo'}">${pctShow}</td><td>${tipoSenal}</td><td style="white-space:normal;">${recShort}</td></tr>`;
         }
+        historialHtml += `</tbody></table></div></div>`;
 
-        // ============================================
-        // ============================================
-        // PROCESAR SOPORTES Y RESISTENCIAS (SIN VOLUMEN FALSO)
-        // ============================================
-        function procesarNiveles(texto, tipo) {
-            if (!texto) return [];
-            
-            const lineas = texto.split('\n');
-            const niveles = [];
-            
-            for (const linea of lineas) {
-                if (!linea.trim()) continue;
-                
-                // Solo guardar el texto, sin inventar volumen
-                niveles.push({
-                    texto: linea
-                });
-            }
-            
-            // Mantener el orden original en que vienen los datos
-            return niveles;
-        }
-
-
-        function formatearListaOrdenada(texto, tipo) {
-            if (!texto || texto === 'No hay datos') return '<div class="item">No hay datos disponibles</div>';
-            
-            const niveles = procesarNiveles(texto, tipo);
-            
-            if (niveles.length === 0) return '<div class="item">No hay datos disponibles</div>';
-            
-            return niveles.map(nivel => `
-                <div class="item">
-                    📌 ${nivel.texto}
-                </div>
-            `).join('');
-        }
-
-        // ============================================
-        // MOSTRAR DETALLE COMPLETO CON HISTORIAL
-        // ============================================
-        function mostrarDetalleConHistorial(analisisArray) {
-            const resultadoDiv = document.getElementById('resultadoDetalle');
-            const ultimo = analisisArray[0];
-            
-            // Calcular porcentaje
-            let porcentajeSubida = 0;
-            if (ultimo.precio_apertura && ultimo.precio_apertura > 0 && ultimo.precio_cierre) {
-                porcentajeSubida = ((ultimo.precio_cierre - ultimo.precio_apertura) / ultimo.precio_apertura) * 100;
-            }
-            const porcentajeClase = porcentajeSubida >= 0 ? 'positivo' : 'negativo';
-            const porcentajeSimbolo = porcentajeSubida >= 0 ? '▲' : '▼';
-            
-            const fechaFormateada = new Date(ultimo.fecha).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
-            
-            // Convertir SMI a puntos y tendencias
-            const puntosCorto = smiToPuntos(ultimo.smi_4h);
-            const puntosMedio = smiToPuntos(ultimo.smi_diario);
-            const puntosLargo = smiToPuntos(ultimo.smi_semanal);
-            const tendenciaMedio = smiToTendencia(ultimo.smi_diario);
-            const tendenciaClase = tendenciaMedio === 'Positiva' ? 'positivo' : (tendenciaMedio === 'Negativa' ? 'negativo' : '');
-            
-            // Señal activada si puntos > 7
-            const senalActivada = puntosCorto >= 7;
-            
-            // Limpiar recomendación de lenguaje técnico
-            let recomendacionLimpia = ultimo.recomendacion || 'Condiciones favorables para considerar entrada.';
-            recomendacionLimpia = recomendacionLimpia
-                .replace(/SMI\s*\d*h?/gi, '')
-                .replace(/4h/gi, '')
-                .replace(/diario/gi, '')
-                .replace(/semanal/gi, '')
-                .replace(/sobreventa/gi, '')
-                .replace(/SOBREVENTA/gi, '')
-                .replace(/SE IGNORA/gi, '')
-                .replace(/NO en/g, 'no está en')
-                .replace(/activada_por_4h/g, '')
-                .replace(/\s+/g, ' ')
-                .trim();
-            
-            if (recomendacionLimpia === '' || recomendacionLimpia.includes('no se cumplen')) {
-                if (senalActivada) {
-                    recomendacionLimpia = '✅ SE ACTIVA SEÑAL DE COMPRA - Las condiciones técnicas son favorables para entrar en el mercado.';
-                } else {
-                    recomendacionLimpia = '⏳ CONDICIONES NO FAVORABLES - Aún no se cumplen todos los criterios técnicos. Se recomienda esperar a que se activen las condiciones.';
-                }
-            }
-            
-            // Generar tabla de historial (sin términos técnicos)
-            let historialHtml = `
-                <div class="seccion">
-                    <h3>📜 HISTORIAL DE ANÁLISIS (Últimos ${analisisArray.length})</h3>
-                    <div class="scroll-horizontal">
-                        <table class="tabla-historial">
-                            <thead>
-                                <tr>
-                                    <th>Fecha</th>
-                                    <th>Precio</th>
-                                    <th>Desde Apertura</th>
-                                    <th>Tipo Señal</th>
-                                    <th>Recomendación</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-            `;
-            
-            for (const a of analisisArray) {
-                const fecha = new Date(a.fecha).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
-                let pct = 0;
-                if (a.precio_apertura && a.precio_apertura > 0 && a.precio_cierre) {
-                    pct = ((a.precio_cierre - a.precio_apertura) / a.precio_apertura) * 100;
-                }
-                const pctSimbolo = pct >= 0 ? '▲' : '▼';
-                const tipoSenal = descripcionCompra[a.caso_numero] || (a.activada_por_4h ? 'Señal Activada' : 'En espera');
-                
-                historialHtml += `
-                    <tr>
-                        <td>${fecha}</td>
-                        <td><strong>${a.precio_cierre}€</strong></td>
-                        <td>${pctSimbolo} ${Math.abs(pct).toFixed(2)}%</td>
-                        <td>${tipoSenal.substring(0, 40)}...</td>
-                        <td style="max-width: 200px; white-space: normal;">${a.recomendacion ? a.recomendacion.replace(/SMI|4h|diario|semanal|sobreventa/gi, '').substring(0, 60) + '...' : '-'}</td>
-                    </tr>
-                `;
-            }
-            
-            historialHtml += `
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            `;
-            
-            let html = `
+        let html = `
+            <div class="resultado-detalle">
                 <button class="btn-cerrar" onclick="cerrarDetalle()">← Volver a señales</button>
-                
-                <div class="tipo-compra-tag">${descripcionCompra[ultimo.caso_numero] || 'Señal de Compra'}</div>
-                
+                <div class="tipo-compra-tag">${descripcionCompra[ultimo.caso_numero] || 'Estrategia de compra'}</div>
                 <div class="info-grid">
-                    <div class="info-card">
-                        <h3>🏢 Empresa</h3>
-                        <div class="valor">${ultimo.nombre_empresa}</div>
-                        <div class="small">${ultimo.ticker}</div>
-                    </div>
-                    <div class="info-card">
-                        <h3>💰 Precio Actual</h3>
-                        <div class="valor">${ultimo.precio_cierre} €</div>
-                        <div class="small ${porcentajeClase}">${porcentajeSimbolo} ${Math.abs(porcentajeSubida).toFixed(2)}% desde apertura</div>
-                    </div>
-                    <div class="info-card">
-                        <h3>📅 Último análisis</h3>
-                        <div class="valor">${fechaFormateada}</div>
-                        <div class="small">Hora España</div>
-                    </div>
+                    <div class="info-card"><h3>🏢 Empresa</h3><div class="valor">${ultimo.nombre_empresa}</div><div class="small">${ultimo.ticker}</div></div>
+                    <div class="info-card"><h3>💰 Precio cierre</h3><div class="valor">${ultimo.precio_cierre} €</div><div class="small ${clasePct}">${simbolo} ${Math.abs(pctValor).toFixed(2)}% desde apertura del día</div></div>
+                    <div class="info-card"><h3>📅 Último análisis</h3><div class="valor">${fechaFormateada}</div><div class="small">Hora oficial España</div></div>
                 </div>
-                
                 <div class="info-grid">
-                    <div class="info-card">
-                        <h3>🕐 CORTO PLAZO</h3>
-                        ${generarBarra(puntosCorto)}
-                        <div class="barra-label">${senalActivada ? '✅ Señal activada' : '⏳ Esperando condición'}</div>
-                    </div>
-                    <div class="info-card">
-                        <h3>📈 MEDIO PLAZO</h3>
-                        ${generarBarra(puntosMedio)}
-                        <div class="barra-label ${tendenciaClase}">Tendencia: ${tendenciaMedio}</div>
-                    </div>
-                    <div class="info-card">
-                        <h3>📆 LARGO PLAZO</h3>
-                        ${generarBarra(puntosLargo)}
-                        <div class="barra-label">Contexto estructural</div>
-                    </div>
+                    <div class="info-card"><h3>🕐 CORTO PLAZO (SMI 4h)</h3>${generarBarra(puntosCorto)}<div class="barra-label">${senalActivada ? '✅ Señal activada' : '⏳ Sin activación'}</div></div>
+                    <div class="info-card"><h3>📈 MEDIO PLAZO</h3>${generarBarra(puntosMedio)}<div class="barra-label ${tendenciaClase}">Tendencia: ${tendenciaTexto}</div><div class="small" style="font-size:0.65rem;">basado en pendiente SMI diario</div></div>
+                    <div class="info-card"><h3>📆 LARGO PLAZO</h3>${generarBarra(puntosLargo)}<div class="barra-label">Contexto estructural</div></div>
                 </div>
-                
-                <div class="seccion">
-                    <h3>💡 RECOMENDACIÓN</h3>
-                    <div class="recomendacion-texto">${recomendacionLimpia}</div>
-                </div>
-            `;
-            
-            // Niveles con orden por volumen
-            if (ultimo.soportes || ultimo.resistencias) {
-                html += `
-                    <div class="seccion">
-                        <h3>📊 NIVELES CLAVE (ordenados por importancia)</h3>
-                        <div class="grid-2col">
-                            <div>
-                                <h4 style="margin-bottom: 10px; color: #28a745;">📉 SOPORTES</h4>
-                                <div class="lista-items">${formatearListaOrdenada(ultimo.soportes, 'soporte')}</div>
-                            </div>
-                            <div>
-                                <h4 style="margin-bottom: 10px; color: #dc3545;">📈 RESISTENCIAS</h4>
-                                <div class="lista-items">${formatearListaOrdenada(ultimo.resistencias, 'resistencia')}</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            // Gaps
-            if (ultimo.gaps_alcistas || ultimo.gaps_bajistas) {
-                html += `
-                    <div class="seccion">
-                        <h3>🕳️ GAPS</h3>
-                        <div class="grid-2col">
-                            <div>
-                                <h4 style="margin-bottom: 10px; color: #28a745;">📈 Gaps Alcistas</h4>
-                                <div class="lista-items">${formatearListaOrdenada(ultimo.gaps_alcistas, 'gap')}</div>
-                            </div>
-                            <div>
-                                <h4 style="margin-bottom: 10px; color: #dc3545;">📉 Gaps Bajistas</h4>
-                                <div class="lista-items">${formatearListaOrdenada(ultimo.gaps_bajistas, 'gap')}</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            // Pinchos
-            if (ultimo.pinchos_alcistas || ultimo.pinchos_bajistas) {
-                html += `
-                    <div class="seccion">
-                        <h3>📍 PINCHOS</h3>
-                        <div class="grid-2col">
-                            <div>
-                                <h4 style="margin-bottom: 10px; color: #28a745;">🔺 Pinchos Alcistas</h4>
-                                <div class="lista-items">${formatearListaOrdenada(ultimo.pinchos_alcistas, 'pincho')}</div>
-                            </div>
-                            <div>
-                                <h4 style="margin-bottom: 10px; color: #dc3545;">🔻 Pinchos Bajistas</h4>
-                                <div class="lista-items">${formatearListaOrdenada(ultimo.pinchos_bajistas, 'pincho')}</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            // Añadir historial
-            html += historialHtml;
-            
-            resultadoDiv.innerHTML = html;
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+                <div class="seccion"><h3>💡 RECOMENDACIÓN TÉCNICA</h3><div class="recomendacion-texto">${recomendacionLimpia}</div></div>
+        `;
+        // NIVELES
+        if (ultimo.soportes || ultimo.resistencias) {
+            html += `<div class="seccion"><h3>📊 NIVELES CLAVE (orden real desde datos)</h3><div class="grid-2col">
+                        <div><h4 style="margin-bottom:10px; color:#1e7e34;">📉 SOPORTES</h4><div class="lista-items">${formatearListaOrdenada(ultimo.soportes)}</div></div>
+                        <div><h4 style="margin-bottom:10px; color:#b91c1c;">📈 RESISTENCIAS</h4><div class="lista-items">${formatearListaOrdenada(ultimo.resistencias)}</div></div>
+                    </div></div>`;
         }
-
-        // ============================================
-        // CERRAR DETALLE
-        // ============================================
-        function cerrarDetalle() {
-            document.getElementById('seccionSeñales').classList.remove('hidden');
-            document.getElementById('resultadoDetalle').classList.add('hidden');
-            cargarSeñales();
+        if (ultimo.gaps_alcistas || ultimo.gaps_bajistas) {
+            html += `<div class="seccion"><h3>🕳️ GAPS REGISTRADOS</h3><div class="grid-2col">
+                        <div><h4 style="color:#1e7e34;">📈 Gaps Alcistas</h4><div class="lista-items">${formatearListaOrdenada(ultimo.gaps_alcistas)}</div></div>
+                        <div><h4 style="color:#b91c1c;">📉 Gaps Bajistas</h4><div class="lista-items">${formatearListaOrdenada(ultimo.gaps_bajistas)}</div></div>
+                    </div></div>`;
         }
+        if (ultimo.pinchos_alcistas || ultimo.pinchos_bajistas) {
+            html += `<div class="seccion"><h3>📍 PINCHOS</h3><div class="grid-2col">
+                        <div><h4 style="color:#1e7e34;">🔺 Pinchos Alcistas</h4><div class="lista-items">${formatearListaOrdenada(ultimo.pinchos_alcistas)}</div></div>
+                        <div><h4 style="color:#b91c1c;">🔻 Pinchos Bajistas</h4><div class="lista-items">${formatearListaOrdenada(ultimo.pinchos_bajistas)}</div></div>
+                    </div></div>`;
+        }
+        html += historialHtml;
+        html += `</div>`;
+        resultadoDiv.innerHTML = html;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 
-        // ============================================
-        // BUSCAR EMPRESA ESPECÍFICA
-        // ============================================
-        async function buscarEmpresa() {
-            const input = document.getElementById('inputEmpresa').value.trim();
-            
-            if (!input) {
-                cargarSeñales();
+    function cerrarDetalle() {
+        document.getElementById('seccionSeñales').classList.remove('hidden');
+        document.getElementById('resultadoDetalle').classList.add('hidden');
+        cargarSeñales();
+    }
+
+    async function buscarEmpresa() {
+        const input = document.getElementById('inputEmpresa').value.trim();
+        if (!input) { cargarSeñales(); return; }
+        const seccionSeñales = document.getElementById('seccionSeñales');
+        const resultadoDiv = document.getElementById('resultadoDetalle');
+        seccionSeñales.classList.add('hidden');
+        resultadoDiv.classList.remove('hidden');
+        resultadoDiv.innerHTML = '<div class="loading">🔎 Buscando empresa...</div>';
+        try {
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?nombre_empresa=ilike.%25${encodeURIComponent(input)}%25&order=fecha.desc&limit=40`, {
+                headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+            });
+            if (!response.ok) throw new Error();
+            const data = await response.json();
+            if (!data || data.length === 0) {
+                resultadoDiv.innerHTML = '<div class="error">❌ No encontrada. Prueba con: Santander, BBVA, Inditex, Iberdrola...</div><button class="btn-cerrar" onclick="cerrarDetalle()">← Volver</button>';
                 return;
             }
-            
-            const seccionSeñales = document.getElementById('seccionSeñales');
-            const resultadoDiv = document.getElementById('resultadoDetalle');
-            
-            seccionSeñales.classList.add('hidden');
-            resultadoDiv.classList.remove('hidden');
-            resultadoDiv.innerHTML = '<div class="loading">🔄 Buscando...</div>';
-            
-            try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?nombre_empresa=ilike.%25${encodeURIComponent(input)}%25&order=fecha.desc&limit=30`, {
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Authorization': `Bearer ${SUPABASE_KEY}`
-                    }
-                });
-                
-                if (!response.ok) throw new Error('Error');
-                
-                const data = await response.json();
-                
-                if (!data || data.length === 0) {
-                    resultadoDiv.innerHTML = '<div class="error">❌ No se encontró ninguna empresa. Prueba con: Santander, BBVA, Inditex...</div><button class="btn-cerrar" onclick="cerrarDetalle()">← Volver</button>';
-                    return;
-                }
-                
-                mostrarDetalleConHistorial(data);
-                
-            } catch (error) {
-                resultadoDiv.innerHTML = `<div class="error">❌ Error: ${error.message}</div><button class="btn-cerrar" onclick="cerrarDetalle()">← Volver</button>`;
-            }
+            mostrarDetalleCompletoConHistorial(data);
+        } catch (e) {
+            resultadoDiv.innerHTML = `<div class="error">Error en búsqueda</div><button class="btn-cerrar" onclick="cerrarDetalle()">← Volver</button>`;
         }
+    }
 
-        // ============================================
-        // INICIALIZAR
-        // ============================================
-        document.getElementById('btnBuscar').addEventListener('click', buscarEmpresa);
-        document.getElementById('inputEmpresa').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') buscarEmpresa();
-        });
-        
-        // Cargar señales al inicio
-        cargarSeñales();
-    </script>
+    document.getElementById('btnBuscar').addEventListener('click', buscarEmpresa);
+    document.getElementById('inputEmpresa').addEventListener('keypress', (e) => { if(e.key === 'Enter') buscarEmpresa(); });
+    cargarSeñales();
+    window.verDetalle = verDetalle;
+    window.cerrarDetalle = cerrarDetalle;
+    window.buscarEmpresa = buscarEmpresa;
+</script>
 </body>
 </html>
