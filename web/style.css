@@ -12,22 +12,29 @@ body {
 }
 
 .container {
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
 }
 
 h1 {
     text-align: center;
     color: white;
-    margin-bottom: 30px;
+    margin-bottom: 10px;
     font-size: 2rem;
+}
+
+.subtitulo {
+    text-align: center;
+    color: rgba(255,255,255,0.8);
+    margin-bottom: 30px;
+    font-size: 0.9rem;
 }
 
 .buscador {
     display: flex;
     gap: 15px;
     justify-content: center;
-    margin-bottom: 30px;
+    margin-bottom: 40px;
     flex-wrap: wrap;
 }
 
@@ -50,8 +57,8 @@ h1 {
     border: none;
     border-radius: 50px;
     cursor: pointer;
-    transition: transform 0.2s, background 0.2s;
     font-weight: bold;
+    transition: transform 0.2s, background 0.2s;
 }
 
 #btnBuscar:hover {
@@ -59,36 +66,161 @@ h1 {
     transform: scale(1.02);
 }
 
-.resultado {
+.seccion-principal {
+    margin-bottom: 40px;
+}
+
+.seccion-principal h2 {
+    color: white;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.5rem;
+}
+
+.grid-empresas {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.tarjeta-empresa {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    animation: fadeIn 0.3s ease;
+}
+
+.tarjeta-empresa:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.tarjeta-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.tarjeta-nombre {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #1e3c72;
+}
+
+.tarjeta-ticker {
+    font-size: 0.8rem;
+    color: #888;
+}
+
+.caso-badge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 50px;
+    font-size: 0.7rem;
+    font-weight: bold;
+}
+.badge-caso-1 { background: #dc3545; color: white; }
+.badge-caso-2 { background: #fd7e14; color: white; }
+.badge-caso-3 { background: #17a2b8; color: white; }
+.badge-caso-4 { background: #28a745; color: white; }
+.badge-caso-5 { background: #6c757d; color: white; }
+.badge-caso-6 { background: #9b59b6; color: white; }
+.badge-caso-7 { background: #e67e22; color: white; }
+
+.tarjeta-precio {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #333;
+    margin: 10px 0;
+}
+
+.tarjeta-smis {
+    display: flex;
+    gap: 15px;
+    margin: 10px 0;
+    font-size: 0.8rem;
+    flex-wrap: wrap;
+}
+
+.smi-4h { color: #ff6b35; font-weight: bold; }
+.smi-diario { color: #1e3c72; font-weight: bold; }
+.positivo { color: #28a745; }
+.negativo { color: #dc3545; }
+
+.tarjeta-fecha {
+    font-size: 0.7rem;
+    color: #888;
+    margin-top: 10px;
+}
+
+.tipo-senal {
+    font-size: 0.7rem;
+    background: #e9ecef;
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-top: 5px;
+}
+
+.sin-señales {
+    background: rgba(255,255,255,0.1);
+    border-radius: 15px;
+    padding: 40px;
+    text-align: center;
+    color: white;
+}
+
+.resultado-detalle {
     background: white;
     border-radius: 20px;
     padding: 25px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    margin-top: 20px;
     animation: fadeIn 0.3s ease;
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
+.btn-cerrar {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 50px;
+    cursor: pointer;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+}
+
+.btn-cerrar:hover {
+    background: #5a6268;
 }
 
 .caso-tag {
     display: inline-block;
-    padding: 8px 16px;
+    padding: 10px 20px;
     border-radius: 50px;
     font-weight: bold;
     margin-bottom: 20px;
+    font-size: 1.1rem;
 }
-
-.caso-1 { background: #28a745; color: white; }
-.caso-2 { background: #ffc107; color: #333; }
+.caso-1 { background: #dc3545; color: white; }
+.caso-2 { background: #fd7e14; color: white; }
 .caso-3 { background: #17a2b8; color: white; }
-.caso-4 { background: #007bff; color: white; }
-.caso-5 { background: #dc3545; color: white; }
+.caso-4 { background: #28a745; color: white; }
+.caso-5 { background: #6c757d; color: white; }
+.caso-6 { background: #9b59b6; color: white; }
+.caso-7 { background: #e67e22; color: white; }
 
 .info-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 15px;
     margin-bottom: 25px;
 }
@@ -101,13 +233,14 @@ h1 {
 }
 
 .info-card h3 {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: #666;
     margin-bottom: 8px;
+    text-transform: uppercase;
 }
 
 .info-card .valor {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     font-weight: bold;
     color: #333;
 }
@@ -123,33 +256,69 @@ h1 {
     color: #1e3c72;
 }
 
-.lista-niveles {
+.lista-items {
     display: flex;
-    gap: 15px;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 8px;
 }
 
-.nivel {
-    background: #e9ecef;
+.item {
+    background: #f8f9fa;
     padding: 10px 15px;
     border-radius: 10px;
-    font-size: 0.9rem;
-}
-
-.nivel strong {
-    color: #ff6b35;
-}
-
-.gap-item, .pincho-item {
-    background: #f8f9fa;
-    padding: 8px 12px;
-    margin: 5px 0;
-    border-radius: 8px;
     font-size: 0.85rem;
+    border-left: 3px solid #ff6b35;
 }
 
-.positivo { color: #28a745; font-weight: bold; }
-.negativo { color: #dc3545; font-weight: bold; }
+.grid-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.recomendacion-texto {
+    font-size: 1.1rem;
+    line-height: 1.5;
+    background: #e9ecef;
+    padding: 15px;
+    border-radius: 12px;
+    margin-top: 10px;
+}
+
+.tabla-historial {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.tabla-historial th,
+.tabla-historial td {
+    padding: 10px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+}
+
+.tabla-historial th {
+    background: #1e3c72;
+    color: white;
+    font-weight: bold;
+}
+
+.tabla-historial tr:hover {
+    background: #f8f9fa;
+}
+
+.historial-caso-1 { background-color: #f8d7da; }
+.historial-caso-2 { background-color: #ffe5d0; }
+.historial-caso-3 { background-color: #d1ecf1; }
+.historial-caso-4 { background-color: #d4edda; }
+.historial-caso-5 { background-color: #e2e3e5; }
+.historial-caso-6 { background-color: #e8d5f5; }
+.historial-caso-7 { background-color: #fde5d0; }
+
+.scroll-horizontal {
+    overflow-x: auto;
+}
 
 .error {
     background: #f8d7da;
@@ -159,12 +328,34 @@ h1 {
     text-align: center;
 }
 
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: white;
+}
+
 .hidden {
     display: none;
 }
 
+.positivo-texto { color: #28a745; font-weight: bold; }
+.negativo-texto { color: #dc3545; font-weight: bold; }
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 @media (max-width: 768px) {
-    .info-grid {
+    .grid-2col {
         grid-template-columns: 1fr;
+    }
+    .grid-empresas {
+        grid-template-columns: 1fr;
+    }
+    .tabla-historial th,
+    .tabla-historial td {
+        font-size: 0.7rem;
+        padding: 5px;
     }
 }
