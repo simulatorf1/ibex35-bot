@@ -65,7 +65,6 @@
             outline: none;
             background: #ffffff;
             transition: all 0.2s;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
         }
 
         #inputEmpresa:focus {
@@ -83,7 +82,6 @@
             border-radius: 60px;
             cursor: pointer;
             transition: all 0.2s;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
 
         #btnBuscar:hover {
@@ -223,9 +221,10 @@
             font-weight: 700;
             margin-bottom: 28px;
             font-size: 1rem;
-            background: #1e4668;
+            background: #1e7e34;
             color: white;
             letter-spacing: -0.2px;
+            box-shadow: 0 2px 8px rgba(30,126,52,0.3);
         }
 
         .info-grid {
@@ -256,6 +255,12 @@
             font-size: 1.4rem;
             font-weight: 700;
             color: #1a3e50;
+        }
+
+        .small-pct {
+            font-size: 0.75rem;
+            margin-top: 6px;
+            font-weight: 500;
         }
 
         .barra {
@@ -307,11 +312,12 @@
             background: #f9fbfe;
             padding: 12px 16px;
             border-radius: 14px;
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             border-left: 3px solid #2c7da0;
             display: flex;
             align-items: center;
-            color: #2c3f57;
+            color: #1e4668;
+            font-weight: 500;
         }
 
         .grid-2col {
@@ -328,6 +334,12 @@
             border-radius: 20px;
             color: #1e3a5f;
             font-weight: 500;
+        }
+
+        .compra-destacada {
+            background: #1e7e34;
+            color: white;
+            box-shadow: 0 4px 12px rgba(30,126,52,0.25);
         }
 
         .tabla-historial {
@@ -389,7 +401,7 @@
 <div class="container">
     <div class="header-professional">
         <h1>📊 Análisis Estructuras · IBEX 35</h1>
-        <div class="subtitulo">Señales basadas en datos reales | % variación vs cierre anterior | Tendencia por pendiente SMI diario</div>
+        <div class="subtitulo">Señales de compra | Datos reales | Niveles clave sin rangos</div>
     </div>
 
     <div class="buscador">
@@ -412,15 +424,18 @@
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtsd2NsZXRwcXFzYWJ0ZGFubGR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4MDg2NTEsImV4cCI6MjA5MjM4NDY1MX0.nbs0tYbFOL-I8qIkgB7Ub_jcOwHTdzg0EcAp1DS6sCU";
 
     const CASOS_SEÑAL = [1, 2, 3, 4, 5, 6, 7];
+    
+    // Descripciones profesionales y claras
     const descripcionCompra = {
-        1: "🔥 COMPRA INMEDIATA - Máxima fuerza alcista",
-        2: "⚠️ COMPRA CON CAUTELA - Buen potencial pero con riesgo",
-        3: "📈 REBOTE CORTO PLAZO - Tendencia general aún bajista",
-        4: "✅ COMPRA CONSOLIDADA - Tendencia alcista confirmada",
-        5: "🏁 COMPRA FINAL - Última oportunidad antes de techo",
-        6: "🚀 COMPRA RÁPIDA - Momento óptimo para entrar",
-        7: "⏳ PRE-COMPRA - A punto de activarse la señal"
+        1: "COMPRA INMEDIATA - Señal directa por máxima fuerza alcista",
+        2: "COMPRA CON CAUTELA - Buen potencial pero con riesgo moderado",
+        3: "REBOTE CORTO PLAZO - Tendencia general aún bajista, oportunidad táctica",
+        4: "COMPRA CONSOLIDADA - Tendencia alcista confirmada",
+        5: "COMPRA FINAL - Última oportunidad antes de posible techo",
+        6: "COMPRA RÁPIDA - Momento óptimo para entrada rápida",
+        7: "PRE-COMPRA - A punto de activarse la señal, preparar entrada"
     };
+    
     const resumenCorto = {
         1: "Compra Inmediata", 2: "Compra Cautela", 3: "Rebote Corto", 4: "Compra Consolidada", 5: "Compra Final", 6: "Compra Rápida", 7: "Pre-Compra"
     };
@@ -432,7 +447,6 @@
         return puntos;
     }
 
-    // Calcular tendencia por pendiente del SMI diario (basado en último vs anterior)
     function calcularTendenciaPorPendiente(analisisArray) {
         if (!analisisArray || analisisArray.length < 2) return { texto: "Espera", clase: "tendencia-espera" };
         const ultimo = analisisArray[0];
@@ -444,8 +458,6 @@
         return { texto: "Espera", clase: "tendencia-espera" };
     }
 
-    // Calcular % de variación: compara precio cierre actual vs cierre del registro anterior (mismo ticker)
-    // Esto refleja la variación REAL que tuvo la acción ese día de análisis
     function calcularPorcentajeVsCierreAnterior(analisisArray, index) {
         if (!analisisArray || analisisArray.length <= index + 1) return null;
         const actual = analisisArray[index];
@@ -463,17 +475,78 @@
         return html;
     }
 
-    function procesarNiveles(texto) {
+    // FUNCIÓN NUEVA: extraer hasta 3 niveles únicos (sin rangos, sin toques)
+    function extraerTresNivelesLimpiar(texto, tipo) {
         if (!texto || texto === 'No hay datos') return [];
+        // formato típico: "3.848-3.948€ (36 toques)" o "3.712-3.79€ (19 toques)"
         const lineas = texto.split('\n');
-        return lineas.filter(l => l.trim() !== '').map(l => ({ texto: l.trim() }));
+        const nivelesNumericos = new Set();
+        
+        for (let linea of lineas) {
+            linea = linea.trim();
+            if (!linea) continue;
+            // Buscar patrón como "3.848-3.948€"
+            const rangoMatch = linea.match(/([\d\.]+)\s*-\s*([\d\.]+)[€\s]/);
+            if (rangoMatch) {
+                let izquierda = parseFloat(rangoMatch[1].replace(/\./g, ''));
+                let derecha = parseFloat(rangoMatch[2].replace(/\./g, ''));
+                if (!isNaN(izquierda)) nivelesNumericos.add(izquierda);
+                if (!isNaN(derecha)) nivelesNumericos.add(derecha);
+            } else {
+                // intentar capturar número suelto
+                const numMatch = linea.match(/([\d\.]+)[€\s]/);
+                if (numMatch) {
+                    let num = parseFloat(numMatch[1].replace(/\./g, ''));
+                    if (!isNaN(num)) nivelesNumericos.add(num);
+                }
+            }
+        }
+        
+        let nivelesArray = Array.from(nivelesNumericos);
+        nivelesArray.sort((a,b) => a - b); // orden numérico asc
+        
+        if (tipo === 'soporte') {
+            // soportes: de mayor a menor (los más cercanos al precio actual primero)
+            nivelesArray.sort((a,b) => b - a);
+        } else {
+            // resistencias: de menor a mayor (los más cercanos primero)
+            nivelesArray.sort((a,b) => a - b);
+        }
+        
+        return nivelesArray.slice(0, 3).map(n => `${n.toFixed(3)} €`);
     }
 
-    function formatearListaOrdenada(texto) {
-        if (!texto || texto === 'No hay datos') return '<div class="item">No hay datos disponibles</div>';
-        const niveles = procesarNiveles(texto);
-        if (niveles.length === 0) return '<div class="item">Sin niveles relevantes</div>';
-        return niveles.map(n => `<div class="item">📌 ${n.texto}</div>`).join('');
+    function formatearNiveles(texto, tipo) {
+        const niveles = extraerTresNivelesLimpiar(texto, tipo);
+        if (niveles.length === 0) return '<div class="item">No hay niveles destacados</div>';
+        return niveles.map(n => `<div class="item">📍 ${n}</div>`).join('');
+    }
+
+    // formatear mechas (antes pinchos) sin toques
+    function extraerTresMechas(texto) {
+        if (!texto || texto === 'No hay datos') return [];
+        const lineas = texto.split('\n');
+        const mechas = [];
+        for (let linea of lineas) {
+            linea = linea.trim();
+            if (!linea) continue;
+            // intentar extraer número principal
+            const numMatch = linea.match(/([\d\.]+)[€\s]/);
+            if (numMatch) {
+                let num = parseFloat(numMatch[1].replace(/\./g, ''));
+                if (!isNaN(num)) mechas.push(`${num.toFixed(3)} €`);
+            } else if (linea.length > 0) {
+                mechas.push(linea.substring(0, 30));
+            }
+            if (mechas.length >= 3) break;
+        }
+        return mechas.slice(0, 3);
+    }
+
+    function formatearMechas(texto) {
+        const items = extraerTresMechas(texto);
+        if (items.length === 0) return '<div class="item">Sin velas destacadas</div>';
+        return items.map(i => `<div class="item">🕯️ ${i}</div>`).join('');
     }
 
     async function cargarSeñales() {
@@ -482,28 +555,24 @@
             const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?select=*&order=fecha.desc&limit=300`, {
                 headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
             });
-            if (!response.ok) throw new Error('Error cargando');
+            if (!response.ok) throw new Error('Error');
             const todos = await response.json();
             
-            // Agrupar por ticker y ordenar por fecha para cada ticker
             const tickerMap = new Map();
             for (const item of todos) {
                 if (!tickerMap.has(item.ticker)) tickerMap.set(item.ticker, []);
                 tickerMap.get(item.ticker).push(item);
             }
-            // Ordenar cada array por fecha ascendente para poder calcular variaciones correctamente
             for (let [ticker, arr] of tickerMap.entries()) {
                 arr.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
             }
             
-            // Obtener último registro de cada ticker y calcular variación vs anterior
             const ultimosConVariacion = [];
             for (let [ticker, arr] of tickerMap.entries()) {
                 if (arr.length === 0) continue;
                 const ultimo = arr[arr.length - 1];
-                const hayVariacion = arr.length >= 2;
                 let variacion = null;
-                if (hayVariacion) {
+                if (arr.length >= 2) {
                     const anterior = arr[arr.length - 2];
                     if (anterior.precio_cierre && anterior.precio_cierre > 0) {
                         variacion = ((ultimo.precio_cierre - anterior.precio_cierre) / anterior.precio_cierre) * 100;
@@ -541,7 +610,7 @@
                     <div class="tarjeta-nombre">${emp.nombre_empresa || emp.ticker}</div>
                     <div class="tarjeta-ticker">${emp.ticker}</div>
                     <div class="tarjeta-precio">${emp.precio_cierre} €</div>
-                    <div class="tarjeta-porcentaje ${clasePct}">${simbolo} ${Math.abs(pctVal).toFixed(2)}% vs cierre anterior</div>
+                    <div class="tarjeta-porcentaje ${clasePct}">${simbolo} ${Math.abs(pctVal).toFixed(2)}%</div>
                     <div class="tipo-compra-badge ${badgeStrong}">${resumenCorto[emp.caso_numero] || 'Señal'}</div>
                     <div class="tarjeta-fecha">📅 ${fechaFormateada}</div>
                 </div>
@@ -555,31 +624,25 @@
         const resultadoDiv = document.getElementById('resultadoDetalle');
         seccionSeñales.classList.add('hidden');
         resultadoDiv.classList.remove('hidden');
-        resultadoDiv.innerHTML = '<div class="loading">📊 Cargando análisis completo...</div>';
+        resultadoDiv.innerHTML = '<div class="loading">📊 Cargando análisis...</div>';
         try {
             const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?ticker=eq.${encodeURIComponent(ticker)}&order=fecha.desc&limit=50`, {
                 headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
             });
             if (!response.ok) throw new Error('Error');
             let data = await response.json();
-            if (!data || data.length === 0) {
-                resultadoDiv.innerHTML = '<div class="error">❌ No se encontraron registros</div><button class="btn-cerrar" onclick="cerrarDetalle()">← Volver</button>';
-                return;
-            }
-            // Orden ascendente para calcular variaciones correctamente (el más antiguo primero)
+            if (!data || data.length === 0) throw new Error('Sin datos');
             data.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
-            mostrarDetalleCompletoConHistorial(data);
+            mostrarDetalleCompleto(data);
         } catch (err) {
             resultadoDiv.innerHTML = `<div class="error">Error: ${err.message}</div><button class="btn-cerrar" onclick="cerrarDetalle()">← Volver</button>`;
         }
     }
 
-    function mostrarDetalleCompletoConHistorial(analisisArrayAsc) {
+    function mostrarDetalleCompleto(analisisArrayAsc) {
         const resultadoDiv = document.getElementById('resultadoDetalle');
-        // El último es el más reciente (final del array ascendente)
         const ultimo = analisisArrayAsc[analisisArrayAsc.length - 1];
         
-        // Calcular variación del último registro vs el anterior (si existe)
         let variacionUltimo = null;
         if (analisisArrayAsc.length >= 2) {
             const anterior = analisisArrayAsc[analisisArrayAsc.length - 2];
@@ -587,7 +650,6 @@
                 variacionUltimo = ((ultimo.precio_cierre - anterior.precio_cierre) / anterior.precio_cierre) * 100;
             }
         }
-        
         const pctValor = variacionUltimo !== null ? variacionUltimo : 0;
         const clasePct = pctValor >= 0 ? 'positivo' : 'negativo';
         const simbolo = pctValor >= 0 ? '▲' : '▼';
@@ -596,80 +658,79 @@
         const puntosCorto = smiToPuntos(ultimo.smi_4h);
         const puntosMedio = smiToPuntos(ultimo.smi_diario);
         const puntosLargo = smiToPuntos(ultimo.smi_semanal);
-
-        const tendenciaObj = calcularTendenciaPorPendiente(analisisArrayAsc.slice().reverse());
+        const analisisReversed = [...analisisArrayAsc].reverse();
+        const tendenciaObj = calcularTendenciaPorPendiente(analisisReversed);
         const tendenciaTexto = tendenciaObj.texto;
         const tendenciaClase = tendenciaObj.clase;
         const senalActivada = puntosCorto >= 7;
-
-        let recomendacionLimpia = ultimo.recomendacion || 'Condiciones técnicas bajo análisis.';
-        recomendacionLimpia = recomendacionLimpia.replace(/SMI\s*\d*h?/gi, '').replace(/4h|diario|semanal|sobreventa/gi, '').replace(/activada_por_4h/g, '').replace(/\s+/g, ' ').trim();
-        if (recomendacionLimpia === '' || recomendacionLimpia.includes('no se cumplen')) {
-            recomendacionLimpia = senalActivada ? '✅ SE ACTIVA SEÑAL DE COMPRA - Condiciones técnicas favorables.' : '⏳ Condiciones no favorables, se recomienda esperar confirmación.';
-        }
-
-        // Construir tabla historial (mostrar de más reciente a más antigua pero con variación vs anterior)
-        let historialHtml = `
-            <div class="seccion">
-                <h3>📜 HISTORIAL DE ANÁLISIS (últimos ${Math.min(analisisArrayAsc.length, 20)})</h3>
-                <div class="scroll-horizontal">
-                    <table class="tabla-historial">
-                        <thead><tr><th>Fecha</th><th>Precio cierre</th><th>Variación vs cierre anterior</th><th>Tipo señal</th><th>Recomendación breve</th></tr></thead>
-                        <tbody>
-        `;
         
+        // Recomendación limpia y profesional
+        let recomendacionRaw = ultimo.recomendacion || '';
+        let recomendacionLimpia = "";
+        if (ultimo.caso_numero === 1) recomendacionLimpia = "🔥 COMPRA INMEDIATA: Señal directa activada. Condiciones de máxima fuerza alcista. Ejecutar entrada.";
+        else if (ultimo.caso_numero === 2) recomendacionLimpia = "⚠️ COMPRA CON CAUTELA: Buen potencial pero con riesgo. Ajustar tamaño de posición.";
+        else if (ultimo.caso_numero === 3) recomendacionLimpia = "📈 REBOTE CORTO PLAZO: Tendencia general bajista, pero oportunidad de rebote técnico.";
+        else if (ultimo.caso_numero === 4) recomendacionLimpia = "✅ COMPRA CONSOLIDADA: Tendencia alcista confirmada. Mantener visión de medio plazo.";
+        else if (ultimo.caso_numero === 5) recomendacionLimpia = "🏁 COMPRA FINAL: Última oportunidad antes de posible techo. Tomar beneficios parciales.";
+        else if (ultimo.caso_numero === 6) recomendacionLimpia = "🚀 COMPRA RÁPIDA: Momento óptimo para entrada rápida. Stop ajustado.";
+        else if (ultimo.caso_numero === 7) recomendacionLimpia = "⏳ PRE-COMPRA: Señal a punto de activarse. Preparar orden de compra con alerta.";
+        else recomendacionLimpia = senalActivada ? "✅ SE ACTIVA SEÑAL DE COMPRA. Condiciones técnicas favorables." : "⏳ Condiciones no favorables. Esperar confirmación.";
+        
+        let historialHtml = `<div class="seccion"><h3>📜 HISTORIAL DE ANÁLISIS</h3><div class="scroll-horizontal"><table class="tabla-historial"><thead><tr><th>Fecha</th><th>Precio actual</th><th>Variación</th><th>Señal</th></tr></thead><tbody>`;
         for (let i = analisisArrayAsc.length - 1; i >= 0; i--) {
             const a = analisisArrayAsc[i];
             const fechaItem = new Date(a.fecha).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
             let variacionItem = null;
             if (i > 0) {
                 const prev = analisisArrayAsc[i - 1];
-                if (prev.precio_cierre && prev.precio_cierre > 0) {
+                if (prev.precio_cierre && prev.precio_cierre > 0)
                     variacionItem = ((a.precio_cierre - prev.precio_cierre) / prev.precio_cierre) * 100;
-                }
             }
             const pctShow = variacionItem !== null ? `${variacionItem >= 0 ? '▲' : '▼'} ${Math.abs(variacionItem).toFixed(2)}%` : '--';
-            const tipoSenal = descripcionCompra[a.caso_numero] ? descripcionCompra[a.caso_numero].substring(0, 45) : (a.activada_por_4h ? 'Señal activa' : 'Sin señal');
-            const recShort = a.recomendacion ? a.recomendacion.replace(/SMI|4h|diario|semanal|sobreventa/gi, '').substring(0, 55) + '...' : '-';
-            historialHtml += `<tr><td>${fechaItem}</td><td><strong>${a.precio_cierre}€</strong></td><td class="${variacionItem !== null && variacionItem >= 0 ? 'positivo' : 'negativo'}">${pctShow}</td><td>${tipoSenal}</td><td style="white-space:normal;">${recShort}</td></tr>`;
+            const tipoSenal = resumenCorto[a.caso_numero] || (a.activada_por_4h ? 'Señal activa' : 'Sin señal');
+            historialHtml += `<tr><td>${fechaItem}</td><td><strong>${a.precio_cierre}€</strong></td><td class="${variacionItem !== null && variacionItem >= 0 ? 'positivo' : 'negativo'}">${pctShow}</td><td>${tipoSenal}</td></tr>`;
         }
         historialHtml += `</tbody></table></div></div>`;
-
+        
         let html = `
             <div class="resultado-detalle">
                 <button class="btn-cerrar" onclick="cerrarDetalle()">← Volver a señales</button>
-                <div class="tipo-compra-tag">${descripcionCompra[ultimo.caso_numero] || 'Estrategia de compra'}</div>
+                <div class="tipo-compra-tag ${ultimo.caso_numero === 1 || ultimo.caso_numero === 4 || ultimo.caso_numero === 6 ? 'compra-destacada' : ''}">${descripcionCompra[ultimo.caso_numero] || 'ESTRATEGIA DE COMPRA'}</div>
                 <div class="info-grid">
                     <div class="info-card"><h3>🏢 Empresa</h3><div class="valor">${ultimo.nombre_empresa}</div><div class="small">${ultimo.ticker}</div></div>
-                    <div class="info-card"><h3>💰 Precio cierre</h3><div class="valor">${ultimo.precio_cierre} €</div><div class="small ${clasePct}">${simbolo} ${Math.abs(pctValor).toFixed(2)}% vs cierre anterior</div></div>
-                    <div class="info-card"><h3>📅 Último análisis</h3><div class="valor">${fechaFormateada}</div><div class="small">Hora oficial España</div></div>
+                    <div class="info-card"><h3>💰 Precio actual</h3><div class="valor">${ultimo.precio_cierre} €</div><div class="small-pct ${clasePct}">${simbolo} ${Math.abs(pctValor).toFixed(2)}%</div></div>
+                    <div class="info-card"><h3>📅 Último análisis</h3><div class="valor">${fechaFormateada}</div></div>
                 </div>
                 <div class="info-grid">
-                    <div class="info-card"><h3>🕐 CORTO PLAZO (SMI 4h)</h3>${generarBarra(puntosCorto)}<div class="barra-label">${senalActivada ? '✅ Señal activada' : '⏳ Sin activación'}</div></div>
-                    <div class="info-card"><h3>📈 MEDIO PLAZO</h3>${generarBarra(puntosMedio)}<div class="barra-label ${tendenciaClase}">Tendencia: ${tendenciaTexto}</div><div class="small" style="font-size:0.65rem;">basado en pendiente SMI diario real</div></div>
+                    <div class="info-card"><h3>🕐 CORTO PLAZO</h3>${generarBarra(puntosCorto)}<div class="barra-label">${senalActivada ? '✅ Señal activada' : '⏳ Esperando'}</div></div>
+                    <div class="info-card"><h3>📈 MEDIO PLAZO</h3>${generarBarra(puntosMedio)}<div class="barra-label ${tendenciaClase}">Tendencia: ${tendenciaTexto}</div></div>
                     <div class="info-card"><h3>📆 LARGO PLAZO</h3>${generarBarra(puntosLargo)}<div class="barra-label">Contexto estructural</div></div>
                 </div>
-                <div class="seccion"><h3>💡 RECOMENDACIÓN TÉCNICA</h3><div class="recomendacion-texto">${recomendacionLimpia}</div></div>
+                <div class="seccion"><h3>💡 RECOMENDACIÓN TÉCNICA</h3><div class="recomendacion-texto" style="${(ultimo.caso_numero === 1 || ultimo.caso_numero === 4 || ultimo.caso_numero === 6) ? 'background:#1e7e34; color:white; font-weight:bold;' : ''}">${recomendacionLimpia}</div></div>
         `;
         
+        // niveles clave: solo 3 soportes y 3 resistencias, sin rangos ni toques
         if (ultimo.soportes || ultimo.resistencias) {
-            html += `<div class="seccion"><h3>📊 NIVELES CLAVE (orden real desde datos)</h3><div class="grid-2col">
-                        <div><h4 style="margin-bottom:10px; color:#1e7e34;">📉 SOPORTES</h4><div class="lista-items">${formatearListaOrdenada(ultimo.soportes)}</div></div>
-                        <div><h4 style="margin-bottom:10px; color:#b91c1c;">📈 RESISTENCIAS</h4><div class="lista-items">${formatearListaOrdenada(ultimo.resistencias)}</div></div>
+            html += `<div class="seccion"><h3>📊 NIVELES CLAVE</h3><div class="grid-2col">
+                        <div><h4 style="margin-bottom:10px; color:#1e7e34;">📉 SOPORTES (3 principales)</h4><div class="lista-items">${formatearNiveles(ultimo.soportes, 'soporte')}</div></div>
+                        <div><h4 style="margin-bottom:10px; color:#b91c1c;">📈 RESISTENCIAS (3 principales)</h4><div class="lista-items">${formatearNiveles(ultimo.resistencias, 'resistencia')}</div></div>
                     </div></div>`;
         }
+        
         if (ultimo.gaps_alcistas || ultimo.gaps_bajistas) {
-            html += `<div class="seccion"><h3>🕳️ GAPS REGISTRADOS</h3><div class="grid-2col">
-                        <div><h4 style="color:#1e7e34;">📈 Gaps Alcistas</h4><div class="lista-items">${formatearListaOrdenada(ultimo.gaps_alcistas)}</div></div>
-                        <div><h4 style="color:#b91c1c;">📉 Gaps Bajistas</h4><div class="lista-items">${formatearListaOrdenada(ultimo.gaps_bajistas)}</div></div>
+            html += `<div class="seccion"><h3>🕳️ GAPS</h3><div class="grid-2col">
+                        <div><h4 style="color:#1e7e34;">📈 Gaps Alcistas</h4><div class="lista-items">${formatearMechas(ultimo.gaps_alcistas)}</div></div>
+                        <div><h4 style="color:#b91c1c;">📉 Gaps Bajistas</h4><div class="lista-items">${formatearMechas(ultimo.gaps_bajistas)}</div></div>
                     </div></div>`;
         }
+        
         if (ultimo.pinchos_alcistas || ultimo.pinchos_bajistas) {
-            html += `<div class="seccion"><h3>📍 PINCHOS</h3><div class="grid-2col">
-                        <div><h4 style="color:#1e7e34;">🔺 Pinchos Alcistas</h4><div class="lista-items">${formatearListaOrdenada(ultimo.pinchos_alcistas)}</div></div>
-                        <div><h4 style="color:#b91c1c;">🔻 Pinchos Bajistas</h4><div class="lista-items">${formatearListaOrdenada(ultimo.pinchos_bajistas)}</div></div>
+            html += `<div class="seccion"><h3>🕯️ VELAS CON MECHA LARGA</h3><div class="grid-2col">
+                        <div><h4 style="color:#1e7e34;">🔺 Mechas alcistas</h4><div class="lista-items">${formatearMechas(ultimo.pinchos_alcistas)}</div></div>
+                        <div><h4 style="color:#b91c1c;">🔻 Mechas bajistas</h4><div class="lista-items">${formatearMechas(ultimo.pinchos_bajistas)}</div></div>
                     </div></div>`;
         }
+        
         html += historialHtml;
         html += `</div>`;
         resultadoDiv.innerHTML = html;
@@ -689,7 +750,7 @@
         const resultadoDiv = document.getElementById('resultadoDetalle');
         seccionSeñales.classList.add('hidden');
         resultadoDiv.classList.remove('hidden');
-        resultadoDiv.innerHTML = '<div class="loading">🔎 Buscando empresa...</div>';
+        resultadoDiv.innerHTML = '<div class="loading">🔎 Buscando...</div>';
         try {
             const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?nombre_empresa=ilike.%25${encodeURIComponent(input)}%25&order=fecha.desc&limit=50`, {
                 headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
@@ -697,13 +758,13 @@
             if (!response.ok) throw new Error();
             let data = await response.json();
             if (!data || data.length === 0) {
-                resultadoDiv.innerHTML = '<div class="error">❌ No encontrada. Prueba con: Santander, BBVA, Inditex, Iberdrola...</div><button class="btn-cerrar" onclick="cerrarDetalle()">← Volver</button>';
+                resultadoDiv.innerHTML = '<div class="error">❌ No encontrada</div><button class="btn-cerrar" onclick="cerrarDetalle()">← Volver</button>';
                 return;
             }
             data.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
-            mostrarDetalleCompletoConHistorial(data);
+            mostrarDetalleCompleto(data);
         } catch (e) {
-            resultadoDiv.innerHTML = `<div class="error">Error en búsqueda</div><button class="btn-cerrar" onclick="cerrarDetalle()">← Volver</button>`;
+            resultadoDiv.innerHTML = `<div class="error">Error</div><button class="btn-cerrar" onclick="cerrarDetalle()">← Volver</button>`;
         }
     }
 
