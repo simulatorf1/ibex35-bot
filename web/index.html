@@ -51,7 +51,7 @@
             display: flex;
             gap: 12px;
             justify-content: center;
-            margin-bottom: 32px;
+            margin-bottom: 20px;
             flex-wrap: wrap;
         }
 
@@ -87,6 +87,53 @@
         #btnBuscar:hover {
             background: #0f3552;
             transform: translateY(-1px);
+        }
+
+        .inversor-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 32px;
+        }
+
+        .card-inversor {
+            background: linear-gradient(135deg, #1e4668 0%, #0f3552 100%);
+            border-radius: 60px;
+            padding: 8px 20px 8px 28px;
+            display: inline-flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .card-inversor label {
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+
+        .card-inversor input {
+            padding: 10px 16px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 40px;
+            background: white;
+            width: 160px;
+            text-align: center;
+            outline: none;
+        }
+
+        .card-inversor .euro-simbolo {
+            color: white;
+            font-weight: 600;
+        }
+
+        .card-inversor small {
+            color: #a8c4e0;
+            font-size: 0.7rem;
         }
 
         .seccion-principal {
@@ -363,6 +410,16 @@
             border-bottom: 1px solid #e9f0f5;
         }
 
+        .resultado-positivo {
+            color: #1e7e34;
+            font-weight: 700;
+        }
+
+        .resultado-negativo {
+            color: #b91c1c;
+            font-weight: 700;
+        }
+
         .scroll-horizontal {
             overflow-x: auto;
             border-radius: 18px;
@@ -389,11 +446,43 @@
             display: none;
         }
 
+        .info-primera-compra {
+            background: #eef2fa;
+            border-radius: 20px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .info-primera-compra-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .info-primera-compra-item .label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #5f7f9e;
+            text-transform: uppercase;
+        }
+
+        .info-primera-compra-item .value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1e3a5f;
+        }
+
         @media (max-width: 700px) {
             .grid-2col { grid-template-columns: 1fr; }
             .grid-empresas { grid-template-columns: 1fr; }
             .resultado-detalle { padding: 20px; }
             .punto { width: 16px; }
+            .info-primera-compra { flex-direction: column; align-items: flex-start; }
         }
     </style>
 </head>
@@ -407,6 +496,15 @@
     <div class="buscador">
         <input type="text" id="inputEmpresa" placeholder="Buscar por nombre (Santander, BBVA, Inditex, Iberdrola...)" autocomplete="off">
         <button id="btnBuscar">🔍 Analizar ticker</button>
+    </div>
+
+    <div class="inversor-container">
+        <div class="card-inversor">
+            <label>💰 DINERO A INVERTIR</label>
+            <input type="number" id="dineroInvertir" value="10000" step="1000" min="100">
+            <span class="euro-simbolo">€</span>
+            <small>· Base para cálculo de resultados</small>
+        </div>
     </div>
 
     <div id="seccionSeñales" class="seccion-principal">
@@ -425,7 +523,6 @@
 
     const CASOS_SEÑAL = [1, 2, 3, 4, 5, 6, 7];
     
-    // Descripciones profesionales y claras
     const descripcionCompra = {
         1: "COMPRA INMEDIATA - Señal directa por máxima fuerza alcista",
         2: "COMPRA ANTICIPADA CON RIESGO - Buen potencial pero de subida pero aun no se ha activado la señal",
@@ -440,22 +537,20 @@
         1: "Compra Inmediata", 2: "Compra Anticipada con riesgo", 3: "Rebote muy corto plazo - riesgo", 4: "Compra ya Consolidada", 5: "Compra con señal de agotamiento - riesgo", 6: "Compra Inmediata", 7: "Pre-Compra"
     };
 
-    // NUEVA FUNCIÓN: calcular porcentaje respecto al último precio del día anterior calendario
+    let empresasDataCache = new Map(); // Cache de datos por ticker
+    let tickerActual = null;
+
     function calcularPorcentajeVsDiaAnterior(analisisArrayAsc) {
         if (!analisisArrayAsc || analisisArrayAsc.length === 0) return new Map();
         
-        // 1. Obtener el último precio de cada día calendario
-        const ultimoPrecioPorDia = new Map(); // key: "YYYY-MM-DD", value: precio_cierre
+        const ultimoPrecioPorDia = new Map();
         for (const registro of analisisArrayAsc) {
             const fechaKey = new Date(registro.fecha).toISOString().split('T')[0];
-            // Sobrescribe para quedarnos con el último precio de ese día
             ultimoPrecioPorDia.set(fechaKey, registro.precio_cierre);
         }
         
-        // 2. Obtener array ordenado de días
         const diasArray = Array.from(ultimoPrecioPorDia.keys()).sort();
         
-        // 3. Crear un mapa: día -> precio del día anterior
         const precioDiaAnterior = new Map();
         for (let i = 0; i < diasArray.length; i++) {
             if (i > 0) {
@@ -463,7 +558,6 @@
             }
         }
         
-        // 4. Calcular variación para cada registro
         const variaciones = new Map();
         for (let i = 0; i < analisisArrayAsc.length; i++) {
             const registro = analisisArrayAsc[i];
@@ -479,6 +573,34 @@
         }
         
         return variaciones;
+    }
+
+    // Función para encontrar la primera compra histórica (más antigua)
+    function encontrarPrimeraCompra(analisisArrayAsc) {
+        if (!analisisArrayAsc || analisisArrayAsc.length === 0) return null;
+        
+        // Filtrar registros que sean de compra (caso_numero en CASOS_SEÑAL)
+        const compras = analisisArrayAsc.filter(reg => CASOS_SEÑAL.includes(reg.caso_numero));
+        
+        if (compras.length === 0) return null;
+        
+        // Ordenar por fecha ascendente (la más antigua primero)
+        compras.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+        
+        return compras[0]; // La primera compra histórica
+    }
+
+    // Función para calcular acciones basado en dinero invertido y precio de primera compra
+    function calcularAcciones(dinero, precioCompra) {
+        if (!dinero || !precioCompra || precioCompra <= 0) return 0;
+        return Math.floor(dinero / precioCompra);
+    }
+
+    // Función para calcular resultado en una fila específica
+    function calcularResultado(precioFila, precioCompra, acciones) {
+        if (!precioFila || !precioCompra || !acciones || acciones === 0) return null;
+        const diferencia = precioFila - precioCompra;
+        return diferencia * acciones;
     }
 
     function smiToPuntos(smi) {
@@ -513,14 +635,6 @@
         if (diff > 0.3) return { texto: "Positiva ▲", clase: "tendencia-positiva" };
         if (diff < -0.3) return { texto: "Negativa ▼", clase: "tendencia-negativa" };
         return { texto: "Espera", clase: "tendencia-espera" };
-    }
-
-    function calcularPorcentajeVsCierreAnterior(analisisArray, index) {
-        if (!analisisArray || analisisArray.length <= index + 1) return null;
-        const actual = analisisArray[index];
-        const anterior = analisisArray[index + 1];
-        if (!actual.precio_cierre || !anterior.precio_cierre || anterior.precio_cierre === 0) return null;
-        return ((actual.precio_cierre - anterior.precio_cierre) / anterior.precio_cierre) * 100;
     }
 
     function generarBarra(puntos) {
@@ -585,6 +699,7 @@
         }
         return mechas.slice(0, 3);
     }
+    
     function formatearMechas(texto) {
         const items = extraerTresMechas(texto);
         if (items.length === 0) return '<div class="item">Sin velas destacadas</div>';
@@ -607,20 +722,19 @@
             }
             for (let [ticker, arr] of tickerMap.entries()) {
                 arr.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+                empresasDataCache.set(ticker, arr);
             }
             
             const ultimosConVariacion = [];
             for (let [ticker, arr] of tickerMap.entries()) {
                 if (arr.length === 0) continue;
                 
-                // Ordenar para encontrar el más reciente (sin modificar el original)
                 const masReciente = [...arr].sort((a, b) => new Date(b.fecha) - new Date(a.fecha))[0];
                 const ultimo = masReciente;
                 
                 let variacion = null;
                 const fechaUltimo = new Date(ultimo.fecha).toISOString().split('T')[0];
                 
-                // Consultar el precio del día anterior
                 const responseAyer = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?ticker=eq.${ticker}&fecha=lt.${fechaUltimo}T00:00:00&order=fecha.desc&limit=1`, {
                     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
                 });
@@ -675,19 +789,24 @@
     }
 
     async function verDetalle(ticker) {
+        tickerActual = ticker;
         const seccionSeñales = document.getElementById('seccionSeñales');
         const resultadoDiv = document.getElementById('resultadoDetalle');
         seccionSeñales.classList.add('hidden');
         resultadoDiv.classList.remove('hidden');
         resultadoDiv.innerHTML = '<div class="loading">📊 Cargando análisis...</div>';
         try {
-            const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?ticker=eq.${encodeURIComponent(ticker)}&order=fecha.desc&limit=150`, {
-                headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
-            });
-            if (!response.ok) throw new Error('Error');
-            let data = await response.json();
-            if (!data || data.length === 0) throw new Error('Sin datos');
-            data.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+            let data = empresasDataCache.get(ticker);
+            if (!data) {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?ticker=eq.${encodeURIComponent(ticker)}&order=fecha.desc&limit=150`, {
+                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+                });
+                if (!response.ok) throw new Error('Error');
+                data = await response.json();
+                if (!data || data.length === 0) throw new Error('Sin datos');
+                data.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+                empresasDataCache.set(ticker, data);
+            }
             mostrarDetalleCompleto(data);
         } catch (err) {
             resultadoDiv.innerHTML = `<div class="error">Error: ${err.message}</div><button class="btn-cerrar" onclick="cerrarDetalle()">← Volver</button>`;
@@ -698,7 +817,23 @@
         const resultadoDiv = document.getElementById('resultadoDetalle');
         const ultimo = analisisArrayAsc[analisisArrayAsc.length - 1];
         
-        // NUEVO CÁLCULO: variación del último registro vs día anterior
+        // Obtener dinero a invertir
+        const dineroInvertir = parseFloat(document.getElementById('dineroInvertir').value) || 10000;
+        
+        // Encontrar primera compra histórica
+        const primeraCompra = encontrarPrimeraCompra(analisisArrayAsc);
+        
+        // Calcular acciones si existe primera compra
+        let acciones = 0;
+        let precioPrimeraCompra = null;
+        let fechaPrimeraCompra = null;
+        
+        if (primeraCompra) {
+            precioPrimeraCompra = primeraCompra.precio_cierre;
+            fechaPrimeraCompra = primeraCompra.fecha;
+            acciones = calcularAcciones(dineroInvertir, precioPrimeraCompra);
+        }
+        
         const variacionesMap = calcularPorcentajeVsDiaAnterior(analisisArrayAsc);
         const idxUltimo = analisisArrayAsc.length - 1;
         let variacionUltimo = variacionesMap.get(idxUltimo) || null;
@@ -727,19 +862,81 @@
         else if (ultimo.caso_numero === 7) recomendacionLimpia = "⏳ PRE-COMPRA: Señal a punto de activarse. Preparar orden de compra con alerta.";
         else recomendacionLimpia = senalActivada ? "✅ SE ACTIVA SEÑAL DE COMPRA. Condiciones técnicas favorables." : "⏳ Condiciones no favorables. Esperar confirmación.";
         
-        let historialHtml = `<div class="seccion"><h3>📜 HISTORIAL DE ANÁLISIS</h3><div class="scroll-horizontal"><table class="tabla-historial"><thead><tr><th>Fecha</th><th>Precio actual</th><th>Variación</th><th>Señal</th></tr></thead><tbody>`;
+        // Construir el historial con la nueva columna de resultado
+        let historialHtml = `<div class="seccion"><h3>📜 HISTORIAL DE ANÁLISIS</h3><div class="scroll-horizontal"><table class="tabla-historial"><thead><tr>`;
+        historialHtml += `<th>Fecha</th><th>Precio actual</th><th>Variación</th><th>Señal</th>`;
+        if (primeraCompra) {
+            historialHtml += `<th>Resultado (sobre ${new Intl.NumberFormat('es-ES').format(dineroInvertir)}€)</th>`;
+        }
+        historialHtml += `</tr></thead><tbody>`;
+        
         for (let i = analisisArrayAsc.length - 1; i >= 0; i--) {
             const a = analisisArrayAsc[i];
             const fechaItem = new Date(a.fecha).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
             
-            // NUEVO CÁLCULO: variación de cada registro vs su día anterior
             let variacionItem = variacionesMap.get(i) || null;
-            
             const pctShow = variacionItem !== null ? `${variacionItem >= 0 ? '▲' : '▼'} ${Math.abs(variacionItem).toFixed(2)}%` : '--';
             const tipoSenal = resumenCorto[a.caso_numero] || (a.activada_por_4h ? 'Señal activa' : 'Sin señal');
-            historialHtml += `<tr><td>${fechaItem}</td><td><strong>${a.precio_cierre}€</strong></td><td class="${variacionItem !== null && variacionItem >= 0 ? 'positivo' : 'negativo'}">${pctShow}</td><td>${tipoSenal}</td></tr>`;
+            
+            historialHtml += `<tr>`;
+            historialHtml += `<td>${fechaItem}</td>`;
+            historialHtml += `<td><strong>${a.precio_cierre}€</strong></td>`;
+            historialHtml += `<td class="${variacionItem !== null && variacionItem >= 0 ? 'positivo' : 'negativo'}">${pctShow}</td>`;
+            historialHtml += `<td>${tipoSenal}</td>`;
+            
+            // Columna de resultado si existe primera compra
+            if (primeraCompra && precioPrimeraCompra && acciones > 0) {
+                const resultado = calcularResultado(a.precio_cierre, precioPrimeraCompra, acciones);
+                if (resultado !== null) {
+                    const resultadoFormateado = resultado >= 0 ? `+${resultado.toFixed(2)} €` : `${resultado.toFixed(2)} €`;
+                    const resultadoClass = resultado >= 0 ? 'resultado-positivo' : 'resultado-negativo';
+                    historialHtml += `<td class="${resultadoClass}">${resultadoFormateado}</td>`;
+                } else {
+                    historialHtml += `<td>--</td>`;
+                }
+            }
+            
+            historialHtml += `</tr>`;
         }
         historialHtml += `</tbody></table></div></div>`;
+        
+        // Construir bloque de información de primera compra (si existe)
+        let primeraCompraHtml = '';
+        if (primeraCompra && precioPrimeraCompra) {
+            const fechaPrimeraFormateada = new Date(fechaPrimeraCompra).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
+            const rentabilidadActual = ((ultimo.precio_cierre - precioPrimeraCompra) / precioPrimeraCompra) * 100;
+            const rentabilidadClass = rentabilidadActual >= 0 ? 'resultado-positivo' : 'resultado-negativo';
+            
+            primeraCompraHtml = `
+                <div class="info-primera-compra">
+                    <div class="info-primera-compra-item">
+                        <span class="label">🎯 PRIMERA COMPRA (MÁS ANTIGUA)</span>
+                        <span class="value">${fechaPrimeraFormateada} · ${precioPrimeraCompra} €</span>
+                    </div>
+                    <div class="info-primera-compra-item">
+                        <span class="label">📊 ACCIONES COMPRADAS</span>
+                        <span class="value">${acciones.toLocaleString('es-ES')} uds</span>
+                    </div>
+                    <div class="info-primera-compra-item">
+                        <span class="label">📈 RENTABILIDAD ACTUAL</span>
+                        <span class="value ${rentabilidadClass}">${rentabilidadActual >= 0 ? '+' : ''}${rentabilidadActual.toFixed(2)}%</span>
+                    </div>
+                    <div class="info-primera-compra-item">
+                        <span class="label">💰 RESULTADO ACTUAL BRUTO</span>
+                        <span class="value ${rentabilidadClass}">${calcularResultado(ultimo.precio_cierre, precioPrimeraCompra, acciones) >= 0 ? '+' : ''}${calcularResultado(ultimo.precio_cierre, precioPrimeraCompra, acciones)?.toFixed(2) || '0'} €</span>
+                    </div>
+                </div>
+            `;
+        } else {
+            primeraCompraHtml = `
+                <div class="info-primera-compra" style="background: #fff5e6;">
+                    <div class="info-primera-compra-item">
+                        <span class="label">📭 SIN COMPRA PREVIA</span>
+                        <span class="value">No hay registros de compra anteriores</span>
+                    </div>
+                </div>
+            `;
+        }
         
         let html = `
             <div class="resultado-detalle">
@@ -750,6 +947,7 @@
                     <div class="info-card"><h3>💰 Precio actual</h3><div class="valor">${ultimo.precio_cierre} €</div><div class="small-pct ${clasePct}">${simbolo} ${Math.abs(pctValor).toFixed(2)}%</div></div>
                     <div class="info-card"><h3>📅 Último análisis</h3><div class="valor">${fechaFormateada}</div></div>
                 </div>
+                ${primeraCompraHtml}
                 <div class="info-grid">
                     <div class="info-card"><h3>🕐 CORTO PLAZO</h3>${generarBarra(puntosCorto)}<div class="barra-label">${senalActivada ? '✅ Señal activada' : '⏳ Esperando'}</div></div>
                     <div class="info-card"><h3>📈 MEDIO PLAZO</h3>${generarBarra(puntosMedio)}<div class="barra-label ${tendenciaClase}">Tendencia: ${tendenciaTexto}</div></div>
@@ -791,6 +989,15 @@
         cargarSeñales();
     }
 
+    function actualizarDetallePorCambioDinero() {
+        if (tickerActual && document.getElementById('resultadoDetalle') && !document.getElementById('resultadoDetalle').classList.contains('hidden')) {
+            const data = empresasDataCache.get(tickerActual);
+            if (data) {
+                mostrarDetalleCompleto(data);
+            }
+        }
+    }
+
     async function buscarEmpresa() {
         const input = document.getElementById('inputEmpresa').value.trim();
         if (!input) { cargarSeñales(); return; }
@@ -810,6 +1017,10 @@
                 return;
             }
             data.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+            if (data.length > 0) {
+                tickerActual = data[0].ticker;
+                empresasDataCache.set(tickerActual, data);
+            }
             mostrarDetalleCompleto(data);
         } catch (e) {
             resultadoDiv.innerHTML = `<div class="error">Error</div><button class="btn-cerrar" onclick="cerrarDetalle()">← Volver</button>`;
@@ -818,6 +1029,8 @@
 
     document.getElementById('btnBuscar').addEventListener('click', buscarEmpresa);
     document.getElementById('inputEmpresa').addEventListener('keypress', (e) => { if(e.key === 'Enter') buscarEmpresa(); });
+    document.getElementById('dineroInvertir').addEventListener('input', actualizarDetallePorCambioDinero);
+    
     cargarSeñales();
     window.verDetalle = verDetalle;
     window.cerrarDetalle = cerrarDetalle;
