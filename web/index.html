@@ -93,6 +93,8 @@
             display: flex;
             justify-content: center;
             margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 16px;
         }
 
         .card-inversor {
@@ -129,11 +131,6 @@
         .card-inversor .euro-simbolo {
             color: white;
             font-weight: 600;
-        }
-
-        .card-inversor small {
-            color: #a8c4e0;
-            font-size: 0.7rem;
         }
 
         .seccion-principal {
@@ -220,11 +217,6 @@
             background: #eef2fa;
             color: #1e4668;
             letter-spacing: 0.2px;
-        }
-
-        .tipo-compra-badge.strong-buy {
-            background: #1e7e34;
-            color: white;
         }
 
         .tarjeta-fecha {
@@ -383,16 +375,10 @@
             font-weight: 500;
         }
 
-        .compra-destacada {
-            background: #1e7e34;
-            color: white;
-            box-shadow: 0 4px 12px rgba(30,126,52,0.25);
-        }
-
         .tabla-historial {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             background: white;
             border-radius: 18px;
             overflow: hidden;
@@ -401,12 +387,13 @@
         .tabla-historial th {
             background: #1e3a5f;
             color: white;
-            padding: 12px 8px;
+            padding: 10px 6px;
             font-weight: 600;
+            font-size: 0.7rem;
         }
 
         .tabla-historial td {
-            padding: 10px 8px;
+            padding: 8px 6px;
             border-bottom: 1px solid #e9f0f5;
         }
 
@@ -472,9 +459,37 @@
         }
 
         .info-primera-compra-item .value {
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 700;
             color: #1e3a5f;
+        }
+
+        .comisiones-box {
+            background: #f5f7fc;
+            border-radius: 20px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            border-left: 4px solid #e68a2e;
+        }
+
+        .comisiones-box h4 {
+            font-size: 0.8rem;
+            color: #e68a2e;
+            margin-bottom: 12px;
+        }
+
+        .comisiones-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            font-size: 0.8rem;
+        }
+
+        .comision-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px dashed #e2e8f0;
         }
 
         @media (max-width: 700px) {
@@ -483,6 +498,8 @@
             .resultado-detalle { padding: 20px; }
             .punto { width: 16px; }
             .info-primera-compra { flex-direction: column; align-items: flex-start; }
+            .tabla-historial { font-size: 0.65rem; }
+            .tabla-historial th, .tabla-historial td { padding: 6px 3px; }
         }
     </style>
 </head>
@@ -503,14 +520,13 @@
             <label>💰 DINERO A INVERTIR</label>
             <input type="number" id="dineroInvertir" value="10000" step="1000" min="100">
             <span class="euro-simbolo">€</span>
-            <small>· Base para cálculo de resultados</small>
         </div>
     </div>
 
     <div id="seccionSeñales" class="seccion-principal">
-        <h2>🟢 SEÑALES ACTIVAS · COMPRA</h2>
+        <h2>📋 EMPRESAS DISPONIBLES</h2>
         <div id="listaSeñales" class="grid-empresas">
-            <div class="loading">🔄 Cargando señales en tiempo real...</div>
+            <div class="loading">🔄 Cargando datos...</div>
         </div>
     </div>
 
@@ -537,9 +553,53 @@
         1: "Compra Inmediata", 2: "Compra Anticipada con riesgo", 3: "Rebote muy corto plazo - riesgo", 4: "Compra ya Consolidada", 5: "Compra con señal de agotamiento - riesgo", 6: "Compra Inmediata", 7: "Pre-Compra"
     };
 
-    let empresasDataCache = new Map(); // Cache de datos por ticker
+    let empresasDataCache = new Map();
     let tickerActual = null;
 
+    // Función para calcular comisiones
+    function calcularComisiones(dineroInvertido, precioCompra, precioVenta, numAcciones) {
+        // Comisión de compra: 11€ + (dinero_invertido * 0.004)
+        const comisionCompra = 11 + (dineroInvertido * 0.004);
+        
+        // Comisión de venta: 11€ + (precio_venta * num_acciones * 0.004)
+        const comisionVenta = 11 + (precioVenta * numAcciones * 0.004);
+        
+        const comisionTotal = comisionCompra + comisionVenta;
+        
+        return {
+            compra: comisionCompra,
+            venta: comisionVenta,
+            total: comisionTotal
+        };
+    }
+
+    // Función para calcular resultado neto con comisiones
+    function calcularResultadoNeto(precioCompra, precioVenta, numAcciones, dineroInvertido) {
+        const resultadoBruto = (precioVenta - precioCompra) * numAcciones;
+        const comisiones = calcularComisiones(dineroInvertido, precioCompra, precioVenta, numAcciones);
+        const resultadoNeto = resultadoBruto - comisiones.total;
+        
+        return {
+            bruto: resultadoBruto,
+            comisiones: comisiones,
+            neto: resultadoNeto
+        };
+    }
+
+    function encontrarPrimeraCompra(analisisArrayAsc) {
+        if (!analisisArrayAsc || analisisArrayAsc.length === 0) return null;
+        const compras = analisisArrayAsc.filter(reg => CASOS_SEÑAL.includes(reg.caso_numero));
+        if (compras.length === 0) return null;
+        compras.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+        return compras[0];
+    }
+
+    function calcularAcciones(dinero, precioCompra) {
+        if (!dinero || !precioCompra || precioCompra <= 0) return 0;
+        return Math.floor(dinero / precioCompra);
+    }
+
+    // Calcular variación respecto al día anterior
     function calcularPorcentajeVsDiaAnterior(analisisArrayAsc) {
         if (!analisisArrayAsc || analisisArrayAsc.length === 0) return new Map();
         
@@ -550,7 +610,6 @@
         }
         
         const diasArray = Array.from(ultimoPrecioPorDia.keys()).sort();
-        
         const precioDiaAnterior = new Map();
         for (let i = 0; i < diasArray.length; i++) {
             if (i > 0) {
@@ -571,36 +630,7 @@
                 variaciones.set(i, null);
             }
         }
-        
         return variaciones;
-    }
-
-    // Función para encontrar la primera compra histórica (más antigua)
-    function encontrarPrimeraCompra(analisisArrayAsc) {
-        if (!analisisArrayAsc || analisisArrayAsc.length === 0) return null;
-        
-        // Filtrar registros que sean de compra (caso_numero en CASOS_SEÑAL)
-        const compras = analisisArrayAsc.filter(reg => CASOS_SEÑAL.includes(reg.caso_numero));
-        
-        if (compras.length === 0) return null;
-        
-        // Ordenar por fecha ascendente (la más antigua primero)
-        compras.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
-        
-        return compras[0]; // La primera compra histórica
-    }
-
-    // Función para calcular acciones basado en dinero invertido y precio de primera compra
-    function calcularAcciones(dinero, precioCompra) {
-        if (!dinero || !precioCompra || precioCompra <= 0) return 0;
-        return Math.floor(dinero / precioCompra);
-    }
-
-    // Función para calcular resultado en una fila específica
-    function calcularResultado(precioFila, precioCompra, acciones) {
-        if (!precioFila || !precioCompra || !acciones || acciones === 0) return null;
-        const diferencia = precioFila - precioCompra;
-        return diferencia * acciones;
     }
 
     function smiToPuntos(smi) {
@@ -631,7 +661,6 @@
         }
         
         const diff = hoy.smi_diario - diaAnterior.smi_diario;
-        
         if (diff > 0.3) return { texto: "Positiva ▲", clase: "tendencia-positiva" };
         if (diff < -0.3) return { texto: "Negativa ▼", clase: "tendencia-negativa" };
         return { texto: "Espera", clase: "tendencia-espera" };
@@ -650,33 +679,25 @@
         if (!texto || texto === 'No hay datos') return [];
         const lineas = texto.split('\n');
         const numerosTexto = [];
-        
         for (let linea of lineas) {
             linea = linea.trim();
             if (!linea) continue;
-            
             const rangoMatch = linea.match(/([\d\.]+)\s*-\s*([\d\.]+)/);
             if (rangoMatch) {
                 numerosTexto.push(rangoMatch[1]);
                 numerosTexto.push(rangoMatch[2]);
             } else {
                 const numMatch = linea.match(/([\d\.]+)/);
-                if (numMatch) {
-                    numerosTexto.push(numMatch[1]);
-                }
+                if (numMatch) numerosTexto.push(numMatch[1]);
             }
         }
-        
         const unicos = [...new Map(numerosTexto.map(n => [n, n])).values()];
-        
         const conNumero = unicos.map(txt => ({ txt, num: parseFloat(txt.replace(/\./g, '')) }));
-        
         if (tipo === 'soporte') {
             conNumero.sort((a, b) => b.num - a.num);
         } else {
             conNumero.sort((a, b) => a.num - b.num);
         }
-        
         return conNumero.slice(0, 3).map(item => `${item.txt} €`);
     }
 
@@ -709,11 +730,14 @@
     async function cargarSeñales() {
         const listaDiv = document.getElementById('listaSeñales');
         try {
-            const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?select=*&order=fecha.desc`, {
+            // LIMITE AUMENTADO A 5000 PARA TRAER MÁS REGISTROS
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?select=*&order=fecha.desc&limit=5000`, {
                 headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
             });
             if (!response.ok) throw new Error('Error');
             const todos = await response.json();
+            
+            console.log(`📊 Total registros descargados: ${todos.length}`);
             
             const tickerMap = new Map();
             for (const item of todos) {
@@ -725,10 +749,12 @@
                 empresasDataCache.set(ticker, arr);
             }
             
+            console.log(`📈 Total empresas: ${tickerMap.size}`);
+            
+            // MOSTRAR TODAS LAS EMPRESAS, SIN FILTRAR POR SEÑAL
             const ultimosConVariacion = [];
             for (let [ticker, arr] of tickerMap.entries()) {
                 if (arr.length === 0) continue;
-                
                 const masReciente = [...arr].sort((a, b) => new Date(b.fecha) - new Date(a.fecha))[0];
                 const ultimo = masReciente;
                 
@@ -746,25 +772,21 @@
                         variacion = ((ultimo.precio_cierre - precioAyer) / precioAyer) * 100;
                     }
                 }
-                
                 ultimosConVariacion.push({ ...ultimo, variacionVsAnterior: variacion });
             }
             
-            const señalEmpresas = ultimosConVariacion.filter(a => CASOS_SEÑAL.includes(a.caso_numero));
-            señalEmpresas.sort((a,b) => {
-                const orden = [1, 6, 4, 2, 7, 3, 5];
-                return orden.indexOf(a.caso_numero) - orden.indexOf(b.caso_numero);
-            });
-            mostrarSeñales(señalEmpresas);
+            // SIN FILTRO - MOSTRAMOS TODAS
+            mostrarSeñales(ultimosConVariacion);
         } catch (err) {
-            listaDiv.innerHTML = '<div class="error">❌ Error al cargar señales</div>';
+            console.error(err);
+            listaDiv.innerHTML = '<div class="error">❌ Error al cargar datos</div>';
         }
     }
 
     function mostrarSeñales(empresas) {
         const listaDiv = document.getElementById('listaSeñales');
         if (empresas.length === 0) {
-            listaDiv.innerHTML = '<div style="background: white; border-radius: 28px; padding: 40px; text-align:center;">📭 No hay empresas con señal activa ahora mismo.</div>';
+            listaDiv.innerHTML = '<div style="background: white; border-radius: 28px; padding: 40px; text-align:center;">📭 No hay empresas disponibles.</div>';
             return;
         }
         let html = '';
@@ -773,14 +795,13 @@
             const clasePct = pctVal >= 0 ? 'positivo' : 'negativo';
             const simbolo = pctVal >= 0 ? '▲' : '▼';
             const fechaFormateada = new Date(emp.fecha).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
-            const badgeStrong = (emp.caso_numero === 1 || emp.caso_numero === 6 || emp.caso_numero === 4) ? 'strong-buy' : '';
             html += `
                 <div class="tarjeta-empresa" onclick="verDetalle('${emp.ticker}')">
                     <div class="tarjeta-nombre">${emp.nombre_empresa || emp.ticker}</div>
                     <div class="tarjeta-ticker">${emp.ticker}</div>
                     <div class="tarjeta-precio">${emp.precio_cierre} €</div>
                     <div class="tarjeta-porcentaje ${clasePct}">${simbolo} ${Math.abs(pctVal).toFixed(2)}%</div>
-                    <div class="tipo-compra-badge ${badgeStrong}">${resumenCorto[emp.caso_numero] || 'Señal'}</div>
+                    <div class="tipo-compra-badge">${resumenCorto[emp.caso_numero] || 'Sin señal'}</div>
                     <div class="tarjeta-fecha">📅 ${fechaFormateada}</div>
                 </div>
             `;
@@ -798,7 +819,8 @@
         try {
             let data = empresasDataCache.get(ticker);
             if (!data) {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?ticker=eq.${encodeURIComponent(ticker)}&order=fecha.desc&limit=150`, {
+                // SIN LÍMITE PARA TRAER TODOS LOS REGISTROS
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?ticker=eq.${encodeURIComponent(ticker)}&order=fecha.desc&limit=5000`, {
                     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
                 });
                 if (!response.ok) throw new Error('Error');
@@ -816,14 +838,9 @@
     function mostrarDetalleCompleto(analisisArrayAsc) {
         const resultadoDiv = document.getElementById('resultadoDetalle');
         const ultimo = analisisArrayAsc[analisisArrayAsc.length - 1];
-        
-        // Obtener dinero a invertir
         const dineroInvertir = parseFloat(document.getElementById('dineroInvertir').value) || 10000;
         
-        // Encontrar primera compra histórica
         const primeraCompra = encontrarPrimeraCompra(analisisArrayAsc);
-        
-        // Calcular acciones si existe primera compra
         let acciones = 0;
         let precioPrimeraCompra = null;
         let fechaPrimeraCompra = null;
@@ -850,30 +867,20 @@
         const tendenciaObj = calcularTendenciaPorPendiente(analisisReversed);
         const tendenciaTexto = tendenciaObj.texto;
         const tendenciaClase = tendenciaObj.clase;
-        const senalActivada = puntosCorto >= 7;
         
-        let recomendacionLimpia = "";
-        if (ultimo.caso_numero === 1) recomendacionLimpia = "🔥 COMPRA INMEDIATA: Señal directa activada. Condiciones de máxima fuerza alcista. Ejecutar entrada.";
-        else if (ultimo.caso_numero === 2) recomendacionLimpia = "⚠️ COMPRA CON CAUTELA: Buen potencial pero con riesgo. Ajustar tamaño de posición.";
-        else if (ultimo.caso_numero === 3) recomendacionLimpia = "📈 REBOTE CORTO PLAZO: Tendencia general bajista, pero oportunidad de rebote técnico.";
-        else if (ultimo.caso_numero === 4) recomendacionLimpia = "✅ COMPRA CONSOLIDADA: Tendencia alcista confirmada. Mantener visión de medio plazo.";
-        else if (ultimo.caso_numero === 5) recomendacionLimpia = "🏁 COMPRA FINAL: Última oportunidad antes de posible techo. Tomar beneficios parciales.";
-        else if (ultimo.caso_numero === 6) recomendacionLimpia = "🚀 COMPRA RÁPIDA: Momento óptimo para entrada rápida. Stop ajustado.";
-        else if (ultimo.caso_numero === 7) recomendacionLimpia = "⏳ PRE-COMPRA: Señal a punto de activarse. Preparar orden de compra con alerta.";
-        else recomendacionLimpia = senalActivada ? "✅ SE ACTIVA SEÑAL DE COMPRA. Condiciones técnicas favorables." : "⏳ Condiciones no favorables. Esperar confirmación.";
+        let recomendacionLimpia = descripcionCompra[ultimo.caso_numero] || "Sin señal activa en este momento";
         
-        // Construir el historial con la nueva columna de resultado
-        let historialHtml = `<div class="seccion"><h3>📜 HISTORIAL DE ANÁLISIS</h3><div class="scroll-horizontal"><table class="tabla-historial"><thead><tr>`;
-        historialHtml += `<th>Fecha</th><th>Precio actual</th><th>Variación</th><th>Señal</th>`;
+        // Construir historial con resultado neto (incluyendo comisiones)
+        let historialHtml = `<div class="seccion"><h3>📜 HISTORIAL DE ANÁLISIS</h3><div class="scroll-horizontal"><table class="tabla-historial"><thead>`;
+        historialHtml += `<tr><th>Fecha</th><th>Precio</th><th>Var.%</th><th>Señal</th>`;
         if (primeraCompra) {
-            historialHtml += `<th>Resultado (sobre ${new Intl.NumberFormat('es-ES').format(dineroInvertir)}€)</th>`;
+            historialHtml += `<th>Resultado Bruto</th><th>Comisiones</th><th>Resultado Neto</th>`;
         }
         historialHtml += `</tr></thead><tbody>`;
         
         for (let i = analisisArrayAsc.length - 1; i >= 0; i--) {
             const a = analisisArrayAsc[i];
             const fechaItem = new Date(a.fecha).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
-            
             let variacionItem = variacionesMap.get(i) || null;
             const pctShow = variacionItem !== null ? `${variacionItem >= 0 ? '▲' : '▼'} ${Math.abs(variacionItem).toFixed(2)}%` : '--';
             const tipoSenal = resumenCorto[a.caso_numero] || (a.activada_por_4h ? 'Señal activa' : 'Sin señal');
@@ -884,46 +891,60 @@
             historialHtml += `<td class="${variacionItem !== null && variacionItem >= 0 ? 'positivo' : 'negativo'}">${pctShow}</td>`;
             historialHtml += `<td>${tipoSenal}</td>`;
             
-            // Columna de resultado si existe primera compra
             if (primeraCompra && precioPrimeraCompra && acciones > 0) {
-                const resultado = calcularResultado(a.precio_cierre, precioPrimeraCompra, acciones);
-                if (resultado !== null) {
-                    const resultadoFormateado = resultado >= 0 ? `+${resultado.toFixed(2)} €` : `${resultado.toFixed(2)} €`;
-                    const resultadoClass = resultado >= 0 ? 'resultado-positivo' : 'resultado-negativo';
-                    historialHtml += `<td class="${resultadoClass}">${resultadoFormateado}</td>`;
-                } else {
-                    historialHtml += `<td>--</td>`;
-                }
+                const resultado = calcularResultadoNeto(precioPrimeraCompra, a.precio_cierre, acciones, dineroInvertir);
+                const brutoClass = resultado.bruto >= 0 ? 'resultado-positivo' : 'resultado-negativo';
+                const netoClass = resultado.neto >= 0 ? 'resultado-positivo' : 'resultado-negativo';
+                historialHtml += `<td class="${brutoClass}">${resultado.bruto >= 0 ? '+' : ''}${resultado.bruto.toFixed(2)} €</td>`;
+                historialHtml += `<td style="font-size:0.7rem; color:#e68a2e;">${resultado.comisiones.total.toFixed(2)} €</td>`;
+                historialHtml += `<td class="${netoClass}">${resultado.neto >= 0 ? '+' : ''}${resultado.neto.toFixed(2)} €</td>`;
             }
-            
             historialHtml += `</tr>`;
         }
         historialHtml += `</tbody></table></div></div>`;
         
-        // Construir bloque de información de primera compra (si existe)
+        // Bloque de primera compra
         let primeraCompraHtml = '';
+        let comisionesHtml = '';
+        
         if (primeraCompra && precioPrimeraCompra) {
             const fechaPrimeraFormateada = new Date(fechaPrimeraCompra).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
+            const resultadoActual = calcularResultadoNeto(precioPrimeraCompra, ultimo.precio_cierre, acciones, dineroInvertir);
             const rentabilidadActual = ((ultimo.precio_cierre - precioPrimeraCompra) / precioPrimeraCompra) * 100;
             const rentabilidadClass = rentabilidadActual >= 0 ? 'resultado-positivo' : 'resultado-negativo';
+            const netoClass = resultadoActual.neto >= 0 ? 'resultado-positivo' : 'resultado-negativo';
             
             primeraCompraHtml = `
                 <div class="info-primera-compra">
                     <div class="info-primera-compra-item">
-                        <span class="label">🎯 PRIMERA COMPRA (MÁS ANTIGUA)</span>
+                        <span class="label">🎯 PRIMERA COMPRA</span>
                         <span class="value">${fechaPrimeraFormateada} · ${precioPrimeraCompra} €</span>
                     </div>
                     <div class="info-primera-compra-item">
-                        <span class="label">📊 ACCIONES COMPRADAS</span>
+                        <span class="label">📊 ACCIONES</span>
                         <span class="value">${acciones.toLocaleString('es-ES')} uds</span>
                     </div>
                     <div class="info-primera-compra-item">
-                        <span class="label">📈 RENTABILIDAD ACTUAL</span>
+                        <span class="label">📈 RENTABILIDAD</span>
                         <span class="value ${rentabilidadClass}">${rentabilidadActual >= 0 ? '+' : ''}${rentabilidadActual.toFixed(2)}%</span>
                     </div>
                     <div class="info-primera-compra-item">
-                        <span class="label">💰 RESULTADO ACTUAL BRUTO</span>
-                        <span class="value ${rentabilidadClass}">${calcularResultado(ultimo.precio_cierre, precioPrimeraCompra, acciones) >= 0 ? '+' : ''}${calcularResultado(ultimo.precio_cierre, precioPrimeraCompra, acciones)?.toFixed(2) || '0'} €</span>
+                        <span class="label">💰 RESULTADO NETO</span>
+                        <span class="value ${netoClass}">${resultadoActual.neto >= 0 ? '+' : ''}${resultadoActual.neto.toFixed(2)} €</span>
+                    </div>
+                </div>
+            `;
+            
+            // Desglose de comisiones
+            comisionesHtml = `
+                <div class="comisiones-box">
+                    <h4>💰 DESGLOSE DE COMISIONES (Compra + Venta)</h4>
+                    <div class="comisiones-grid">
+                        <div class="comision-item"><strong>Comisión compra:</strong> <span>11 € + (${dineroInvertir.toFixed(2)}€ × 0.004) = ${resultadoActual.comisiones.compra.toFixed(2)} €</span></div>
+                        <div class="comision-item"><strong>Comisión venta:</strong> <span>11 € + (${ultimo.precio_cierre}€ × ${acciones} × 0.004) = ${resultadoActual.comisiones.venta.toFixed(2)} €</span></div>
+                        <div class="comision-item"><strong>Comisión total:</strong> <span>${resultadoActual.comisiones.total.toFixed(2)} €</span></div>
+                        <div class="comision-item"><strong>Resultado bruto:</strong> <span class="${resultadoActual.bruto >= 0 ? 'resultado-positivo' : 'resultado-negativo'}">${resultadoActual.bruto >= 0 ? '+' : ''}${resultadoActual.bruto.toFixed(2)} €</span></div>
+                        <div class="comision-item"><strong>Resultado neto (después comisiones):</strong> <span class="${resultadoActual.neto >= 0 ? 'resultado-positivo' : 'resultado-negativo'}">${resultadoActual.neto >= 0 ? '+' : ''}${resultadoActual.neto.toFixed(2)} €</span></div>
                     </div>
                 </div>
             `;
@@ -940,26 +961,27 @@
         
         let html = `
             <div class="resultado-detalle">
-                <button class="btn-cerrar" onclick="cerrarDetalle()">← Volver a señales</button>
-                <div class="tipo-compra-tag ${ultimo.caso_numero === 1 || ultimo.caso_numero === 4 || ultimo.caso_numero === 6 ? 'compra-destacada' : ''}">${descripcionCompra[ultimo.caso_numero] || 'ESTRATEGIA DE COMPRA'}</div>
+                <button class="btn-cerrar" onclick="cerrarDetalle()">← Volver a empresas</button>
+                <div class="tipo-compra-tag">${descripcionCompra[ultimo.caso_numero] || 'ESTRATEGIA DE COMPRA'}</div>
                 <div class="info-grid">
                     <div class="info-card"><h3>🏢 Empresa</h3><div class="valor">${ultimo.nombre_empresa}</div><div class="small">${ultimo.ticker}</div></div>
                     <div class="info-card"><h3>💰 Precio actual</h3><div class="valor">${ultimo.precio_cierre} €</div><div class="small-pct ${clasePct}">${simbolo} ${Math.abs(pctValor).toFixed(2)}%</div></div>
                     <div class="info-card"><h3>📅 Último análisis</h3><div class="valor">${fechaFormateada}</div></div>
                 </div>
                 ${primeraCompraHtml}
+                ${comisionesHtml}
                 <div class="info-grid">
-                    <div class="info-card"><h3>🕐 CORTO PLAZO</h3>${generarBarra(puntosCorto)}<div class="barra-label">${senalActivada ? '✅ Señal activada' : '⏳ Esperando'}</div></div>
-                    <div class="info-card"><h3>📈 MEDIO PLAZO</h3>${generarBarra(puntosMedio)}<div class="barra-label ${tendenciaClase}">Tendencia: ${tendenciaTexto}</div></div>
-                    <div class="info-card"><h3>📆 LARGO PLAZO</h3>${generarBarra(puntosLargo)}<div class="barra-label">Contexto estructural</div></div>
+                    <div class="info-card"><h3>🕐 CORTO PLAZO (4h)</h3>${generarBarra(puntosCorto)}</div>
+                    <div class="info-card"><h3>📈 MEDIO PLAZO (Diario)</h3>${generarBarra(puntosMedio)}<div class="barra-label ${tendenciaClase}">Tendencia: ${tendenciaTexto}</div></div>
+                    <div class="info-card"><h3>📆 LARGO PLAZO (Semanal)</h3>${generarBarra(puntosLargo)}</div>
                 </div>
-                <div class="seccion"><h3>💡 RECOMENDACIÓN TÉCNICA</h3><div class="recomendacion-texto" style="${(ultimo.caso_numero === 1 || ultimo.caso_numero === 4 || ultimo.caso_numero === 6) ? 'background:#1e7e34; color:white; font-weight:bold;' : ''}">${recomendacionLimpia}</div></div>
+                <div class="seccion"><h3>💡 RECOMENDACIÓN TÉCNICA</h3><div class="recomendacion-texto">${recomendacionLimpia}</div></div>
         `;
         
         if (ultimo.soportes || ultimo.resistencias) {
             html += `<div class="seccion"><h3>📊 NIVELES CLAVE</h3><div class="grid-2col">
-                        <div><h4 style="margin-bottom:10px; color:#1e7e34;">📉 SOPORTES (3 principales)</h4><div class="lista-items">${formatearNiveles(ultimo.soportes, 'soporte')}</div></div>
-                        <div><h4 style="margin-bottom:10px; color:#b91c1c;">📈 RESISTENCIAS (3 principales)</h4><div class="lista-items">${formatearNiveles(ultimo.resistencias, 'resistencia')}</div></div>
+                        <div><h4 style="margin-bottom:10px; color:#1e7e34;">📉 SOPORTES</h4><div class="lista-items">${formatearNiveles(ultimo.soportes, 'soporte')}</div></div>
+                        <div><h4 style="margin-bottom:10px; color:#b91c1c;">📈 RESISTENCIAS</h4><div class="lista-items">${formatearNiveles(ultimo.resistencias, 'resistencia')}</div></div>
                     </div></div>`;
         }
         
@@ -1007,7 +1029,7 @@
         resultadoDiv.classList.remove('hidden');
         resultadoDiv.innerHTML = '<div class="loading">🔎 Buscando...</div>';
         try {
-            const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?nombre_empresa=ilike.%25${encodeURIComponent(input)}%25&order=fecha.desc&limit=150`, {
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?nombre_empresa=ilike.%25${encodeURIComponent(input)}%25&order=fecha.desc&limit=5000`, {
                 headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
             });
             if (!response.ok) throw new Error();
