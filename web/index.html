@@ -28,7 +28,7 @@
             display: flex;
             gap: 12px;
             justify-content: center;
-            margin-bottom: 32px;
+            margin-bottom: 20px;
             flex-wrap: wrap;
         }
 
@@ -66,6 +66,50 @@
             transform: translateY(-1px);
         }
 
+        .inversor-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .card-inversor {
+            background: linear-gradient(135deg, #1e4668 0%, #0f3552 100%);
+            border-radius: 60px;
+            padding: 8px 20px 8px 28px;
+            display: inline-flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .card-inversor label {
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+
+        .card-inversor input {
+            padding: 10px 16px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 40px;
+            background: white;
+            width: 160px;
+            text-align: center;
+            outline: none;
+        }
+
+        .card-inversor .euro-simbolo {
+            color: white;
+            font-weight: 600;
+        }
+
         .seccion-principal {
             background: transparent;
             margin-bottom: 40px;
@@ -90,7 +134,6 @@
             margin-bottom: 32px;
         }
 
-        /* Tarjetas grandes (con señal) */
         .tarjeta-empresa {
             background: #ffffff;
             border-radius: 20px;
@@ -164,7 +207,6 @@
             padding-top: 12px;
         }
 
-        /* Tarjetas pequeñas (sin señal) */
         .grid-pequenas {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -492,6 +534,14 @@
         <button id="btnBuscar">🔍 Analizar ticker</button>
     </div>
 
+    <div class="inversor-container">
+        <div class="card-inversor">
+            <label>💰 DINERO A INVERTIR</label>
+            <input type="number" id="dineroInvertir" value="10000" step="1000" min="100">
+            <span class="euro-simbolo">€</span>
+        </div>
+    </div>
+
     <div id="seccionSeñales" class="seccion-principal">
         <h2>🟢 SEÑALES ACTIVAS · COMPRA</h2>
         <div id="listaSeñales" class="grid-empresas">
@@ -527,48 +577,33 @@
         1: "Compra Inmediata", 2: "Compra Anticipada", 3: "Rebote corto", 4: "Compra Consolidada", 5: "Compra Agotamiento", 6: "Compra Rápida", 7: "Pre-Compra"
     };
 
-    let empresasDataCache = new Map();
     let tickerActual = null;
 
-    // Encontrar primera compra: después de un sin señal o el primero de la historia
+    function calcularComisiones(dineroInvertido, precioCompra, precioVenta, numAcciones) {
+        const comisionCompra = 11 + (dineroInvertido * 0.004);
+        const comisionVenta = 11 + (precioVenta * numAcciones * 0.004);
+        return comisionCompra + comisionVenta;
+    }
+
+    function calcularResultadoNeto(precioCompra, precioVenta, acciones, dineroInvertido) {
+        const resultadoBruto = (precioVenta - precioCompra) * acciones;
+        const comisiones = calcularComisiones(dineroInvertido, precioCompra, precioVenta, acciones);
+        return resultadoBruto - comisiones;
+    }
+
     function encontrarPrimeraCompra(analisisArrayAsc) {
         if (!analisisArrayAsc || analisisArrayAsc.length === 0) return null;
-        
-        // Buscar el primer registro con señal
         for (let i = 0; i < analisisArrayAsc.length; i++) {
             const registro = analisisArrayAsc[i];
             if (CASOS_SEÑAL.includes(registro.caso_numero)) {
-                // Si es el primero de la historia, esa es la compra
                 if (i === 0) return registro;
-                // Si no, comprobar si el anterior NO tenía señal
                 const anterior = analisisArrayAsc[i - 1];
                 if (anterior && !CASOS_SEÑAL.includes(anterior.caso_numero)) {
                     return registro;
                 }
             }
         }
-        
-        // Si no se encuentra ninguna compra después de sin señal, devolver la primera señal que exista
-        const primeraSenal = analisisArrayAsc.find(r => CASOS_SEÑAL.includes(r.caso_numero));
-        return primeraSenal || null;
-    }
-
-    // Calcular ganancia máxima desde la compra hasta el punto más alto
-    function calcularGananciaMaxima(analisisArrayAsc, precioCompra, acciones) {
-        if (!precioCompra || !acciones || acciones === 0) return null;
-        
-        let precioMaximo = precioCompra;
-        for (const registro of analisisArrayAsc) {
-            if (registro.precio_cierre > precioMaximo) {
-                precioMaximo = registro.precio_cierre;
-            }
-        }
-        
-        const gananciaMaxima = (precioMaximo - precioCompra) * acciones;
-        return {
-            precioMaximo: precioMaximo,
-            ganancia: gananciaMaxima
-        };
+        return analisisArrayAsc.find(r => CASOS_SEÑAL.includes(r.caso_numero)) || null;
     }
 
     function calcularAcciones(dinero, precioCompra) {
@@ -576,36 +611,39 @@
         return Math.floor(dinero / precioCompra);
     }
 
-    function calcularResultadoNeto(precioCompra, precioVenta, acciones) {
-        return (precioVenta - precioCompra) * acciones;
+    function calcularGananciaMaxima(analisisArrayAsc, precioCompra, acciones) {
+        if (!precioCompra || !acciones || acciones === 0) return null;
+        let precioMaximo = precioCompra;
+        for (const registro of analisisArrayAsc) {
+            if (registro.precio_cierre > precioMaximo) {
+                precioMaximo = registro.precio_cierre;
+            }
+        }
+        return {
+            precioMaximo: precioMaximo,
+            ganancia: (precioMaximo - precioCompra) * acciones
+        };
     }
 
     function calcularPorcentajeVsDiaAnterior(analisisArrayAsc) {
         if (!analisisArrayAsc || analisisArrayAsc.length === 0) return new Map();
-        
         const ultimoPrecioPorDia = new Map();
         for (const registro of analisisArrayAsc) {
             const fechaKey = new Date(registro.fecha).toISOString().split('T')[0];
             ultimoPrecioPorDia.set(fechaKey, registro.precio_cierre);
         }
-        
         const diasArray = Array.from(ultimoPrecioPorDia.keys()).sort();
         const precioDiaAnterior = new Map();
         for (let i = 0; i < diasArray.length; i++) {
-            if (i > 0) {
-                precioDiaAnterior.set(diasArray[i], ultimoPrecioPorDia.get(diasArray[i - 1]));
-            }
+            if (i > 0) precioDiaAnterior.set(diasArray[i], ultimoPrecioPorDia.get(diasArray[i - 1]));
         }
-        
         const variaciones = new Map();
         for (let i = 0; i < analisisArrayAsc.length; i++) {
             const registro = analisisArrayAsc[i];
             const fechaKey = new Date(registro.fecha).toISOString().split('T')[0];
             const precioAnterior = precioDiaAnterior.get(fechaKey);
-            
             if (precioAnterior && precioAnterior > 0) {
-                const variacion = ((registro.precio_cierre - precioAnterior) / precioAnterior) * 100;
-                variaciones.set(i, variacion);
+                variaciones.set(i, ((registro.precio_cierre - precioAnterior) / precioAnterior) * 100);
             } else {
                 variaciones.set(i, null);
             }
@@ -616,30 +654,23 @@
     function smiToPuntos(smi) {
         if (smi === null || smi === undefined) return 0;
         let puntos = Math.round(((80 - smi) / 160) * 10);
-        puntos = Math.max(0, Math.min(10, puntos));
-        return puntos;
+        return Math.max(0, Math.min(10, puntos));
     }
 
     function calcularTendenciaPorPendiente(analisisArray) {
         if (!analisisArray || analisisArray.length < 2) return { texto: "Espera", clase: "tendencia-espera" };
-        
         const hoy = analisisArray[0];
         const fechaHoy = new Date(hoy.fecha).toDateString();
-        
         let diaAnterior = null;
         for (let i = 1; i < analisisArray.length; i++) {
-            const registro = analisisArray[i];
-            const fechaRegistro = new Date(registro.fecha).toDateString();
-            if (fechaRegistro !== fechaHoy) {
-                diaAnterior = registro;
+            if (new Date(analisisArray[i].fecha).toDateString() !== fechaHoy) {
+                diaAnterior = analisisArray[i];
                 break;
             }
         }
-        
         if (!diaAnterior || hoy.smi_diario === null || diaAnterior.smi_diario === null) {
             return { texto: "Espera", clase: "tendencia-espera" };
         }
-        
         const diff = hoy.smi_diario - diaAnterior.smi_diario;
         if (diff > 0.3) return { texto: "Positiva ▲", clase: "tendencia-positiva" };
         if (diff < -0.3) return { texto: "Negativa ▼", clase: "tendencia-negativa" };
@@ -648,9 +679,7 @@
 
     function generarBarra(puntos) {
         let html = '<div class="barra">';
-        for (let i = 0; i < 10; i++) {
-            html += `<div class="punto ${i < puntos ? 'activo' : ''}"></div>`;
-        }
+        for (let i = 0; i < 10; i++) html += `<div class="punto ${i < puntos ? 'activo' : ''}"></div>`;
         html += '</div>';
         return html;
     }
@@ -711,7 +740,7 @@
         const listaDiv = document.getElementById('listaSeñales');
         const otrasDiv = document.getElementById('listaOtras');
         try {
-            const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?select=*&order=fecha.desc`, {
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?select=*&order=fecha.desc&limit=1000`, {
                 headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
             });
             if (!response.ok) throw new Error('Error');
@@ -726,24 +755,19 @@
             }
             for (let [ticker, arr] of tickerMap.entries()) {
                 arr.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
-                empresasDataCache.set(ticker, arr);
             }
             
-            console.log(`📈 Total empresas: ${tickerMap.size}`);
-            
-            // Separar empresas con y sin señal activa
             const conSenal = [];
             const sinSenal = [];
             
             for (let [ticker, arr] of tickerMap.entries()) {
                 if (arr.length === 0) continue;
-                const masReciente = [...arr].sort((a, b) => new Date(b.fecha) - new Date(a.fecha))[0];
-                const ultimo = masReciente;
+                const masReciente = arr[arr.length - 1];
                 
                 let variacion = null;
-                const fechaUltimo = new Date(ultimo.fecha).toISOString().split('T')[0];
+                const fechaUltimo = new Date(masReciente.fecha).toISOString().split('T')[0];
                 
-                const responseAyer = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?ticker=eq.${ticker}&fecha=lt.${fechaUltimo}T00:00:00&order=fecha.desc`, {
+                const responseAyer = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?ticker=eq.${ticker}&fecha=lt.${fechaUltimo}T00:00:00&order=fecha.desc&limit=1`, {
                     headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
                 });
                 const dataAyer = await responseAyer.json();
@@ -751,26 +775,23 @@
                 if (dataAyer.length > 0) {
                     const precioAyer = dataAyer[0].precio_cierre;
                     if (precioAyer && precioAyer > 0) {
-                        variacion = ((ultimo.precio_cierre - precioAyer) / precioAyer) * 100;
+                        variacion = ((masReciente.precio_cierre - precioAyer) / precioAyer) * 100;
                     }
                 }
                 
-                const empresaData = { ...ultimo, variacionVsAnterior: variacion };
+                const empresaData = { ...masReciente, variacionVsAnterior: variacion, historial: arr };
                 
-                if (CASOS_SEÑAL.includes(ultimo.caso_numero)) {
+                if (CASOS_SEÑAL.includes(masReciente.caso_numero)) {
                     conSenal.push(empresaData);
                 } else {
                     sinSenal.push(empresaData);
                 }
             }
             
-            // Ordenar con señal por orden de prioridad
             conSenal.sort((a,b) => {
                 const orden = [1, 6, 4, 2, 7, 3, 5];
                 return orden.indexOf(a.caso_numero) - orden.indexOf(b.caso_numero);
             });
-            
-            // Ordenar sin señal por nombre
             sinSenal.sort((a,b) => (a.nombre_empresa || a.ticker).localeCompare(b.nombre_empresa || b.ticker));
             
             mostrarSeñales(conSenal);
@@ -839,20 +860,28 @@
         seccionSeñales.classList.add('hidden');
         resultadoDiv.classList.remove('hidden');
         resultadoDiv.innerHTML = '<div class="loading">📊 Cargando análisis...</div>';
+        
         try {
-            let data = empresasDataCache.get(ticker);
-            if (!data) {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?ticker=eq.${encodeURIComponent(ticker)}&order=fecha.asc`, {
-                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
-                });
-                if (!response.ok) throw new Error('Error');
-                data = await response.json();
-                if (!data || data.length === 0) throw new Error('Sin datos');
-                data.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
-                empresasDataCache.set(ticker, data);
+            // CONSULTA SIN LIMITE - TRABAJOS TODOS LOS REGISTROS
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?ticker=eq.${encodeURIComponent(ticker)}&order=fecha.asc`, {
+                headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+            });
+            
+            if (!response.ok) throw new Error('Error en la consulta');
+            
+            const data = await response.json();
+            
+            console.log(`📊 ${ticker} - Registros recibidos de Supabase: ${data.length}`);
+            
+            if (!data || data.length === 0) {
+                resultadoDiv.innerHTML = '<div class="error">❌ No hay datos para esta empresa</div><button class="btn-cerrar" onclick="cerrarDetalle()">← Volver</button>';
+                return;
             }
+            
             mostrarDetalleCompleto(data);
+            
         } catch (err) {
+            console.error(err);
             resultadoDiv.innerHTML = `<div class="error">Error: ${err.message}</div><button class="btn-cerrar" onclick="cerrarDetalle()">← Volver</button>`;
         }
     }
@@ -860,9 +889,7 @@
     function mostrarDetalleCompleto(analisisArrayAsc) {
         const resultadoDiv = document.getElementById('resultadoDetalle');
         const ultimo = analisisArrayAsc[analisisArrayAsc.length - 1];
-        
-        // Dinero fijo para cálculo (10.000€ como referencia)
-        const dineroInvertir = 10000;
+        const dineroInvertir = parseFloat(document.getElementById('dineroInvertir').value) || 10000;
         
         const primeraCompra = encontrarPrimeraCompra(analisisArrayAsc);
         let acciones = 0;
@@ -875,9 +902,7 @@
             acciones = calcularAcciones(dineroInvertir, precioPrimeraCompra);
         }
         
-        // Calcular ganancia máxima
         const gananciaMax = primeraCompra ? calcularGananciaMaxima(analisisArrayAsc, precioPrimeraCompra, acciones) : null;
-        
         const variacionesMap = calcularPorcentajeVsDiaAnterior(analisisArrayAsc);
         const idxUltimo = analisisArrayAsc.length - 1;
         let variacionUltimo = variacionesMap.get(idxUltimo) || null;
@@ -897,11 +922,11 @@
         
         let recomendacionLimpia = descripcionCompra[ultimo.caso_numero] || "Sin señal activa en este momento";
         
-        // Construir historial con resultado neto (sin comisiones)
+        // CONSTRUIR HISTORIAL CON TODOS LOS REGISTROS
         let historialHtml = `<div class="seccion"><h3>📜 HISTORIAL DE ANÁLISIS</h3><div class="scroll-horizontal"><table class="tabla-historial"><thead>`;
         historialHtml += `<tr><th>Fecha</th><th>Precio</th><th>Var.%</th><th>Señal</th>`;
         if (primeraCompra) {
-            historialHtml += `<th>Resultado (${dineroInvertir.toLocaleString('es-ES')}€)</th>`;
+            historialHtml += `<th>Resultado Neto (${dineroInvertir.toLocaleString('es-ES')}€)</th>`;
         }
         historialHtml += `</tr></thead><tbody>`;
         
@@ -919,21 +944,20 @@
             historialHtml += `<td>${tipoSenal}</td>`;
             
             if (primeraCompra && precioPrimeraCompra && acciones > 0) {
-                const resultado = calcularResultadoNeto(precioPrimeraCompra, a.precio_cierre, acciones);
+                const resultado = calcularResultadoNeto(precioPrimeraCompra, a.precio_cierre, acciones, dineroInvertir);
                 const resultadoClass = resultado >= 0 ? 'resultado-positivo' : 'resultado-negativo';
                 historialHtml += `<td class="${resultadoClass}">${resultado >= 0 ? '+' : ''}${resultado.toFixed(2)} €</td>`;
             }
-            historialHtml += `</tr>`;
+            historialHtml += `</td>`;
         }
         historialHtml += `</tbody></table></div></div>`;
         
-        // Bloque de primera compra
         let primeraCompraHtml = '';
         let gananciaMaxHtml = '';
         
         if (primeraCompra && precioPrimeraCompra) {
             const fechaPrimeraFormateada = new Date(fechaPrimeraCompra).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
-            const resultadoActual = calcularResultadoNeto(precioPrimeraCompra, ultimo.precio_cierre, acciones);
+            const resultadoActual = calcularResultadoNeto(precioPrimeraCompra, ultimo.precio_cierre, acciones, dineroInvertir);
             const rentabilidadActual = ((ultimo.precio_cierre - precioPrimeraCompra) / precioPrimeraCompra) * 100;
             const rentabilidadClass = rentabilidadActual >= 0 ? 'resultado-positivo' : 'resultado-negativo';
             const netoClass = resultadoActual >= 0 ? 'resultado-positivo' : 'resultado-negativo';
@@ -953,7 +977,7 @@
                         <span class="value ${rentabilidadClass}">${rentabilidadActual >= 0 ? '+' : ''}${rentabilidadActual.toFixed(2)}%</span>
                     </div>
                     <div class="info-primera-compra-item">
-                        <span class="label">💰 RESULTADO ACTUAL</span>
+                        <span class="label">💰 RESULTADO NETO</span>
                         <span class="value ${netoClass}">${resultadoActual >= 0 ? '+' : ''}${resultadoActual.toFixed(2)} €</span>
                     </div>
                 </div>
@@ -997,7 +1021,6 @@
                 <div class="seccion"><h3>💡 RECOMENDACIÓN TÉCNICA</h3><div class="recomendacion-texto">${recomendacionLimpia}</div></div>
         `;
         
-        // NIVELES CLAVE
         if (ultimo.soportes || ultimo.resistencias) {
             html += `<div class="seccion"><h3>📊 NIVELES CLAVE</h3><div class="grid-2col">
                         <div><h4 style="margin-bottom:10px; color:#1e7e34;">📉 SOPORTES</h4><div class="lista-items">${formatearNiveles(ultimo.soportes, 'soporte')}</div></div>
@@ -1005,10 +1028,8 @@
                     </div></div>`;
         }
         
-        // HISTORIAL - justo después de niveles clave
         html += historialHtml;
         
-        // GAPS
         if (ultimo.gaps_alcistas || ultimo.gaps_bajistas) {
             html += `<div class="seccion"><h3>🕳️ GAPS</h3><div class="grid-2col">
                         <div><h4 style="color:#1e7e34;">📈 Gaps Alcistas</h4><div class="lista-items">${formatearMechas(ultimo.gaps_alcistas)}</div></div>
@@ -1016,7 +1037,6 @@
                     </div></div>`;
         }
         
-        // VELAS CON MECHA LARGA - al final
         if (ultimo.pinchos_alcistas || ultimo.pinchos_bajistas) {
             html += `<div class="seccion"><h3>🕯️ VELAS CON MECHA LARGA</h3><div class="grid-2col">
                         <div><h4 style="color:#1e7e34;">🔺 Mechas alcistas</h4><div class="lista-items">${formatearMechas(ultimo.pinchos_alcistas)}</div></div>
@@ -1033,6 +1053,12 @@
         document.getElementById('seccionSeñales').classList.remove('hidden');
         document.getElementById('resultadoDetalle').classList.add('hidden');
         cargarSeñales();
+    }
+    
+    function actualizarDetallePorCambioDinero() {
+        if (tickerActual && document.getElementById('resultadoDetalle') && !document.getElementById('resultadoDetalle').classList.contains('hidden')) {
+            verDetalle(tickerActual);
+        }
     }
 
     async function buscarEmpresa() {
@@ -1056,7 +1082,6 @@
             data.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
             if (data.length > 0) {
                 tickerActual = data[0].ticker;
-                empresasDataCache.set(tickerActual, data);
             }
             mostrarDetalleCompleto(data);
         } catch (e) {
@@ -1066,6 +1091,7 @@
 
     document.getElementById('btnBuscar').addEventListener('click', buscarEmpresa);
     document.getElementById('inputEmpresa').addEventListener('keypress', (e) => { if(e.key === 'Enter') buscarEmpresa(); });
+    document.getElementById('dineroInvertir').addEventListener('input', actualizarDetallePorCambioDinero);
     
     cargarSeñales();
     window.verDetalle = verDetalle;
