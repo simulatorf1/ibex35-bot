@@ -4,7 +4,7 @@ on:
     # Horarios UTC (2 horas menos que tu zona horaria)
     - cron: '1 7 * * 1-5'      # 7:00 UTC -> 9:00 local
     - cron: '16 7 * * 1-5'     # 7:15 UTC -> 9:15 local
-    - cron: '30 7 * * 1-5'     # 7:30 UTC -> 9:30 local
+    - cron: '31 7 * * 1-5'     # 7:30 UTC -> 9:30 local
     - cron: '45 7 * * 1-5'     # 7:45 UTC -> 9:45 local
     
     - cron: '0 8 * * 1-5'      # 8:00 UTC -> 10:00 local
