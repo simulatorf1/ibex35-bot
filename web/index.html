@@ -127,37 +127,98 @@
             padding-left: 14px;
         }
 
-        .grid-empresas {
+        /* Tarjetas grandes - COMPRA REAL (casos 1,4,6) */
+        .grid-grandes {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
             gap: 22px;
             margin-bottom: 32px;
         }
 
-        .tarjeta-empresa {
+        .tarjeta-grande {
             background: #ffffff;
             border-radius: 20px;
             padding: 20px 22px;
             cursor: pointer;
             transition: all 0.2s ease;
-            border: 1px solid #e6edf4;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
+            border: 2px solid #1e7e34;
+            box-shadow: 0 4px 10px rgba(30,126,52,0.1);
         }
 
-        .tarjeta-empresa:hover {
+        .tarjeta-grande:hover {
             transform: translateY(-4px);
-            box-shadow: 0 20px 25px -12px rgba(0, 0, 0, 0.1);
-            border-color: #cbdde9;
+            box-shadow: 0 20px 25px -12px rgba(30,126,52,0.2);
         }
 
-        .tarjeta-nombre {
+        /* Tarjetas medianas - SEÑAL ESPERA (casos 2,3,5,7) */
+        .grid-medianas {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .tarjeta-mediana {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 16px 18px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid #e6edf4;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+        }
+
+        .tarjeta-mediana:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px -8px rgba(0, 0, 0, 0.1);
+        }
+
+        .tarjeta-mediana-nombre {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #1e3a5f;
+        }
+
+        .tarjeta-mediana-ticker {
+            font-size: 0.65rem;
+            color: #8ba0bc;
+            margin-bottom: 8px;
+        }
+
+        .tarjeta-mediana-precio {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #0b2b3b;
+            margin: 8px 0 4px;
+        }
+
+        .tarjeta-mediana-porcentaje {
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+
+        .tarjeta-mediana-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            margin-top: 8px;
+            background: #eef2fa;
+            color: #e68a2e;
+        }
+
+        .tarjeta-grande-nombre {
             font-size: 1.25rem;
             font-weight: 700;
             color: #1e3a5f;
             margin-bottom: 4px;
         }
 
-        .tarjeta-ticker {
+        .tarjeta-grande-ticker {
             font-size: 0.75rem;
             font-weight: 500;
             color: #6c86a3;
@@ -166,14 +227,14 @@
             margin-bottom: 12px;
         }
 
-        .tarjeta-precio {
+        .tarjeta-grande-precio {
             font-size: 1.9rem;
             font-weight: 700;
             color: #0b2b3b;
             margin: 12px 0 6px;
         }
 
-        .tarjeta-porcentaje {
+        .tarjeta-grande-porcentaje {
             font-size: 0.9rem;
             font-weight: 600;
             margin: 4px 0;
@@ -182,24 +243,19 @@
             border-radius: 30px;
         }
 
-        .tipo-compra-badge {
+        .tarjeta-grande-badge {
             display: inline-block;
             padding: 6px 16px;
             border-radius: 40px;
             font-size: 0.7rem;
             font-weight: 700;
             margin: 12px 0 8px;
-            background: #eef2fa;
-            color: #1e4668;
+            background: #1e7e34;
+            color: white;
             letter-spacing: 0.2px;
         }
 
-        .tipo-compra-badge.strong-buy {
-            background: #1e7e34;
-            color: white;
-        }
-
-        .tarjeta-fecha {
+        .tarjeta-grande-fecha {
             font-size: 0.7rem;
             color: #8ba0bc;
             margin-top: 12px;
@@ -207,6 +263,7 @@
             padding-top: 12px;
         }
 
+        /* Tarjetas pequeñas - SIN SEÑAL */
         .grid-pequenas {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -438,6 +495,20 @@
             font-weight: 700;
         }
 
+        .fila-compra {
+            background: #e8f5e9 !important;
+            border-left: 4px solid #1e7e34 !important;
+        }
+
+        .fila-max-ganancia {
+            background: #fff8e1 !important;
+            border-left: 4px solid #ff9800 !important;
+        }
+
+        .fila-compra td, .fila-max-ganancia td {
+            font-weight: 600;
+        }
+
         .ganancia-max {
             background: #e9f6ec;
             border-radius: 16px;
@@ -517,7 +588,8 @@
 
         @media (max-width: 700px) {
             .grid-2col { grid-template-columns: 1fr; }
-            .grid-empresas { grid-template-columns: 1fr; }
+            .grid-grandes { grid-template-columns: 1fr; }
+            .grid-medianas { grid-template-columns: 1fr; }
             .grid-pequenas { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
             .resultado-detalle { padding: 20px; }
             .punto { width: 16px; }
@@ -543,14 +615,25 @@
     </div>
 
     <div id="seccionSeñales" class="seccion-principal">
-        <h2>🟢 SEÑALES ACTIVAS · COMPRA</h2>
-        <div id="listaSeñales" class="grid-empresas">
-            <div class="loading">🔄 Cargando datos...</div>
+        <div id="listaCompraReal" class="seccion-principal">
+            <h2>🟢 COMPRA REAL · CASOS 1, 4, 6</h2>
+            <div id="gridCompraReal" class="grid-grandes">
+                <div class="loading">🔄 Cargando datos...</div>
+            </div>
         </div>
-        
-        <h2>📋 OTRAS EMPRESAS</h2>
-        <div id="listaOtras" class="grid-pequenas">
-            <div class="loading">🔄 Cargando...</div>
+
+        <div id="listaEspera" class="seccion-principal">
+            <h2>🟡 SEÑALES DE ESPERA · CASOS 2, 3, 5, 7</h2>
+            <div id="gridEspera" class="grid-medianas">
+                <div class="loading">🔄 Cargando datos...</div>
+            </div>
+        </div>
+
+        <div id="listaSinSeñal" class="seccion-principal">
+            <h2>⚪ OTRAS EMPRESAS · SIN SEÑAL</h2>
+            <div id="gridSinSeñal" class="grid-pequenas">
+                <div class="loading">🔄 Cargando...</div>
+            </div>
         </div>
     </div>
 
@@ -561,11 +644,10 @@
     const SUPABASE_URL = "https://klwcletpqqsabtdanldx.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtsd2NsZXRwcXFzYWJ0ZGFubGR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4MDg2NTEsImV4cCI6MjA5MjM4NDY1MX0.nbs0tYbFOL-I8qIkgB7Ub_jcOwHTdzg0EcAp1DS6sCU";
 
-    // Casos que se consideran señal activa para la pantalla principal (todos)
-    const CASOS_SEÑAL = [1, 2, 3, 4, 5, 6, 7];
-    
-    // Casos que se consideran COMPRA REAL para el cálculo de resultados (solo 1, 4, 6)
+    // Casos que se consideran señal activa para la pantalla principal
     const CASOS_COMPRA_REAL = [1, 4, 6];
+    const CASOS_ESPERA = [2, 3, 5, 7];
+    const CASOS_SEÑAL_TOTAL = [1, 2, 3, 4, 5, 6, 7];
     
     const descripcionCompra = {
         1: "COMPRA INMEDIATA - Señal directa por máxima fuerza alcista",
@@ -595,25 +677,18 @@
         return resultadoBruto - comisiones;
     }
 
-    // NUEVA VERSIÓN: Solo considera como compra los casos 1, 4 y 6
     function encontrarPrimeraCompra(analisisArrayAsc) {
         if (!analisisArrayAsc || analisisArrayAsc.length === 0) return null;
-        
         for (let i = 0; i < analisisArrayAsc.length; i++) {
             const registro = analisisArrayAsc[i];
-            // Solo considerar si es caso 1, 4 o 6
             if (CASOS_COMPRA_REAL.includes(registro.caso_numero)) {
-                // Si es el primer registro de la historia, esa es la compra
                 if (i === 0) return registro;
-                // Si no, comprobar si el anterior NO era compra real
                 const anterior = analisisArrayAsc[i - 1];
                 if (anterior && !CASOS_COMPRA_REAL.includes(anterior.caso_numero)) {
                     return registro;
                 }
             }
         }
-        
-        // Si no se encuentra ninguna compra real, devolver la primera que exista (si hay)
         return analisisArrayAsc.find(r => CASOS_COMPRA_REAL.includes(r.caso_numero)) || null;
     }
 
@@ -622,18 +697,20 @@
         return Math.floor(dinero / precioCompra);
     }
 
-    function calcularGananciaMaxima(analisisArrayAsc, precioCompra, acciones) {
+    function encontrarMaximoGanancia(analisisArrayAsc, precioCompra, acciones, dineroInvertir, idxCompra) {
         if (!precioCompra || !acciones || acciones === 0) return null;
-        let precioMaximo = precioCompra;
-        for (const registro of analisisArrayAsc) {
-            if (registro.precio_cierre > precioMaximo) {
-                precioMaximo = registro.precio_cierre;
+        let maxGanancia = -Infinity;
+        let idxMax = idxCompra;
+        
+        for (let i = idxCompra; i < analisisArrayAsc.length; i++) {
+            const resultado = calcularResultadoNeto(precioCompra, analisisArrayAsc[i].precio_cierre, acciones, dineroInvertir);
+            if (resultado > maxGanancia) {
+                maxGanancia = resultado;
+                idxMax = i;
             }
         }
-        return {
-            precioMaximo: precioMaximo,
-            ganancia: (precioMaximo - precioCompra) * acciones
-        };
+        
+        return { idx: idxMax, ganancia: maxGanancia, precio: analisisArrayAsc[idxMax].precio_cierre };
     }
 
     function calcularPorcentajeVsDiaAnterior(analisisArrayAsc) {
@@ -748,8 +825,10 @@
     }
 
     async function cargarSeñales() {
-        const listaDiv = document.getElementById('listaSeñales');
-        const otrasDiv = document.getElementById('listaOtras');
+        const gridCompraReal = document.getElementById('gridCompraReal');
+        const gridEspera = document.getElementById('gridEspera');
+        const gridSinSeñal = document.getElementById('gridSinSeñal');
+        
         try {
             const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?select=*&order=fecha.desc&limit=1000`, {
                 headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
@@ -768,8 +847,9 @@
                 arr.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
             }
             
-            const conSenal = [];
-            const sinSenal = [];
+            const compraReal = [];
+            const espera = [];
+            const sinSeñal = [];
             
             for (let [ticker, arr] of tickerMap.entries()) {
                 if (arr.length === 0) continue;
@@ -792,32 +872,40 @@
                 
                 const empresaData = { ...masReciente, variacionVsAnterior: variacion, historial: arr };
                 
-                if (CASOS_SEÑAL.includes(masReciente.caso_numero)) {
-                    conSenal.push(empresaData);
+                if (CASOS_COMPRA_REAL.includes(masReciente.caso_numero)) {
+                    compraReal.push(empresaData);
+                } else if (CASOS_ESPERA.includes(masReciente.caso_numero)) {
+                    espera.push(empresaData);
                 } else {
-                    sinSenal.push(empresaData);
+                    sinSeñal.push(empresaData);
                 }
             }
             
-            conSenal.sort((a,b) => {
-                const orden = [1, 6, 4, 2, 7, 3, 5];
+            compraReal.sort((a,b) => {
+                const orden = [1, 6, 4];
                 return orden.indexOf(a.caso_numero) - orden.indexOf(b.caso_numero);
             });
-            sinSenal.sort((a,b) => (a.nombre_empresa || a.ticker).localeCompare(b.nombre_empresa || b.ticker));
+            espera.sort((a,b) => {
+                const orden = [2, 7, 3, 5];
+                return orden.indexOf(a.caso_numero) - orden.indexOf(b.caso_numero);
+            });
+            sinSeñal.sort((a,b) => (a.nombre_empresa || a.ticker).localeCompare(b.nombre_empresa || b.ticker));
             
-            mostrarSeñales(conSenal);
-            mostrarOtras(sinSenal);
+            mostrarCompraReal(compraReal);
+            mostrarEspera(espera);
+            mostrarSinSeñal(sinSeñal);
         } catch (err) {
             console.error(err);
-            listaDiv.innerHTML = '<div class="error">❌ Error al cargar datos</div>';
-            otrasDiv.innerHTML = '';
+            gridCompraReal.innerHTML = '<div class="error">❌ Error al cargar datos</div>';
+            gridEspera.innerHTML = '';
+            gridSinSeñal.innerHTML = '';
         }
     }
 
-    function mostrarSeñales(empresas) {
-        const listaDiv = document.getElementById('listaSeñales');
+    function mostrarCompraReal(empresas) {
+        const grid = document.getElementById('gridCompraReal');
         if (empresas.length === 0) {
-            listaDiv.innerHTML = '<div style="background: white; border-radius: 28px; padding: 30px; text-align:center;">📭 No hay señales activas ahora mismo.</div>';
+            grid.innerHTML = '<div style="background: white; border-radius: 28px; padding: 30px; text-align:center;">📭 No hay señales de compra real ahora mismo.</div>';
             return;
         }
         let html = '';
@@ -826,26 +914,48 @@
             const clasePct = pctVal >= 0 ? 'positivo' : 'negativo';
             const simbolo = pctVal >= 0 ? '▲' : '▼';
             const fechaFormateada = new Date(emp.fecha).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
-            // Badge fuerte solo para casos 1,4,6
-            const badgeStrong = (emp.caso_numero === 1 || emp.caso_numero === 6 || emp.caso_numero === 4) ? 'strong-buy' : '';
             html += `
-                <div class="tarjeta-empresa" onclick="verDetalle('${emp.ticker}')">
-                    <div class="tarjeta-nombre">${emp.nombre_empresa || emp.ticker}</div>
-                    <div class="tarjeta-ticker">${emp.ticker}</div>
-                    <div class="tarjeta-precio">${emp.precio_cierre} €</div>
-                    <div class="tarjeta-porcentaje ${clasePct}">${simbolo} ${Math.abs(pctVal).toFixed(2)}%</div>
-                    <div class="tipo-compra-badge ${badgeStrong}">${resumenCorto[emp.caso_numero] || 'Señal'}</div>
-                    <div class="tarjeta-fecha">📅 ${fechaFormateada}</div>
+                <div class="tarjeta-grande" onclick="verDetalle('${emp.ticker}')">
+                    <div class="tarjeta-grande-nombre">${emp.nombre_empresa || emp.ticker}</div>
+                    <div class="tarjeta-grande-ticker">${emp.ticker}</div>
+                    <div class="tarjeta-grande-precio">${emp.precio_cierre} €</div>
+                    <div class="tarjeta-grande-porcentaje ${clasePct}">${simbolo} ${Math.abs(pctVal).toFixed(2)}%</div>
+                    <div class="tarjeta-grande-badge">${resumenCorto[emp.caso_numero] || 'Compra'}</div>
+                    <div class="tarjeta-grande-fecha">📅 ${fechaFormateada}</div>
                 </div>
             `;
         }
-        listaDiv.innerHTML = html;
+        grid.innerHTML = html;
     }
 
-    function mostrarOtras(empresas) {
-        const otrasDiv = document.getElementById('listaOtras');
+    function mostrarEspera(empresas) {
+        const grid = document.getElementById('gridEspera');
         if (empresas.length === 0) {
-            otrasDiv.innerHTML = '<div style="background: white; border-radius: 20px; padding: 20px; text-align:center; color:#8ba0bc;">📭 No hay otras empresas</div>';
+            grid.innerHTML = '<div style="background: white; border-radius: 20px; padding: 20px; text-align:center; color:#8ba0bc;">📭 No hay señales de espera</div>';
+            return;
+        }
+        let html = '';
+        for (const emp of empresas) {
+            const pctVal = emp.variacionVsAnterior !== null ? emp.variacionVsAnterior : 0;
+            const clasePct = pctVal >= 0 ? 'positivo' : 'negativo';
+            const simbolo = pctVal >= 0 ? '▲' : '▼';
+            html += `
+                <div class="tarjeta-mediana" onclick="verDetalle('${emp.ticker}')">
+                    <div class="tarjeta-mediana-nombre">${emp.nombre_empresa || emp.ticker}</div>
+                    <div class="tarjeta-mediana-ticker">${emp.ticker}</div>
+                    <div class="tarjeta-mediana-precio">${emp.precio_cierre} €</div>
+                    <div class="tarjeta-mediana-porcentaje ${clasePct}">${simbolo} ${Math.abs(pctVal).toFixed(2)}%</div>
+                    <div class="tarjeta-mediana-badge">${resumenCorto[emp.caso_numero] || 'Señal'}</div>
+                </div>
+            `;
+        }
+        grid.innerHTML = html;
+    }
+
+    function mostrarSinSeñal(empresas) {
+        const grid = document.getElementById('gridSinSeñal');
+        if (empresas.length === 0) {
+            grid.innerHTML = '<div style="background: white; border-radius: 20px; padding: 20px; text-align:center; color:#8ba0bc;">📭 No hay otras empresas</div>';
             return;
         }
         let html = '';
@@ -862,7 +972,7 @@
                 </div>
             `;
         }
-        otrasDiv.innerHTML = html;
+        grid.innerHTML = html;
     }
 
     async function verDetalle(ticker) {
@@ -902,19 +1012,29 @@
         const ultimo = analisisArrayAsc[analisisArrayAsc.length - 1];
         const dineroInvertir = parseFloat(document.getElementById('dineroInvertir').value) || 10000;
         
-        // Usar la nueva función que solo considera casos 1,4,6
         const primeraCompra = encontrarPrimeraCompra(analisisArrayAsc);
         let acciones = 0;
         let precioPrimeraCompra = null;
         let fechaPrimeraCompra = null;
+        let idxCompra = -1;
         
         if (primeraCompra) {
             precioPrimeraCompra = primeraCompra.precio_cierre;
             fechaPrimeraCompra = primeraCompra.fecha;
             acciones = calcularAcciones(dineroInvertir, precioPrimeraCompra);
+            idxCompra = analisisArrayAsc.findIndex(r => r.fecha === primeraCompra.fecha && r.precio_cierre === primeraCompra.precio_cierre);
         }
         
-        const gananciaMax = primeraCompra ? calcularGananciaMaxima(analisisArrayAsc, precioPrimeraCompra, acciones) : null;
+        // Encontrar índice de máxima ganancia después de la compra
+        let maxGananciaInfo = null;
+        let idxMaxGanancia = -1;
+        if (primeraCompra && acciones > 0) {
+            maxGananciaInfo = encontrarMaximoGanancia(analisisArrayAsc, precioPrimeraCompra, acciones, dineroInvertir, idxCompra);
+            if (maxGananciaInfo) {
+                idxMaxGanancia = maxGananciaInfo.idx;
+            }
+        }
+        
         const variacionesMap = calcularPorcentajeVsDiaAnterior(analisisArrayAsc);
         const idxUltimo = analisisArrayAsc.length - 1;
         let variacionUltimo = variacionesMap.get(idxUltimo) || null;
@@ -934,6 +1054,7 @@
         
         let recomendacionLimpia = descripcionCompra[ultimo.caso_numero] || "Sin señal activa en este momento";
         
+        // CONSTRUIR HISTORIAL - SOLO CON RESULTADOS DESDE COMPRA HASTA MAX GANANCIA
         let historialHtml = `<div class="seccion"><h3>📜 HISTORIAL DE ANÁLISIS</h3><div class="scroll-horizontal"><table class="tabla-historial"><thead>`;
         historialHtml += `<tr><th>Fecha</th><th>Precio</th><th>Var.%</th><th>Señal</th>`;
         if (primeraCompra) {
@@ -948,16 +1069,25 @@
             const pctShow = variacionItem !== null ? `${variacionItem >= 0 ? '▲' : '▼'} ${Math.abs(variacionItem).toFixed(2)}%` : '--';
             const tipoSenal = resumenCorto[a.caso_numero] || (a.activada_por_4h ? 'Señal activa' : 'Sin señal');
             
-            historialHtml += `<tr>`;
+            let rowClass = '';
+            if (i === idxCompra) rowClass = 'fila-compra';
+            else if (i === idxMaxGanancia) rowClass = 'fila-max-ganancia';
+            
+            historialHtml += `<tr class="${rowClass}">`;
             historialHtml += `<td>${fechaItem}</td>`;
             historialHtml += `<td><strong>${a.precio_cierre}€</strong></td>`;
             historialHtml += `<td class="${variacionItem !== null && variacionItem >= 0 ? 'positivo' : 'negativo'}">${pctShow}</td>`;
             historialHtml += `<td>${tipoSenal}</td>`;
             
             if (primeraCompra && precioPrimeraCompra && acciones > 0) {
-                const resultado = calcularResultadoNeto(precioPrimeraCompra, a.precio_cierre, acciones, dineroInvertir);
-                const resultadoClass = resultado >= 0 ? 'resultado-positivo' : 'resultado-negativo';
-                historialHtml += `<td class="${resultadoClass}">${resultado >= 0 ? '+' : ''}${resultado.toFixed(2)} €</td>`;
+                // Solo mostrar resultado desde la fila de compra hasta la fila de máxima ganancia
+                if (i >= idxCompra && i <= idxMaxGanancia) {
+                    const resultado = calcularResultadoNeto(precioPrimeraCompra, a.precio_cierre, acciones, dineroInvertir);
+                    const resultadoClass = resultado >= 0 ? 'resultado-positivo' : 'resultado-negativo';
+                    historialHtml += `<td class="${resultadoClass}">${resultado >= 0 ? '+' : ''}${resultado.toFixed(2)} €</td>`;
+                } else {
+                    historialHtml += `<td style="color:#8ba0bc;">--</td>`;
+                }
             }
             historialHtml += `</tr>`;
         }
@@ -984,21 +1114,23 @@
                         <span class="value">${acciones.toLocaleString('es-ES')} uds</span>
                     </div>
                     <div class="info-primera-compra-item">
-                        <span class="label">📈 RENTABILIDAD</span>
+                        <span class="label">📈 RENTABILIDAD ACTUAL</span>
                         <span class="value ${rentabilidadClass}">${rentabilidadActual >= 0 ? '+' : ''}${rentabilidadActual.toFixed(2)}%</span>
                     </div>
                     <div class="info-primera-compra-item">
-                        <span class="label">💰 RESULTADO NETO</span>
+                        <span class="label">💰 RESULTADO NETO ACTUAL</span>
                         <span class="value ${netoClass}">${resultadoActual >= 0 ? '+' : ''}${resultadoActual.toFixed(2)} €</span>
                     </div>
                 </div>
             `;
             
-            if (gananciaMax && gananciaMax.ganancia > resultadoActual) {
+            if (maxGananciaInfo && maxGananciaInfo.ganancia > resultadoActual) {
+                const fechaMax = new Date(analisisArrayAsc[maxGananciaInfo.idx].fecha).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
                 gananciaMaxHtml = `
                     <div class="ganancia-max">
                         <div class="label">🏆 MÁXIMO HISTÓRICO ALCANZADO</div>
-                        <div class="valor">+${gananciaMax.ganancia.toFixed(2)} € (${gananciaMax.precioMaximo} €/acción)</div>
+                        <div class="valor">+${maxGananciaInfo.ganancia.toFixed(2)} € (${maxGananciaInfo.precio} €/acción)</div>
+                        <div style="font-size:0.7rem; color:#1e7e34;">Alcanzado el ${fechaMax}</div>
                     </div>
                 `;
             }
