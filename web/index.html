@@ -1058,7 +1058,7 @@
         let historialHtml = `<div class="seccion"><h3>📜 HISTORIAL DE ANÁLISIS</h3><div class="scroll-horizontal"><table class="tabla-historial"><thead>`;
         historialHtml += `<tr><th>Fecha</th><th>Precio</th><th>Var.%</th><th>Señal</th>`;
         if (primeraCompra) {
-            historialHtml += `<th>Resultado Neto (${dineroInvertir.toLocaleString('es-ES')}€)</th>`;
+            historialHtml += `<th>Resultado con comisiones incluidas  (${dineroInvertir.toLocaleString('es-ES')}€)</th>`;
         }
         historialHtml += `</tr></thead><tbody>`;
         
@@ -1113,14 +1113,7 @@
                         <span class="label">📊 ACCIONES</span>
                         <span class="value">${acciones.toLocaleString('es-ES')} uds</span>
                     </div>
-                    <div class="info-primera-compra-item">
-                        <span class="label">📈 RENTABILIDAD ACTUAL</span>
-                        <span class="value ${rentabilidadClass}">${rentabilidadActual >= 0 ? '+' : ''}${rentabilidadActual.toFixed(2)}%</span>
-                    </div>
-                    <div class="info-primera-compra-item">
-                        <span class="label">💰 RESULTADO NETO ACTUAL</span>
-                        <span class="value ${netoClass}">${resultadoActual >= 0 ? '+' : ''}${resultadoActual.toFixed(2)} €</span>
-                    </div>
+
                 </div>
             `;
             
@@ -1139,7 +1132,7 @@
                 <div class="info-primera-compra" style="background: #fff5e6;">
                     <div class="info-primera-compra-item">
                         <span class="label">📭 SIN COMPRA PREVIA</span>
-                        <span class="value">No hay registros de compra anteriores (solo se consideran casos 1, 4 y 6)</span>
+                        <span class="value">No hay registros de compra anteriores</span>
                     </div>
                 </div>
             `;
