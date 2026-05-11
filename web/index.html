@@ -561,7 +561,11 @@
     const SUPABASE_URL = "https://klwcletpqqsabtdanldx.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtsd2NsZXRwcXFzYWJ0ZGFubGR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4MDg2NTEsImV4cCI6MjA5MjM4NDY1MX0.nbs0tYbFOL-I8qIkgB7Ub_jcOwHTdzg0EcAp1DS6sCU";
 
+    // Casos que se consideran señal activa para la pantalla principal (todos)
     const CASOS_SEÑAL = [1, 2, 3, 4, 5, 6, 7];
+    
+    // Casos que se consideran COMPRA REAL para el cálculo de resultados (solo 1, 4, 6)
+    const CASOS_COMPRA_REAL = [1, 4, 6];
     
     const descripcionCompra = {
         1: "COMPRA INMEDIATA - Señal directa por máxima fuerza alcista",
@@ -591,19 +595,26 @@
         return resultadoBruto - comisiones;
     }
 
+    // NUEVA VERSIÓN: Solo considera como compra los casos 1, 4 y 6
     function encontrarPrimeraCompra(analisisArrayAsc) {
         if (!analisisArrayAsc || analisisArrayAsc.length === 0) return null;
+        
         for (let i = 0; i < analisisArrayAsc.length; i++) {
             const registro = analisisArrayAsc[i];
-            if (CASOS_SEÑAL.includes(registro.caso_numero)) {
+            // Solo considerar si es caso 1, 4 o 6
+            if (CASOS_COMPRA_REAL.includes(registro.caso_numero)) {
+                // Si es el primer registro de la historia, esa es la compra
                 if (i === 0) return registro;
+                // Si no, comprobar si el anterior NO era compra real
                 const anterior = analisisArrayAsc[i - 1];
-                if (anterior && !CASOS_SEÑAL.includes(anterior.caso_numero)) {
+                if (anterior && !CASOS_COMPRA_REAL.includes(anterior.caso_numero)) {
                     return registro;
                 }
             }
         }
-        return analisisArrayAsc.find(r => CASOS_SEÑAL.includes(r.caso_numero)) || null;
+        
+        // Si no se encuentra ninguna compra real, devolver la primera que exista (si hay)
+        return analisisArrayAsc.find(r => CASOS_COMPRA_REAL.includes(r.caso_numero)) || null;
     }
 
     function calcularAcciones(dinero, precioCompra) {
@@ -815,6 +826,7 @@
             const clasePct = pctVal >= 0 ? 'positivo' : 'negativo';
             const simbolo = pctVal >= 0 ? '▲' : '▼';
             const fechaFormateada = new Date(emp.fecha).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
+            // Badge fuerte solo para casos 1,4,6
             const badgeStrong = (emp.caso_numero === 1 || emp.caso_numero === 6 || emp.caso_numero === 4) ? 'strong-buy' : '';
             html += `
                 <div class="tarjeta-empresa" onclick="verDetalle('${emp.ticker}')">
@@ -862,7 +874,6 @@
         resultadoDiv.innerHTML = '<div class="loading">📊 Cargando análisis...</div>';
         
         try {
-            // CONSULTA SIN LIMITE - TRABAJOS TODOS LOS REGISTROS
             const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?ticker=eq.${encodeURIComponent(ticker)}&order=fecha.asc`, {
                 headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
             });
@@ -891,6 +902,7 @@
         const ultimo = analisisArrayAsc[analisisArrayAsc.length - 1];
         const dineroInvertir = parseFloat(document.getElementById('dineroInvertir').value) || 10000;
         
+        // Usar la nueva función que solo considera casos 1,4,6
         const primeraCompra = encontrarPrimeraCompra(analisisArrayAsc);
         let acciones = 0;
         let precioPrimeraCompra = null;
@@ -922,7 +934,6 @@
         
         let recomendacionLimpia = descripcionCompra[ultimo.caso_numero] || "Sin señal activa en este momento";
         
-        // CONSTRUIR HISTORIAL CON TODOS LOS REGISTROS
         let historialHtml = `<div class="seccion"><h3>📜 HISTORIAL DE ANÁLISIS</h3><div class="scroll-horizontal"><table class="tabla-historial"><thead>`;
         historialHtml += `<tr><th>Fecha</th><th>Precio</th><th>Var.%</th><th>Señal</th>`;
         if (primeraCompra) {
@@ -948,7 +959,7 @@
                 const resultadoClass = resultado >= 0 ? 'resultado-positivo' : 'resultado-negativo';
                 historialHtml += `<td class="${resultadoClass}">${resultado >= 0 ? '+' : ''}${resultado.toFixed(2)} €</td>`;
             }
-            historialHtml += `</td>`;
+            historialHtml += `</tr>`;
         }
         historialHtml += `</tbody></table></div></div>`;
         
@@ -996,7 +1007,7 @@
                 <div class="info-primera-compra" style="background: #fff5e6;">
                     <div class="info-primera-compra-item">
                         <span class="label">📭 SIN COMPRA PREVIA</span>
-                        <span class="value">No hay registros de compra anteriores</span>
+                        <span class="value">No hay registros de compra anteriores (solo se consideran casos 1, 4 y 6)</span>
                     </div>
                 </div>
             `;
