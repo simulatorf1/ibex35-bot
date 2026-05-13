@@ -55,6 +55,36 @@ EMPRESAS = [
     ("ADX.MC", "Audax"),
     ("TSK.MC", "TSK"),
     ("ACX.MC", "ACERINOX"),
+    ("COL.MC", "Inmobiliaria Colonial"),
+    ("MRL.MC", "Merlin Properties"),
+    ("ROVI.MC", "Laboratorios Rovi"),
+    ("VIS.MC", "Viscofan"),
+    ("ALM.MC", "Almirall"),
+    ("FCC.MC", "FCC"),
+    ("OHLA.MC", "OHLA"),
+    ("GEST.MC", "Gestamp"),
+    ("CIE.MC", "CIE Automotive"),
+    ("EBRO.MC", "Ebro Foods"),
+    ("ENC.MC", "Ence"),
+    ("ELEC.MC", "Ezentis"),
+    ("DIA.MC", "Dia"),
+    ("TLGO.MC", "Talgo"),
+    ("CAF.MC", "CAF"),
+    ("VID.MC", "Vidrala"),
+    ("AZK.MC", "Azkoyen"),
+    ("PSG.MC", "Prosegur"),
+    ("LEVE.MC", "Laboratorios Leve"),
+    ("NHH.MC", "NH Hotel Group"),
+    ("APAM.MC", "Applus"),
+    ("DOM.MC", "Dominion"),
+    ("GCO.MC", "Grupo Catalana Occidente"),
+    ("LRE.MC", "Lar España"),
+    ("NVG.MC", "Natra"),
+    ("PRIM.MC", "Prim"),
+    ("R4.MC", "Renta 4"),
+
+
+    
 ]
 
 def calcular_smi_rapido(high, low, close):
