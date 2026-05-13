@@ -964,7 +964,7 @@
         grid.innerHTML = html;
     }
 
-    function crearGrafica(analisisArrayAsc, soportesNumericos, resistenciasNumericas, idxCompra, idxMaxGanancia, primeraCompra, precioPrimeraCompra, acciones, dineroInvertir) {
+    function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia, primeraCompra, precioPrimeraCompra, acciones, dineroInvertir) {
         const container = document.getElementById('graficaContainer');
         if (!container) return;
         
@@ -1053,35 +1053,7 @@
         // Añadir marcadores
         candleSeries.setMarkers(markers);
         
-        // Añadir líneas de soporte
-        const soporteSeries = chart.addLineSeries({
-            color: '#1e7e34',
-            lineWidth: 2,
-            lineStyle: LightweightCharts.LineStyle.Dotted,
-            title: 'Soportes',
-        });
-        
-        const soporteData = [];
-        for (const nivel of soportesNumericos) {
-            soporteData.push({ time: candleData[0].time, value: nivel/1000 });
-            soporteData.push({ time: candleData[candleData.length - 1].time, value: nivel/1000 });
-        }
-        soporteSeries.setData(soporteData);
-        
-        // Añadir líneas de resistencia
-        const resistenciaSeries = chart.addLineSeries({
-            color: '#b91c1c',
-            lineWidth: 2,
-            lineStyle: LightweightCharts.LineStyle.Dotted,
-            title: 'Resistencias',
-        });
-        
-        const resistenciaData = [];
-        for (const nivel of resistenciasNumericas) {
-            resistenciaData.push({ time: candleData[0].time, value: nivel/1000 });
-            resistenciaData.push({ time: candleData[candleData.length - 1].time, value: nivel/1000 });
-        }
-        resistenciaSeries.setData(resistenciaData);
+
         
         // Ajustar escala de tiempo
         chart.timeScale().fitContent();
@@ -1174,8 +1146,7 @@
         let recomendacionLimpia = descripcionCompra[ultimo.caso_numero] || "Sin señal activa en este momento";
         
         // Extraer niveles numéricos para la gráfica
-        const soportesNumericos = extraerNivelesNumericos(ultimo.soportes, 'soporte');
-        const resistenciasNumericas = extraerNivelesNumericos(ultimo.resistencias, 'resistencia');
+
         
         let primeraCompraHtml = '';
         let gananciaMaxHtml = '';
@@ -1269,7 +1240,7 @@
         
         // Crear gráfica después de que el DOM esté listo
         setTimeout(() => {
-            crearGrafica(analisisArrayAsc, soportesNumericos, resistenciasNumericas, idxCompra, idxMaxGanancia, primeraCompra, precioPrimeraCompra, acciones, dineroInvertir);
+            crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia, primeraCompra, precioPrimeraCompra, acciones, dineroInvertir);
         }, 100);
         
         window.scrollTo({ top: 0, behavior: 'smooth' });
