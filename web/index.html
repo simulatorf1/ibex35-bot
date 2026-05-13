@@ -127,7 +127,7 @@
             padding-left: 14px;
         }
 
-        /* Tarjetas grandes - COMPRA REAL (casos 1,4,6) */
+        /* Tarjetas grandes - COMPRA REAL (casos 1,6) */
         .grid-grandes {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
@@ -463,70 +463,13 @@
             font-weight: 500;
         }
 
-        .tabla-historial {
+        .grafica-container {
             width: 100%;
-            border-collapse: collapse;
-            font-size: 0.75rem;
-            background: white;
-            border-radius: 18px;
-            overflow: hidden;
-        }
-
-        .tabla-historial th {
-            background: #1e3a5f;
-            color: white;
-            padding: 10px 6px;
-            font-weight: 600;
-            font-size: 0.7rem;
-        }
-
-        .tabla-historial td {
-            padding: 8px 6px;
-            border-bottom: 1px solid #e9f0f5;
-        }
-
-        .resultado-positivo {
-            color: #1e7e34;
-            font-weight: 700;
-        }
-
-        .resultado-negativo {
-            color: #b91c1c;
-            font-weight: 700;
-        }
-
-        .fila-compra {
-            background: #e8f5e9 !important;
-            border-left: 4px solid #1e7e34 !important;
-        }
-
-        .fila-max-ganancia {
-            background: #fff8e1 !important;
-            border-left: 4px solid #ff9800 !important;
-        }
-
-        .fila-compra td, .fila-max-ganancia td {
-            font-weight: 600;
-        }
-
-        .ganancia-max {
-            background: #e9f6ec;
+            height: 500px;
+            margin: 20px 0;
+            background: #1e1e1e;
             border-radius: 16px;
-            padding: 12px 16px;
-            margin-top: 16px;
-            text-align: center;
-        }
-
-        .ganancia-max .label {
-            font-size: 0.7rem;
-            color: #1e7e34;
-            font-weight: 600;
-        }
-
-        .ganancia-max .valor {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #1e7e34;
+            overflow: hidden;
         }
 
         .scroll-horizontal {
@@ -586,6 +529,26 @@
             color: #1e3a5f;
         }
 
+        .ganancia-max {
+            background: #e9f6ec;
+            border-radius: 16px;
+            padding: 12px 16px;
+            margin-top: 16px;
+            text-align: center;
+        }
+
+        .ganancia-max .label {
+            font-size: 0.7rem;
+            color: #1e7e34;
+            font-weight: 600;
+        }
+
+        .ganancia-max .valor {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #1e7e34;
+        }
+
         @media (max-width: 700px) {
             .grid-2col { grid-template-columns: 1fr; }
             .grid-grandes { grid-template-columns: 1fr; }
@@ -594,10 +557,11 @@
             .resultado-detalle { padding: 20px; }
             .punto { width: 16px; }
             .info-primera-compra { flex-direction: column; align-items: flex-start; }
-            .tabla-historial { font-size: 0.65rem; }
-            .tabla-historial th, .tabla-historial td { padding: 6px 3px; }
+            .grafica-container { height: 350px; }
         }
     </style>
+    <!-- Librería de gráficos TradingView Lightweight Charts -->
+    <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
 </head>
 <body>
 <div class="container">
@@ -647,7 +611,6 @@
     // Casos que se consideran señal activa para la pantalla principal
     const CASOS_COMPRA_REAL = [1, 6];
     const CASOS_ESPERA = [2, 3, 5, 7];
-    const CASOS_SEÑAL_TOTAL = [1, 2, 3, 4, 5, 6, 7];
     
     const descripcionCompra = {
         1: "COMPRA INMEDIATA - Señal directa por máxima fuerza alcista",
@@ -664,6 +627,7 @@
     };
 
     let tickerActual = null;
+    let chart = null;
 
     function calcularComisiones(dineroInvertido, precioCompra, precioVenta, numAcciones) {
         const comisionCompra = 11 + (dineroInvertido * 0.004);
@@ -824,6 +788,31 @@
         return items.map(i => `<div class="item">🕯️ ${i}</div>`).join('');
     }
 
+    function extraerNivelesNumericos(texto, tipo) {
+        if (!texto || texto === 'No hay datos') return [];
+        const lineas = texto.split('\n');
+        const numeros = [];
+        for (let linea of lineas) {
+            linea = linea.trim();
+            if (!linea) continue;
+            const rangoMatch = linea.match(/([\d\.]+)\s*-\s*([\d\.]+)/);
+            if (rangoMatch) {
+                numeros.push(parseFloat(rangoMatch[1].replace(/\./g, '')));
+                numeros.push(parseFloat(rangoMatch[2].replace(/\./g, '')));
+            } else {
+                const numMatch = linea.match(/([\d\.]+)/);
+                if (numMatch) numeros.push(parseFloat(numMatch[1].replace(/\./g, '')));
+            }
+        }
+        const unicos = [...new Set(numeros)];
+        if (tipo === 'soporte') {
+            unicos.sort((a, b) => b - a);
+        } else {
+            unicos.sort((a, b) => a - b);
+        }
+        return unicos.slice(0, 3);
+    }
+
     async function cargarSeñales() {
         const gridCompraReal = document.getElementById('gridCompraReal');
         const gridEspera = document.getElementById('gridEspera');
@@ -882,7 +871,7 @@
             }
             
             compraReal.sort((a,b) => {
-                const orden = [1, 6, 4];
+                const orden = [1, 6];
                 return orden.indexOf(a.caso_numero) - orden.indexOf(b.caso_numero);
             });
             espera.sort((a,b) => {
@@ -975,6 +964,136 @@
         grid.innerHTML = html;
     }
 
+    function crearGrafica(analisisArrayAsc, soportesNumericos, resistenciasNumericas, idxCompra, idxMaxGanancia, primeraCompra, precioPrimeraCompra, acciones, dineroInvertir) {
+        const container = document.getElementById('graficaContainer');
+        if (!container) return;
+        
+        // Limpiar contenedor
+        container.innerHTML = '';
+        
+        // Crear gráfica
+        chart = LightweightCharts.createChart(container, {
+            width: container.clientWidth,
+            height: 500,
+            layout: {
+                background: { color: '#ffffff' },
+                textColor: '#333',
+            },
+            grid: {
+                vertLines: { color: '#f0f0f0' },
+                horzLines: { color: '#f0f0f0' },
+            },
+            crosshair: {
+                mode: LightweightCharts.CrosshairMode.Normal,
+            },
+            rightPriceScale: {
+                borderColor: '#d1d4dc',
+            },
+            timeScale: {
+                borderColor: '#d1d4dc',
+                timeVisible: true,
+                secondsVisible: false,
+            },
+        });
+        
+        // Preparar datos para velas
+        const candleData = [];
+        const markers = [];
+        
+        for (let i = 0; i < analisisArrayAsc.length; i++) {
+            const a = analisisArrayAsc[i];
+            const fecha = new Date(a.fecha);
+            const time = Math.floor(fecha.getTime() / 1000);
+            
+            candleData.push({
+                time: time,
+                open: a.precio_cierre,
+                high: a.precio_cierre * 1.01,
+                low: a.precio_cierre * 0.99,
+                close: a.precio_cierre,
+            });
+            
+            // Determinar color del marcador según el caso
+            let markerColor = '';
+            let markerText = '';
+            
+            if (CASOS_COMPRA_REAL.includes(a.caso_numero)) {
+                markerColor = '#1e7e34';
+                markerText = '🔴 COMPRA';
+            } else if (CASOS_ESPERA.includes(a.caso_numero)) {
+                markerColor = '#e68a2e';
+                markerText = '🟡 ESPERA';
+            } else if (a.caso_numero === 4) {
+                markerColor = '#2c7da0';
+                markerText = '📊 CONSOLIDACIÓN';
+            } else {
+                markerColor = '#8ba0bc';
+                markerText = '⚪ SIN SEÑAL';
+            }
+            
+            markers.push({
+                time: time,
+                position: 'aboveBar',
+                color: markerColor,
+                shape: 'circle',
+                text: markerText,
+            });
+        }
+        
+        // Añadir serie de velas
+        const candleSeries = chart.addCandlestickSeries({
+            upColor: '#1e7e34',
+            downColor: '#b91c1c',
+            borderVisible: false,
+            wickUpColor: '#1e7e34',
+            wickDownColor: '#b91c1c',
+        });
+        candleSeries.setData(candleData);
+        
+        // Añadir marcadores
+        candleSeries.setMarkers(markers);
+        
+        // Añadir líneas de soporte
+        const soporteSeries = chart.addLineSeries({
+            color: '#1e7e34',
+            lineWidth: 2,
+            lineStyle: LightweightCharts.LineStyle.Dotted,
+            title: 'Soportes',
+        });
+        
+        const soporteData = [];
+        for (const nivel of soportesNumericos) {
+            soporteData.push({ time: candleData[0].time, value: nivel });
+            soporteData.push({ time: candleData[candleData.length - 1].time, value: nivel });
+        }
+        soporteSeries.setData(soporteData);
+        
+        // Añadir líneas de resistencia
+        const resistenciaSeries = chart.addLineSeries({
+            color: '#b91c1c',
+            lineWidth: 2,
+            lineStyle: LightweightCharts.LineStyle.Dotted,
+            title: 'Resistencias',
+        });
+        
+        const resistenciaData = [];
+        for (const nivel of resistenciasNumericas) {
+            resistenciaData.push({ time: candleData[0].time, value: nivel });
+            resistenciaData.push({ time: candleData[candleData.length - 1].time, value: nivel });
+        }
+        resistenciaSeries.setData(resistenciaData);
+        
+        // Ajustar escala de tiempo
+        chart.timeScale().fitContent();
+        
+        // Responsive
+        window.addEventListener('resize', () => {
+            if (chart) {
+                chart.applyOptions({ width: container.clientWidth });
+            }
+        });
+    }
+
     async function verDetalle(ticker) {
         tickerActual = ticker;
         const seccionSeñales = document.getElementById('seccionSeñales');
@@ -1054,44 +1173,9 @@
         
         let recomendacionLimpia = descripcionCompra[ultimo.caso_numero] || "Sin señal activa en este momento";
         
-        // CONSTRUIR HISTORIAL - SOLO CON RESULTADOS DESDE COMPRA HASTA MAX GANANCIA
-        let historialHtml = `<div class="seccion"><h3>📜 HISTORIAL DE ANÁLISIS</h3><div class="scroll-horizontal"><table class="tabla-historial"><thead>`;
-        historialHtml += `<tr><th>Fecha</th><th>Precio</th><th>Var.%</th><th>Señal</th>`;
-        if (primeraCompra) {
-            historialHtml += `<th>Resultado con comisiones incluidas  (${dineroInvertir.toLocaleString('es-ES')}€)</th>`;
-        }
-        historialHtml += `</tr></thead><tbody>`;
-        
-        for (let i = analisisArrayAsc.length - 1; i >= 0; i--) {
-            const a = analisisArrayAsc[i];
-            const fechaItem = new Date(a.fecha).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
-            let variacionItem = variacionesMap.get(i) || null;
-            const pctShow = variacionItem !== null ? `${variacionItem >= 0 ? '▲' : '▼'} ${Math.abs(variacionItem).toFixed(2)}%` : '--';
-            const tipoSenal = resumenCorto[a.caso_numero] || (a.activada_por_4h ? 'Señal activa' : 'Sin señal');
-            
-            let rowClass = '';
-            if (i === idxCompra) rowClass = 'fila-compra';
-            else if (i === idxMaxGanancia) rowClass = 'fila-max-ganancia';
-            
-            historialHtml += `<tr class="${rowClass}">`;
-            historialHtml += `<td>${fechaItem}</td>`;
-            historialHtml += `<td><strong>${a.precio_cierre}€</strong></td>`;
-            historialHtml += `<td class="${variacionItem !== null && variacionItem >= 0 ? 'positivo' : 'negativo'}">${pctShow}</td>`;
-            historialHtml += `<td>${tipoSenal}</td>`;
-            
-            if (primeraCompra && precioPrimeraCompra && acciones > 0) {
-                // Solo mostrar resultado desde la fila de compra hasta la fila de máxima ganancia
-                if (i >= idxCompra && i <= idxMaxGanancia) {
-                    const resultado = calcularResultadoNeto(precioPrimeraCompra, a.precio_cierre, acciones, dineroInvertir);
-                    const resultadoClass = resultado >= 0 ? 'resultado-positivo' : 'resultado-negativo';
-                    historialHtml += `<td class="${resultadoClass}">${resultado >= 0 ? '+' : ''}${resultado.toFixed(2)} €</td>`;
-                } else {
-                    historialHtml += `<td style="color:#8ba0bc;">--</td>`;
-                }
-            }
-            historialHtml += `</tr>`;
-        }
-        historialHtml += `</tbody></table></div></div>`;
+        // Extraer niveles numéricos para la gráfica
+        const soportesNumericos = extraerNivelesNumericos(ultimo.soportes, 'soporte');
+        const resistenciasNumericas = extraerNivelesNumericos(ultimo.resistencias, 'resistencia');
         
         let primeraCompraHtml = '';
         let gananciaMaxHtml = '';
@@ -1113,7 +1197,6 @@
                         <span class="label">📊 ACCIONES</span>
                         <span class="value">${acciones.toLocaleString('es-ES')} uds</span>
                     </div>
-
                 </div>
             `;
             
@@ -1164,7 +1247,8 @@
                     </div></div>`;
         }
         
-        html += historialHtml;
+        // Añadir contenedor de la gráfica
+        html += `<div class="seccion"><h3>📈 GRÁFICA DE VELAS</h3><div id="graficaContainer" class="grafica-container"></div></div>`;
         
         if (ultimo.gaps_alcistas || ultimo.gaps_bajistas) {
             html += `<div class="seccion"><h3>🕳️ GAPS</h3><div class="grid-2col">
@@ -1182,10 +1266,20 @@
         
         html += `</div>`;
         resultadoDiv.innerHTML = html;
+        
+        // Crear gráfica después de que el DOM esté listo
+        setTimeout(() => {
+            crearGrafica(analisisArrayAsc, soportesNumericos, resistenciasNumericas, idxCompra, idxMaxGanancia, primeraCompra, precioPrimeraCompra, acciones, dineroInvertir);
+        }, 100);
+        
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function cerrarDetalle() {
+        // Limpiar gráfica
+        if (chart) {
+            chart = null;
+        }
         document.getElementById('seccionSeñales').classList.remove('hidden');
         document.getElementById('resultadoDetalle').classList.add('hidden');
         cargarSeñales();
