@@ -960,86 +960,125 @@
             },
         });
         
-        // Preparar datos para línea de precio
-        const lineData = [];
-        const markers = [];
+        // Preparar datos por segmentos de color
+        const lineDataCompra = [];
+        const lineDataEspera = [];
+        const lineDataSin = [];
         
         for (let i = 0; i < analisisArrayAsc.length; i++) {
             const a = analisisArrayAsc[i];
             const fecha = new Date(a.fecha);
             const time = Math.floor(fecha.getTime() / 1000);
-            
-            lineData.push({
-                time: time,
-                value: a.precio_cierre,
-            });
-            
-            // Determinar color del marcador según el caso (sin texto fijo)
-            let markerColor = '';
+            const point = { time: time, value: a.precio_cierre };
             
             if (CASOS_COMPRA_REAL.includes(a.caso_numero)) {
-                markerColor = '#1e7e34';
+                lineDataCompra.push(point);
+                // Añadir punto fantasma en espera y sin para mantener continuidad
+                if (lineDataEspera.length > 0 && lineDataEspera[lineDataEspera.length - 1].time < time) {
+                    lineDataEspera.push({ time: time, value: a.precio_cierre });
+                }
+                if (lineDataSin.length > 0 && lineDataSin[lineDataSin.length - 1].time < time) {
+                    lineDataSin.push({ time: time, value: a.precio_cierre });
+                }
             } else if (CASOS_ESPERA.includes(a.caso_numero)) {
-                markerColor = '#e68a2e';
-            } else if (a.caso_numero === 4) {
-                markerColor = '#2c7da0';
+                lineDataEspera.push(point);
+                if (lineDataCompra.length > 0 && lineDataCompra[lineDataCompra.length - 1].time < time) {
+                    lineDataCompra.push({ time: time, value: a.precio_cierre });
+                }
+                if (lineDataSin.length > 0 && lineDataSin[lineDataSin.length - 1].time < time) {
+                    lineDataSin.push({ time: time, value: a.precio_cierre });
+                }
             } else {
-                markerColor = '#8ba0bc';
+                lineDataSin.push(point);
+                if (lineDataCompra.length > 0 && lineDataCompra[lineDataCompra.length - 1].time < time) {
+                    lineDataCompra.push({ time: time, value: a.precio_cierre });
+                }
+                if (lineDataEspera.length > 0 && lineDataEspera[lineDataEspera.length - 1].time < time) {
+                    lineDataEspera.push({ time: time, value: a.precio_cierre });
+                }
             }
-            
-            // Añadir marcador con tooltip (el texto aparece al hacer hover)
-            markers.push({
-                time: time,
-                position: 'aboveBar',
-                color: markerColor,
-                shape: 'circle',
-                size: 1,
-                text: `${resumenCorto[a.caso_numero] || 'Sin señal'} | ${a.precio_cierre}€`,
-            });
         }
         
-        // Añadir serie de línea
-        const lineSeries = chart.addLineSeries({
-            color: '#1e4668',
-            lineWidth: 2,
-            crosshairMarkerVisible: true,
-            crosshairMarkerRadius: 4,
-            crosshairMarkerBorderColor: '#1e4668',
-            crosshairMarkerBackgroundColor: '#ffffff',
-            priceLineVisible: true,
-            lastValueVisible: true,
-        });
-        lineSeries.setData(lineData);
+        // Añadir serie de línea VERDE (COMPRA)
+        if (lineDataCompra.length > 0) {
+            const compraSeries = chart.addLineSeries({
+                color: '#1e7e34',
+                lineWidth: 2,
+                crosshairMarkerVisible: true,
+                crosshairMarkerRadius: 4,
+                crosshairMarkerBorderColor: '#1e7e34',
+                crosshairMarkerBackgroundColor: '#ffffff',
+                priceLineVisible: false,
+                lastValueVisible: false,
+            });
+            compraSeries.setData(lineDataCompra);
+        }
         
-        // Añadir marcadores (puntos de colores)
-        lineSeries.setMarkers(markers);
+        // Añadir serie de línea AZUL (ESPERA)
+        if (lineDataEspera.length > 0) {
+            const esperaSeries = chart.addLineSeries({
+                color: '#2c7da0',
+                lineWidth: 2,
+                crosshairMarkerVisible: true,
+                crosshairMarkerRadius: 4,
+                crosshairMarkerBorderColor: '#2c7da0',
+                crosshairMarkerBackgroundColor: '#ffffff',
+                priceLineVisible: false,
+                lastValueVisible: false,
+            });
+            esperaSeries.setData(lineDataEspera);
+        }
         
-        // Destacar fila de compra con una línea vertical
+        // Añadir serie de línea GRIS (SIN SEÑAL)
+        if (lineDataSin.length > 0) {
+            const sinSeries = chart.addLineSeries({
+                color: '#8ba0bc',
+                lineWidth: 2,
+                crosshairMarkerVisible: true,
+                crosshairMarkerRadius: 4,
+                crosshairMarkerBorderColor: '#8ba0bc',
+                crosshairMarkerBackgroundColor: '#ffffff',
+                priceLineVisible: false,
+                lastValueVisible: false,
+            });
+            sinSeries.setData(lineDataSin);
+        }
+        
+        // Añadir marcadores (solo para compra y máximo beneficio, sin texto hasta hover)
+        const markers = [];
+        
+        // Marcador de compra
         if (idxCompra !== -1) {
             const compraTime = Math.floor(new Date(analisisArrayAsc[idxCompra].fecha).getTime() / 1000);
-            const verticalLine = {
+            markers.push({
                 time: compraTime,
                 position: 'aboveBar',
                 color: '#1e7e34',
                 shape: 'circle',
                 text: '🔴 COMPRA',
                 size: 2,
-            };
-            lineSeries.setMarkers([...markers, verticalLine]);
+            });
         }
         
-        // Destacar fila de máxima ganancia
+        // Marcador de máximo beneficio
         if (idxMaxGanancia !== -1 && idxMaxGanancia !== idxCompra) {
             const maxTime = Math.floor(new Date(analisisArrayAsc[idxMaxGanancia].fecha).getTime() / 1000);
-            const maxMarker = {
+            markers.push({
                 time: maxTime,
                 position: 'aboveBar',
                 color: '#ff9800',
                 shape: 'circle',
                 text: '🏆 MÁXIMO BENEFICIO',
                 size: 2,
-            };
-            lineSeries.setMarkers([...markers, maxMarker]);
+            });
+        }
+        
+        // Aplicar marcadores a una serie (usar la primera que exista)
+        if (markers.length > 0) {
+            const anySeries = chart.series()[0];
+            if (anySeries) {
+                anySeries.setMarkers(markers);
+            }
         }
         
         // Ajustar escala
