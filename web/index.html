@@ -982,7 +982,7 @@
         });
         lineSeries.setData(lineData);
         
-        // Preparar marcadores de colores según el caso (sin texto fijo)
+        // Preparar marcadores de colores según el caso (SIN TEXTO - solo color)
         const markers = [];
         
         for (let i = 0; i < analisisArrayAsc.length; i++) {
@@ -1001,17 +1001,17 @@
                 markerColor = '#8ba0bc';  // Gris - SIN SEÑAL
             }
             
+            // SIN TEXTO - solo el círculo de color
             markers.push({
                 time: time,
                 position: 'aboveBar',
                 color: markerColor,
                 shape: 'circle',
                 size: 1,
-                text: resumenCorto[a.caso_numero] || 'Sin señal',
             });
         }
         
-        // Añadir marcador especial para COMPRA (con texto visible)
+        // Añadir marcador especial para COMPRA (CON TEXTO visible)
         if (idxCompra !== -1) {
             const compra = analisisArrayAsc[idxCompra];
             const compraTime = Math.floor(new Date(compra.fecha).getTime() / 1000);
@@ -1025,7 +1025,7 @@
             });
         }
         
-        // Añadir marcador especial para MÁXIMO BENEFICIO (con texto visible)
+        // Añadir marcador especial para MÁXIMO BENEFICIO (CON TEXTO visible)
         if (idxMaxGanancia !== -1 && idxMaxGanancia !== idxCompra) {
             const maxReg = analisisArrayAsc[idxMaxGanancia];
             const maxTime = Math.floor(new Date(maxReg.fecha).getTime() / 1000);
