@@ -53,6 +53,8 @@ EMPRESAS = [
     ("SAB.MC", "Banco Sabadell"),
     ("BKT.MC", "Bankinter"),
     ("ADX.MC", "Audax"),
+    ("TSK.MC", "TSK"),
+    ("ACX.MC", "ACERINOX"),
 ]
 
 def calcular_smi_rapido(high, low, close):
