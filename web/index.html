@@ -127,7 +127,6 @@
             padding-left: 14px;
         }
 
-        /* Tarjetas grandes - COMPRA REAL (casos 1,6) */
         .grid-grandes {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
@@ -150,7 +149,6 @@
             box-shadow: 0 20px 25px -12px rgba(30,126,52,0.2);
         }
 
-        /* Tarjetas medianas - SEÑAL ESPERA (casos 2,3,5,7) */
         .grid-medianas {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -263,7 +261,6 @@
             padding-top: 12px;
         }
 
-        /* Tarjetas pequeñas - SIN SEÑAL */
         .grid-pequenas {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -467,14 +464,10 @@
             width: 100%;
             height: 500px;
             margin: 20px 0;
-            background: #1e1e1e;
+            background: #ffffff;
             border-radius: 16px;
             overflow: hidden;
-        }
-
-        .scroll-horizontal {
-            overflow-x: auto;
-            border-radius: 18px;
+            border: 1px solid #e9f0f5;
         }
 
         .error {
@@ -560,7 +553,6 @@
             .grafica-container { height: 350px; }
         }
     </style>
-    <!-- Librería de gráficos TradingView Lightweight Charts -->
     <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
 </head>
 <body>
@@ -608,7 +600,6 @@
     const SUPABASE_URL = "https://klwcletpqqsabtdanldx.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtsd2NsZXRwcXFzYWJ0ZGFubGR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4MDg2NTEsImV4cCI6MjA5MjM4NDY1MX0.nbs0tYbFOL-I8qIkgB7Ub_jcOwHTdzg0EcAp1DS6sCU";
 
-    // Casos que se consideran señal activa para la pantalla principal
     const CASOS_COMPRA_REAL = [1, 6];
     const CASOS_ESPERA = [2, 3, 5, 7];
     
@@ -788,31 +779,6 @@
         return items.map(i => `<div class="item">🕯️ ${i}</div>`).join('');
     }
 
-    function extraerNivelesNumericos(texto, tipo) {
-        if (!texto || texto === 'No hay datos') return [];
-        const lineas = texto.split('\n');
-        const numeros = [];
-        for (let linea of lineas) {
-            linea = linea.trim();
-            if (!linea) continue;
-            const rangoMatch = linea.match(/([\d\.]+)\s*-\s*([\d\.]+)/);
-            if (rangoMatch) {
-                numeros.push(parseFloat(rangoMatch[1].replace(/\./g, '')));
-                numeros.push(parseFloat(rangoMatch[2].replace(/\./g, '')));
-            } else {
-                const numMatch = linea.match(/([\d\.]+)/);
-                if (numMatch) numeros.push(parseFloat(numMatch[1].replace(/\./g, '')));
-            }
-        }
-        const unicos = [...new Set(numeros)];
-        if (tipo === 'soporte') {
-            unicos.sort((a, b) => b - a);
-        } else {
-            unicos.sort((a, b) => a - b);
-        }
-        return unicos.slice(0, 3);
-    }
-
     async function cargarSeñales() {
         const gridCompraReal = document.getElementById('gridCompraReal');
         const gridEspera = document.getElementById('gridEspera');
@@ -964,14 +930,12 @@
         grid.innerHTML = html;
     }
 
-    function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia, primeraCompra, precioPrimeraCompra, acciones, dineroInvertir) {
+    function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
         const container = document.getElementById('graficaContainer');
         if (!container) return;
         
-        // Limpiar contenedor
         container.innerHTML = '';
         
-        // Crear gráfica
         chart = LightweightCharts.createChart(container, {
             width: container.clientWidth,
             height: 500,
@@ -996,8 +960,8 @@
             },
         });
         
-        // Preparar datos para velas
-        const candleData = [];
+        // Preparar datos para línea de precio
+        const lineData = [];
         const markers = [];
         
         for (let i = 0; i < analisisArrayAsc.length; i++) {
@@ -1005,57 +969,80 @@
             const fecha = new Date(a.fecha);
             const time = Math.floor(fecha.getTime() / 1000);
             
-            candleData.push({
+            lineData.push({
                 time: time,
-                open: a.precio_cierre,
-                high: a.precio_cierre * 1.01,
-                low: a.precio_cierre * 0.99,
-                close: a.precio_cierre,
+                value: a.precio_cierre,
             });
             
-            // Determinar color del marcador según el caso
+            // Determinar color del marcador según el caso (sin texto fijo)
             let markerColor = '';
-            let markerText = '';
             
             if (CASOS_COMPRA_REAL.includes(a.caso_numero)) {
                 markerColor = '#1e7e34';
-                markerText = '🔴 COMPRA';
             } else if (CASOS_ESPERA.includes(a.caso_numero)) {
                 markerColor = '#e68a2e';
-                markerText = '🟡 ESPERA';
             } else if (a.caso_numero === 4) {
                 markerColor = '#2c7da0';
-                markerText = '📊 CONSOLIDACIÓN';
             } else {
                 markerColor = '#8ba0bc';
-                markerText = '⚪ SIN SEÑAL';
             }
             
+            // Añadir marcador con tooltip (el texto aparece al hacer hover)
             markers.push({
                 time: time,
                 position: 'aboveBar',
                 color: markerColor,
                 shape: 'circle',
-                text: markerText,
+                size: 1,
+                text: `${resumenCorto[a.caso_numero] || 'Sin señal'} | ${a.precio_cierre}€`,
             });
         }
         
-        // Añadir serie de velas
-        const candleSeries = chart.addCandlestickSeries({
-            upColor: '#1e7e34',
-            downColor: '#b91c1c',
-            borderVisible: false,
-            wickUpColor: '#1e7e34',
-            wickDownColor: '#b91c1c',
+        // Añadir serie de línea
+        const lineSeries = chart.addLineSeries({
+            color: '#1e4668',
+            lineWidth: 2,
+            crosshairMarkerVisible: true,
+            crosshairMarkerRadius: 4,
+            crosshairMarkerBorderColor: '#1e4668',
+            crosshairMarkerBackgroundColor: '#ffffff',
+            priceLineVisible: true,
+            lastValueVisible: true,
         });
-        candleSeries.setData(candleData);
+        lineSeries.setData(lineData);
         
-        // Añadir marcadores
-        candleSeries.setMarkers(markers);
+        // Añadir marcadores (puntos de colores)
+        lineSeries.setMarkers(markers);
         
-
+        // Destacar fila de compra con una línea vertical
+        if (idxCompra !== -1) {
+            const compraTime = Math.floor(new Date(analisisArrayAsc[idxCompra].fecha).getTime() / 1000);
+            const verticalLine = {
+                time: compraTime,
+                position: 'aboveBar',
+                color: '#1e7e34',
+                shape: 'circle',
+                text: '🔴 COMPRA',
+                size: 2,
+            };
+            lineSeries.setMarkers([...markers, verticalLine]);
+        }
         
-        // Ajustar escala de tiempo
+        // Destacar fila de máxima ganancia
+        if (idxMaxGanancia !== -1 && idxMaxGanancia !== idxCompra) {
+            const maxTime = Math.floor(new Date(analisisArrayAsc[idxMaxGanancia].fecha).getTime() / 1000);
+            const maxMarker = {
+                time: maxTime,
+                position: 'aboveBar',
+                color: '#ff9800',
+                shape: 'circle',
+                text: '🏆 MÁXIMO BENEFICIO',
+                size: 2,
+            };
+            lineSeries.setMarkers([...markers, maxMarker]);
+        }
+        
+        // Ajustar escala
         chart.timeScale().fitContent();
         
         // Responsive
@@ -1116,7 +1103,6 @@
             idxCompra = analisisArrayAsc.findIndex(r => r.fecha === primeraCompra.fecha && r.precio_cierre === primeraCompra.precio_cierre);
         }
         
-        // Encontrar índice de máxima ganancia después de la compra
         let maxGananciaInfo = null;
         let idxMaxGanancia = -1;
         if (primeraCompra && acciones > 0) {
@@ -1144,9 +1130,6 @@
         const tendenciaClase = tendenciaObj.clase;
         
         let recomendacionLimpia = descripcionCompra[ultimo.caso_numero] || "Sin señal activa en este momento";
-        
-        // Extraer niveles numéricos para la gráfica
-
         
         let primeraCompraHtml = '';
         let gananciaMaxHtml = '';
@@ -1218,8 +1201,7 @@
                     </div></div>`;
         }
         
-        // Añadir contenedor de la gráfica
-        html += `<div class="seccion"><h3>📈 GRÁFICA DE VELAS</h3><div id="graficaContainer" class="grafica-container"></div></div>`;
+        html += `<div class="seccion"><h3>📈 GRÁFICA DE PRECIO</h3><div id="graficaContainer" class="grafica-container"></div></div>`;
         
         if (ultimo.gaps_alcistas || ultimo.gaps_bajistas) {
             html += `<div class="seccion"><h3>🕳️ GAPS</h3><div class="grid-2col">
@@ -1238,16 +1220,14 @@
         html += `</div>`;
         resultadoDiv.innerHTML = html;
         
-        // Crear gráfica después de que el DOM esté listo
         setTimeout(() => {
-            crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia, primeraCompra, precioPrimeraCompra, acciones, dineroInvertir);
+            crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia);
         }, 100);
         
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function cerrarDetalle() {
-        // Limpiar gráfica
         if (chart) {
             chart = null;
         }
