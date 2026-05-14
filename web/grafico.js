@@ -81,7 +81,12 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
     const lineData = [];
     for (let i = 0; i < dataToShow.length; i++) {
         const a = dataToShow[i];
-        const time = Math.floor(new Date(a.fecha).getTime() / 1000);
+        const date = new Date(a.fecha);
+        const time = {
+            year: date.getFullYear(),
+            month: date.getMonth() + 1,
+            day: date.getDate()
+        };
         lineData.push({ time: time, value: a.precio_cierre });
     }
     
