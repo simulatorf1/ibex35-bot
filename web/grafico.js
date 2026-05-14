@@ -131,7 +131,7 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia, soportesTexto
     // Dibujar líneas de SOPORTE (verde punteado)
     const soportes = extraerNivelesNumericos(soportesTexto);
     for (const nivel of soportes) {
-        const nivelNumerico = nivel / 1;
+        const nivelNumerico = nivel / 1000;
         const lineSeriesSoporte = chart.addLineSeries({
             color: '#1e7e34',
             lineWidth: 1,
@@ -150,7 +150,7 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia, soportesTexto
     // Dibujar líneas de RESISTENCIA (rojo punteado)
     const resistencias = extraerNivelesNumericos(resistenciasTexto);
     for (const nivel of resistencias) {
-        const nivelNumerico = nivel / 1;
+        const nivelNumerico = nivel / 1000;
         const lineSeriesResistencia = chart.addLineSeries({
             color: '#b91c1c',
             lineWidth: 1,
