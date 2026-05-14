@@ -68,24 +68,26 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
     
     container.innerHTML = '';
     
-    // IMPORTANTE: Esta es la configuración que FUNCIONA (del grafico.js original)
     chart = LightweightCharts.createChart(container, {
         width: container.clientWidth,
         height: 500,
         layout: { background: { color: '#ffffff' }, textColor: '#333' },
         grid: { vertLines: { color: '#f0f0f0' }, horzLines: { color: '#f0f0f0' } },
         crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
-        rightPriceScale: { borderColor: '#d1d4dc' },  // <--- SIN autoScale ni scaleMargins
-        timeScale: { 
-            borderColor: '#d1d4dc'
-            // Sin timeVisible, sin secondsVisible, sin tickMarkFormatter
-        }
+        rightPriceScale: { borderColor: '#d1d4dc' },
+        timeScale: { borderColor: '#d1d4dc' }
     });
     
+    // USAR OBJETO { year, month, day } EN VEZ DE TIMESTAMP O STRING
     const lineData = [];
     for (let i = 0; i < dataToShow.length; i++) {
         const a = dataToShow[i];
-        const time = new Date(a.fecha).toISOString().split('T')[0];
+        const date = new Date(a.fecha);
+        const time = {
+            year: date.getFullYear(),
+            month: date.getMonth() + 1,
+            day: date.getDate()
+        };
         lineData.push({ time: time, value: a.precio_cierre });
     }
     
@@ -99,13 +101,17 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
     });
     lineSeries.setData(lineData);
     
-    // Los markers SOLO para casos con color (excluyendo caso 4 y sin señal)
     const markers = [];
     for (let i = 0; i < dataToShow.length; i++) {
         const a = dataToShow[i];
         const markerColor = getColorForCaso(a.caso_numero);
         if (markerColor !== null) {
-            const time = new Date(a.fecha).toISOString().split('T')[0];
+            const date = new Date(a.fecha);
+            const time = {
+                year: date.getFullYear(),
+                month: date.getMonth() + 1,
+                day: date.getDate()
+            };
             markers.push({ 
                 time: time, 
                 position: 'aboveBar', 
@@ -117,7 +123,13 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
     }
     
     if (newIdxCompra !== -1) {
-        const compraTime = new Date(dataToShow[newIdxCompra].fecha).toISOString().split('T')[0];
+        const compraReg = dataToShow[newIdxCompra];
+        const compraDate = new Date(compraReg.fecha);
+        const compraTime = {
+            year: compraDate.getFullYear(),
+            month: compraDate.getMonth() + 1,
+            day: compraDate.getDate()
+        };
         markers.push({ 
             time: compraTime, 
             position: 'aboveBar', 
@@ -129,7 +141,13 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
     }
     
     if (newIdxMaxGanancia !== -1 && newIdxMaxGanancia !== newIdxCompra) {
-        const maxTime = new Date(dataToShow[newIdxMaxGanancia].fecha).toISOString().split('T')[0];
+        const maxReg = dataToShow[newIdxMaxGanancia];
+        const maxDate = new Date(maxReg.fecha);
+        const maxTime = {
+            year: maxDate.getFullYear(),
+            month: maxDate.getMonth() + 1,
+            day: maxDate.getDate()
+        };
         markers.push({ 
             time: maxTime, 
             position: 'aboveBar', 
@@ -143,7 +161,6 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
     lineSeries.setMarkers(markers);
     chart.timeScale().fitContent();
     
-    // Leyenda (esto NO afecta a las fechas porque está fuera del chart)
     crearLeyenda(container);
     
     window.addEventListener('resize', () => { 
