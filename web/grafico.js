@@ -13,32 +13,17 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
     chart = LightweightCharts.createChart(container, {
         width: container.clientWidth,
         height: 500,
-        layout: {
-            background: { color: '#ffffff' },
-            textColor: '#333',
-        },
-        grid: {
-            vertLines: { color: '#f0f0f0' },
-            horzLines: { color: '#f0f0f0' },
-        },
-        crosshair: {
-            mode: LightweightCharts.CrosshairMode.Normal,
-        },
-        rightPriceScale: {
-            borderColor: '#d1d4dc',
-        },
-        timeScale: {
-            borderColor: '#d1d4dc',
-            timeVisible: true,
-            secondsVisible: false,
-        },
+        layout: { background: { color: '#ffffff' }, textColor: '#333' },
+        grid: { vertLines: { color: '#f0f0f0' }, horzLines: { color: '#f0f0f0' } },
+        crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+        rightPriceScale: { borderColor: '#d1d4dc' },
+        timeScale: { borderColor: '#d1d4dc', timeVisible: true, secondsVisible: false }
     });
     
     const lineData = [];
     for (let i = 0; i < analisisArrayAsc.length; i++) {
         const a = analisisArrayAsc[i];
-        const fecha = new Date(a.fecha);
-        const time = Math.floor(fecha.getTime() / 1000);
+        const time = Math.floor(new Date(a.fecha).getTime() / 1000);
         lineData.push({ time: time, value: a.precio_cierre });
     }
     
@@ -47,78 +32,40 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
         lineWidth: 2,
         crosshairMarkerVisible: true,
         crosshairMarkerRadius: 4,
-        crosshairMarkerBorderColor: '#2c7da0',
-        crosshairMarkerBackgroundColor: '#ffffff',
         priceLineVisible: true,
-        lastValueVisible: true,
+        lastValueVisible: true
     });
     lineSeries.setData(lineData);
     
     const markers = [];
-    
     for (let i = 0; i < analisisArrayAsc.length; i++) {
         const a = analisisArrayAsc[i];
-        const fecha = new Date(a.fecha);
-        const time = Math.floor(fecha.getTime() / 1000);
-        
+        const time = Math.floor(new Date(a.fecha).getTime() / 1000);
         let markerColor = '';
-        if (CASOS_COMPRA_REAL.includes(a.caso_numero)) {
-            markerColor = '#1e7e34';
-        } else if (CASOS_ESPERA.includes(a.caso_numero)) {
-            markerColor = '#e68a2e';
-        } else if (a.caso_numero === 4) {
-            markerColor = '#2c7da0';
-        } else {
-            markerColor = '#8ba0bc';
-        }
+        if (CASOS_COMPRA_REAL.includes(a.caso_numero)) markerColor = '#1e7e34';
+        else if (CASOS_ESPERA.includes(a.caso_numero)) markerColor = '#e68a2e';
+        else if (a.caso_numero === 4) markerColor = '#2c7da0';
+        else markerColor = '#8ba0bc';
         
-        markers.push({
-            time: time,
-            position: 'aboveBar',
-            color: markerColor,
-            shape: 'circle',
-            size: 1,
-        });
+        markers.push({ time: time, position: 'aboveBar', color: markerColor, shape: 'circle', size: 1 });
     }
     
     if (idxCompra !== -1) {
-        const compra = analisisArrayAsc[idxCompra];
-        const compraTime = Math.floor(new Date(compra.fecha).getTime() / 1000);
-        markers.push({
-            time: compraTime,
-            position: 'aboveBar',
-            color: '#1e7e34',
-            shape: 'arrowUp',
-            text: '🔴 COMPRA',
-            size: 2,
-        });
+        const compraTime = Math.floor(new Date(analisisArrayAsc[idxCompra].fecha).getTime() / 1000);
+        markers.push({ time: compraTime, position: 'aboveBar', color: '#1e7e34', shape: 'arrowUp', text: '🔴 COMPRA', size: 2 });
     }
     
     if (idxMaxGanancia !== -1 && idxMaxGanancia !== idxCompra) {
-        const maxReg = analisisArrayAsc[idxMaxGanancia];
-        const maxTime = Math.floor(new Date(maxReg.fecha).getTime() / 1000);
-        markers.push({
-            time: maxTime,
-            position: 'aboveBar',
-            color: '#ff9800',
-            shape: 'arrowUp',
-            text: '🏆 MÁXIMO BENEFICIO',
-            size: 2,
-        });
+        const maxTime = Math.floor(new Date(analisisArrayAsc[idxMaxGanancia].fecha).getTime() / 1000);
+        markers.push({ time: maxTime, position: 'aboveBar', color: '#ff9800', shape: 'arrowUp', text: '🏆 MÁXIMO BENEFICIO', size: 2 });
     }
     
     lineSeries.setMarkers(markers);
     chart.timeScale().fitContent();
     
-    window.addEventListener('resize', () => {
-        if (chart) {
-            chart.applyOptions({ width: container.clientWidth });
-        }
-    });
+    window.addEventListener('resize', () => { if (chart) chart.applyOptions({ width: container.clientWidth }); });
 }
 
 function limpiarGrafica() {
-    if (chart) {
-        chart = null;
-    }
+    if (chart) { chart = null; }
 }
