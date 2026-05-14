@@ -16,6 +16,8 @@ let chart = null;
 let currentData = null;
 let currentDataCompra = null;
 let currentDataMax = null;
+let currentSoportes = null;
+let currentResistencias = null;
 let currentView = 'all';
 
 function getColorForCaso(casoNumero) {
@@ -38,7 +40,28 @@ function agruparPorDia(analisisArrayAsc) {
     return dailyArray;
 }
 
-function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
+function extraerNivelesNumericos(texto) {
+    if (!texto || texto === 'No hay datos') return [];
+    const lineas = texto.split('\n');
+    const numeros = [];
+    for (let linea of lineas) {
+        linea = linea.trim();
+        if (!linea) continue;
+        const rangoMatch = linea.match(/([\d\.]+)\s*-\s*([\d\.]+)/);
+        if (rangoMatch) {
+            numeros.push(parseFloat(rangoMatch[1].replace(/\./g, '')));
+            numeros.push(parseFloat(rangoMatch[2].replace(/\./g, '')));
+        } else {
+            const numMatch = linea.match(/([\d\.]+)/);
+            if (numMatch) numeros.push(parseFloat(numMatch[1].replace(/\./g, '')));
+        }
+    }
+    const unicos = [...new Set(numeros)];
+    unicos.sort((a, b) => a - b);
+    return unicos.slice(0, 3);
+}
+
+function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia, soportesTexto, resistenciasTexto) {
     const container = document.getElementById('graficaContainer');
     if (!container) return;
     
@@ -46,6 +69,8 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
     currentData = analisisArrayAsc;
     currentDataCompra = idxCompra;
     currentDataMax = idxMaxGanancia;
+    currentSoportes = soportesTexto;
+    currentResistencias = resistenciasTexto;
     
     let dataToShow = currentView === 'daily' ? agruparPorDia(analisisArrayAsc) : analisisArrayAsc;
     
@@ -103,6 +128,44 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
     });
     lineSeries.setData(lineData);
     
+    // Dibujar líneas de SOPORTE (verde punteado)
+    const soportes = extraerNivelesNumericos(soportesTexto);
+    for (const nivel of soportes) {
+        const nivelNumerico = nivel / 1;
+        const lineSeriesSoporte = chart.addLineSeries({
+            color: '#1e7e34',
+            lineWidth: 1,
+            lineStyle: LightweightCharts.LineStyle.Dotted,
+            priceLineVisible: false,
+            lastValueVisible: false,
+            crosshairMarkerVisible: false
+        });
+        const lineDataSoporte = [
+            { time: lineData[0].time, value: nivelNumerico },
+            { time: lineData[lineData.length - 1].time, value: nivelNumerico }
+        ];
+        lineSeriesSoporte.setData(lineDataSoporte);
+    }
+    
+    // Dibujar líneas de RESISTENCIA (rojo punteado)
+    const resistencias = extraerNivelesNumericos(resistenciasTexto);
+    for (const nivel of resistencias) {
+        const nivelNumerico = nivel / 1;
+        const lineSeriesResistencia = chart.addLineSeries({
+            color: '#b91c1c',
+            lineWidth: 1,
+            lineStyle: LightweightCharts.LineStyle.Dotted,
+            priceLineVisible: false,
+            lastValueVisible: false,
+            crosshairMarkerVisible: false
+        });
+        const lineDataResistencia = [
+            { time: lineData[0].time, value: nivelNumerico },
+            { time: lineData[lineData.length - 1].time, value: nivelNumerico }
+        ];
+        lineSeriesResistencia.setData(lineDataResistencia);
+    }
+    
     const markers = [];
     for (let i = 0; i < dataToShow.length; i++) {
         const a = dataToShow[i];
@@ -158,10 +221,8 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
 }
 
 function crearBotones(container) {
-    // Buscar si ya existen los botones
     let botonesDiv = document.getElementById('graficoBotones');
     if (botonesDiv) {
-        // Actualizar estilos de los botones según la vista actual
         const btnTodos = document.getElementById('btnVistaTodos');
         const btnDiario = document.getElementById('btnVistaDiario');
         if (btnTodos && btnDiario) {
@@ -196,8 +257,8 @@ function crearBotones(container) {
         padding: 6px 14px;
         border-radius: 20px;
         border: 1px solid #2c7da0;
-        background: #2c7da0;
-        color: white;
+        background: ${currentView === 'all' ? '#2c7da0' : 'white'};
+        color: ${currentView === 'all' ? 'white' : '#2c7da0'};
         cursor: pointer;
         font-size: 0.75rem;
         font-weight: 500;
@@ -211,8 +272,8 @@ function crearBotones(container) {
         padding: 6px 14px;
         border-radius: 20px;
         border: 1px solid #2c7da0;
-        background: white;
-        color: #2c7da0;
+        background: ${currentView === 'daily' ? '#2c7da0' : 'white'};
+        color: ${currentView === 'daily' ? 'white' : '#2c7da0'};
         cursor: pointer;
         font-size: 0.75rem;
         font-weight: 500;
@@ -223,7 +284,7 @@ function crearBotones(container) {
         if (currentView !== 'all') {
             currentView = 'all';
             if (currentData) {
-                crearGrafica(currentData, currentDataCompra, currentDataMax);
+                crearGrafica(currentData, currentDataCompra, currentDataMax, currentSoportes, currentResistencias);
             }
         }
     };
@@ -232,7 +293,7 @@ function crearBotones(container) {
         if (currentView !== 'daily') {
             currentView = 'daily';
             if (currentData) {
-                crearGrafica(currentData, currentDataCompra, currentDataMax);
+                crearGrafica(currentData, currentDataCompra, currentDataMax, currentSoportes, currentResistencias);
             }
         }
     };
@@ -240,7 +301,6 @@ function crearBotones(container) {
     botonesDiv.appendChild(btnTodos);
     botonesDiv.appendChild(btnDiario);
     
-    // Insertar botones ANTES del contenedor del gráfico
     container.parentNode.insertBefore(botonesDiv, container);
 }
 
@@ -272,6 +332,8 @@ function crearLeyenda(container) {
         { color: COLOR_CASO[5], text: 'Agotamiento' },
         { color: COLOR_CASO[6], text: 'Compra Rápida' },
         { color: COLOR_CASO[7], text: 'Pre-Compra' },
+        { color: '#1e7e34', text: '📉 Soporte (línea verde)' },
+        { color: '#b91c1c', text: '📈 Resistencia (línea roja)' },
         { color: '#ff9800', text: '🏆 Máximo beneficio' }
     ];
     
