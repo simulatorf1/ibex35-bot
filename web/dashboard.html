@@ -311,16 +311,46 @@
     const CASOS_ESPERA = [2, 3, 5, 7];
 
     async function checkSession() {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
+        try {
+            const { data: { session }, error } = await supabase.auth.getSession();
+            
+            if (error) {
+                console.error('Error al obtener sesión:', error);
+                window.location.href = '/web/index.html';
+                return;
+            }
+            
+            if (!session) {
+                console.log('No hay sesión activa');
+                window.location.href = '/web/index.html';
+                return;
+            }
+            
+            currentUser = session.user;
+            document.getElementById('userEmail').textContent = currentUser.email;
+            
+            // Verificar que el perfil existe
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('id')
+                .eq('id', currentUser.id)
+                .single();
+            
+            if (!profile) {
+                // Crear perfil si no existe
+                await supabase
+                    .from('profiles')
+                    .insert({ id: currentUser.id, email: currentUser.email });
+            }
+            
+            await cargarFavoritas();
+            await cargarTodasEmpresas();
+            await cargarHistorial();
+            
+        } catch (err) {
+            console.error('Error en checkSession:', err);
             window.location.href = '/web/index.html';
-            return;
         }
-        currentUser = session.user;
-        document.getElementById('userEmail').textContent = currentUser.email;
-        await cargarFavoritas();
-        await cargarTodasEmpresas();
-        await cargarHistorial();
     }
 
     async function cargarFavoritas() {
