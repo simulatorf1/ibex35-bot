@@ -76,7 +76,15 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
         grid: { vertLines: { color: '#f0f0f0' }, horzLines: { color: '#f0f0f0' } },
         crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
         rightPriceScale: { borderColor: '#d1d4dc' },  // <--- SIN autoScale ni scaleMargins
-        timeScale: { borderColor: '#d1d4dc', timeVisible: true, secondsVisible: false }
+        timeScale: { 
+            borderColor: '#d1d4dc', 
+            timeVisible: true, 
+            secondsVisible: false,
+            tickMarkFormatter: (time) => {
+                const date = new Date(time * 1000);
+                return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
+            }
+        }
     });
     
     const lineData = [];
