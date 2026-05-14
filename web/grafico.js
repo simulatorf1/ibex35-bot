@@ -1,4 +1,6 @@
-// grafico.js - Funciones relacionadas con la gráfica
+// grafico.js
+const CASOS_COMPRA_REAL = [1, 6];
+const CASOS_ESPERA = [2, 3, 5, 7];
 
 let chart = null;
 
@@ -32,7 +34,6 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
         },
     });
     
-    // Preparar datos para la línea de precio
     const lineData = [];
     for (let i = 0; i < analisisArrayAsc.length; i++) {
         const a = analisisArrayAsc[i];
@@ -41,7 +42,6 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
         lineData.push({ time: time, value: a.precio_cierre });
     }
     
-    // Añadir serie de línea AZUL
     const lineSeries = chart.addLineSeries({
         color: '#2c7da0',
         lineWidth: 2,
@@ -54,7 +54,6 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
     });
     lineSeries.setData(lineData);
     
-    // Preparar marcadores de colores según el caso (SIN TEXTO - solo color)
     const markers = [];
     
     for (let i = 0; i < analisisArrayAsc.length; i++) {
@@ -64,13 +63,13 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
         
         let markerColor = '';
         if (CASOS_COMPRA_REAL.includes(a.caso_numero)) {
-            markerColor = '#1e7e34';  // Verde - COMPRA
+            markerColor = '#1e7e34';
         } else if (CASOS_ESPERA.includes(a.caso_numero)) {
-            markerColor = '#e68a2e';  // Naranja - ESPERA
+            markerColor = '#e68a2e';
         } else if (a.caso_numero === 4) {
-            markerColor = '#2c7da0';  // Azul - CONSOLIDACIÓN
+            markerColor = '#2c7da0';
         } else {
-            markerColor = '#8ba0bc';  // Gris - SIN SEÑAL
+            markerColor = '#8ba0bc';
         }
         
         markers.push({
@@ -82,7 +81,6 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
         });
     }
     
-    // Añadir marcador especial para COMPRA
     if (idxCompra !== -1) {
         const compra = analisisArrayAsc[idxCompra];
         const compraTime = Math.floor(new Date(compra.fecha).getTime() / 1000);
@@ -96,7 +94,6 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
         });
     }
     
-    // Añadir marcador especial para MÁXIMO BENEFICIO
     if (idxMaxGanancia !== -1 && idxMaxGanancia !== idxCompra) {
         const maxReg = analisisArrayAsc[idxMaxGanancia];
         const maxTime = Math.floor(new Date(maxReg.fecha).getTime() / 1000);
