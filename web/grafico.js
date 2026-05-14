@@ -128,10 +128,17 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia, soportesTexto
     });
     lineSeries.setData(lineData);
     
+    // Calcular el precio actual (último valor de la línea)
+    const precioActual = lineData[lineData.length - 1].value;
+    
     // Dibujar líneas de SOPORTE (verde punteado)
     const soportes = extraerNivelesNumericos(soportesTexto);
     for (const nivel of soportes) {
-        const nivelNumerico = nivel / 1000;
+        // Si el nivel es más de 100 veces el precio actual, dividir entre 1000
+        let nivelNumerico = nivel;
+        if (nivel > precioActual * 100) {
+            nivelNumerico = nivel / 1000;
+        }
         const lineSeriesSoporte = chart.addLineSeries({
             color: '#1e7e34',
             lineWidth: 1,
@@ -150,7 +157,11 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia, soportesTexto
     // Dibujar líneas de RESISTENCIA (rojo punteado)
     const resistencias = extraerNivelesNumericos(resistenciasTexto);
     for (const nivel of resistencias) {
-        const nivelNumerico = nivel / 1000;
+        // Si el nivel es más de 100 veces el precio actual, dividir entre 1000
+        let nivelNumerico = nivel;
+        if (nivel > precioActual * 100) {
+            nivelNumerico = nivel / 1000;
+        }
         const lineSeriesResistencia = chart.addLineSeries({
             color: '#b91c1c',
             lineWidth: 1,
