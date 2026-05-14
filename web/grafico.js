@@ -46,19 +46,21 @@ function extraerNivelesNumericosDelTexto(texto) {
     for (let linea of lineas) {
         linea = linea.trim();
         if (!linea) continue;
-        // Buscar rangos tipo "12,300 - 12,500"
-        const rangoMatch = linea.match(/([\d\.]+)\s*-\s*([\d\.]+)/);
+        
+        // Buscar rangos tipo "14.32-14.86€"
+        const rangoMatch = linea.match(/([\d\.]+)\s*[-–]\s*([\d\.]+)/);
         if (rangoMatch) {
-            const num1 = parseFloat(rangoMatch[1].replace(/\./g, '').replace(/,/g, '.'));
-            const num2 = parseFloat(rangoMatch[2].replace(/\./g, '').replace(/,/g, '.'));
-            numeros.push(num1);
-            numeros.push(num2);
+            // Mantener el punto como separador decimal
+            let num1 = parseFloat(rangoMatch[1]);
+            let num2 = parseFloat(rangoMatch[2]);
+            if (!isNaN(num1)) numeros.push(num1);
+            if (!isNaN(num2)) numeros.push(num2);
         } else {
             // Buscar número individual
             const numMatch = linea.match(/([\d\.]+)/);
             if (numMatch) {
-                const num = parseFloat(numMatch[1].replace(/\./g, '').replace(/,/g, '.'));
-                numeros.push(num);
+                let num = parseFloat(numMatch[1]);
+                if (!isNaN(num)) numeros.push(num);
             }
         }
     }
@@ -160,9 +162,9 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia, soportesTexto
     
     // Función para ajustar el nivel
     function ajustarNivel(nivel, precioActual) {
-        // Si el nivel es más de 5 veces el precio actual, probablemente está en céntimos o miles
-        if (nivel > precioActual * 5) {
-            // Intentar dividir por 10, 100, o 1000 para que se acerque al precio actual
+        // Si el nivel es muy grande comparado con el precio actual (más de 50 veces)
+        if (nivel > precioActual * 50) {
+            // Intentar dividir hasta que esté en el rango correcto
             if (nivel / 1000 > precioActual * 0.5 && nivel / 1000 < precioActual * 2) {
                 return nivel / 1000;
             }
