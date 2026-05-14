@@ -2,13 +2,14 @@
 const CASOS_COMPRA_REAL = [1, 6];
 const CASOS_ESPERA = [2, 3, 5, 7];
 
+// Colores para cada caso (caso 4 y sin señal SIN COLOR)
 const COLOR_CASO = {
-    1: '#1e7e34',
-    2: '#ffc107',
-    3: '#000000',
-    5: '#dc3545',
-    6: '#28a745',
-    7: '#17a2b8'
+    1: '#1e7e34',  // Verde oscuro - Compra Inmediata
+    2: '#ffc107',  // Amarillo - Compra Anticipada
+    3: '#000000',  // NEGRO - Rebote corto
+    5: '#dc3545',  // Rojo - Agotamiento
+    6: '#28a745',  // Verde claro - Compra Rápida
+    7: '#17a2b8'   // Cyan - Pre-Compra
 };
 
 let chart = null;
@@ -18,7 +19,8 @@ let currentView = 'all';
 function getColorForCaso(casoNumero) {
     if (casoNumero === 4) return null;
     if (casoNumero === null || casoNumero === undefined) return null;
-    return COLOR_CASO[casoNumero] || null;
+    if (COLOR_CASO[casoNumero]) return COLOR_CASO[casoNumero];
+    return null;
 }
 
 function agruparPorDia(analisisArrayAsc) {
@@ -72,44 +74,28 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
         layout: { background: { color: '#ffffff' }, textColor: '#333' },
         grid: { vertLines: { color: '#f0f0f0' }, horzLines: { color: '#f0f0f0' } },
         crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
-        rightPriceScale: { borderColor: '#d1d4dc', autoScale: true },
-        timeScale: { 
-            borderColor: '#d1d4dc', 
-            timeVisible: true, 
-            secondsVisible: false,
-            fixLeftEdge: true,
-            fixRightEdge: true,
-            minimumHeight: 40,
-            tickMarkFormatter: (time) => {
-                const date = new Date(time * 1000);
-                const day = date.getDate().toString().padStart(2, '0');
-                const month = (date.getMonth() + 1).toString().padStart(2, '0');
-                return `${day}/${month}`;
-            }
-        }
+        rightPriceScale: { borderColor: '#d1d4dc', autoScale: true, scaleMargins: { top: 0.1, bottom: 0.1 } },
+        timeScale: { borderColor: '#d1d4dc', timeVisible: true, secondsVisible: false }
     });
     
     const lineData = [];
     for (let i = 0; i < dataToShow.length; i++) {
         const a = dataToShow[i];
-        const date = new Date(a.fecha);
-        const time = Math.floor(date.getTime() / 1000);
+        const time = Math.floor(new Date(a.fecha).getTime() / 1000);
         lineData.push({ time: time, value: a.precio_cierre });
     }
     
     const lineSeries = chart.addLineSeries({
         color: '#2c7da0',
         lineWidth: 2,
+        crosshairMarkerVisible: true,
+        crosshairMarkerRadius: 4,
         priceLineVisible: true,
         lastValueVisible: true
     });
     lineSeries.setData(lineData);
     
-    // Forzar que se vean todas las fechas
-    chart.timeScale().setVisibleRange({
-        from: lineData[0].time,
-        to: lineData[lineData.length - 1].time
-    });
+    chart.timeScale().fitContent();
     
     const markers = [];
     for (let i = 0; i < dataToShow.length; i++) {
