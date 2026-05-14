@@ -1244,7 +1244,7 @@
         resultadoDiv.innerHTML = html;
         
         setTimeout(() => {
-            crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia);
+            crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia, ultimo.soportes, ultimo.resistencias);
         }, 100);
         
         window.scrollTo({ top: 0, behavior: 'smooth' });
