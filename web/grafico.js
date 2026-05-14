@@ -266,12 +266,12 @@ function crearLeyenda(container) {
     `;
     
     const items = [
-        { color: COLOR_CASO[1], text: 'Caso 1 - Compra Inmediata' },
-        { color: COLOR_CASO[2], text: 'Caso 2 - Compra Anticipada' },
-        { color: COLOR_CASO[3], text: 'Caso 3 - Rebote corto' },
-        { color: COLOR_CASO[5], text: 'Caso 5 - Agotamiento' },
-        { color: COLOR_CASO[6], text: 'Caso 6 - Compra Rápida' },
-        { color: COLOR_CASO[7], text: 'Caso 7 - Pre-Compra' },
+        { color: COLOR_CASO[1], text: 'Compra Inmediata' },
+        { color: COLOR_CASO[2], text: 'Compra Anticipada' },
+        { color: COLOR_CASO[3], text: 'Rebote corto' },
+        { color: COLOR_CASO[5], text: 'Agotamiento' },
+        { color: COLOR_CASO[6], text: 'Compra Rápida' },
+        { color: COLOR_CASO[7], text: 'Pre-Compra' },
         { color: '#ff9800', text: '🏆 Máximo beneficio' }
     ];
     
