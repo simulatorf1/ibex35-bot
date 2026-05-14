@@ -324,20 +324,36 @@
     }
 
     async function cargarHistorial() {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?select=*&order=fecha.desc&limit=100`, {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?select=*&order=fecha.desc&limit=200`, {
             headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
         });
         const data = await response.json();
+        
+        // Filtrar solo COMPRAS (casos 1 y 6)
+        const compras = data.filter(reg => CASOS_COMPRA_REAL.includes(reg.caso_numero));
+        
         let html = '';
-        for (const reg of data.slice(0, 50)) {
+        for (const reg of compras.slice(0, 30)) {
             const fecha = new Date(reg.fecha).toLocaleDateString('es-ES');
-            let señalText = CASOS_COMPRA_REAL.includes(reg.caso_numero) ? '🔴 COMPRA' : (CASOS_ESPERA.includes(reg.caso_numero) ? '🟡 ESPERA' : '⚪ SIN SEÑAL');
             const precioActual = data.find(r => r.ticker === reg.ticker)?.precio_cierre || '--';
             const rendimiento = precioActual !== '--' ? ((precioActual - reg.precio_cierre) / reg.precio_cierre * 100).toFixed(2) : '--';
             const rendimientoClass = rendimiento !== '--' && rendimiento >= 0 ? 'positivo' : 'negativo';
-            html += `<tr><td>${fecha}</td><td><strong>${reg.nombre_empresa || reg.ticker}</strong></td><td>${reg.precio_cierre}€</td><td>${señalText}</td><td>${precioActual !== '--' ? precioActual + '€' : '--'}</td><td class="${rendimientoClass}">${rendimiento !== '--' ? (rendimiento >= 0 ? '+' : '') + rendimiento + '%' : '--'}</td></tr>`;
+            
+            html += `<tr>
+                <td>${fecha}</td>
+                <td><strong>${reg.nombre_empresa || reg.ticker}</strong></td>
+                <td>${reg.precio_cierre}€</td>${estilo}
+                <td>🔴 COMPRA</td>${estilo}
+                <td>${precioActual !== '--' ? precioActual + '€' : '--'}</td>${estilo}
+                <td class="${rendimientoClass}">${rendimiento !== '--' ? (rendimiento >= 0 ? '+' : '') + rendimiento + '%' : '--'}</td>${estilo}
+            </tr>`;
         }
-        document.getElementById('historialBody').innerHTML = html;
+        
+        if (compras.length === 0) {
+            document.getElementById('historialBody').innerHTML = '<tr><td colspan="6" class="loading">No hay historial de compras aún</td></tr>';
+        } else {
+            document.getElementById('historialBody').innerHTML = html;
+        }
     }
 
     document.getElementById('btnSimular').onclick = async () => {
