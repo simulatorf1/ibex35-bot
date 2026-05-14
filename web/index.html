@@ -628,6 +628,8 @@
     const SUPABASE_URL = "https://klwcletpqqsabtdanldx.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtsd2NsZXRwcXFzYWJ0ZGFubGR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4MDg2NTEsImV4cCI6MjA5MjM4NDY1MX0.nbs0tYbFOL-I8qIkgB7Ub_jcOwHTdzg0EcAp1DS6sCU";
 
+    const CASOS_COMPRA_REAL = [1, 6];
+    const CASOS_ESPERA = [2, 3, 5, 7];
     
     const descripcionCompra = {
         1: "COMPRA INMEDIATA - Señal directa por máxima fuerza alcista",
@@ -642,132 +644,21 @@
     const resumenCorto = {
         1: "Compra Rápida", 2: "Compra Anticipada", 3: "Rebote corto", 4: "Compra Consolidada", 5: "Compra Agotamiento", 6: "Compra Inmediata", 7: "Pre-Compra"
     };
-    function extraerNumerosDeNiveles(texto) {
-        if (!texto || texto === 'No hay datos') return [];
-        // Buscar números con formato español (punto como separador de miles o decimal)
-        // Ejemplos: "55.44 €", "14.665 €", "9.664 €"
-        const matches = texto.match(/(\d+\.?\d*)/g);
-        if (!matches) return [];
-        return matches.map(m => parseFloat(m));
-    }
+
     let tickerActual = null;
 
-    // Función para generar análisis narrativo automático (sin precio actual ni soportes/resistencias)
-    function generarAnalisisNarrativo(analisisArrayAsc, casoActual) {
-        if (!analisisArrayAsc || analisisArrayAsc.length === 0) {
-            return '<div class="analisis-narrativo">📭 No hay datos suficientes para generar análisis.</div>';
-        }
-        
-        // Detectar cambios de fase (cuando cambia el caso_numero)
-        const fases = [];
-        let faseActual = null;
-        let inicioFase = null;
-        let precioInicioFase = null;
-        
-        for (let i = 0; i < analisisArrayAsc.length; i++) {
-            const reg = analisisArrayAsc[i];
-            const caso = reg.caso_numero;
-            
-            if (faseActual !== caso) {
-                if (faseActual !== null && inicioFase) {
-                    fases.push({
-                        caso: faseActual,
-                        desde: inicioFase,
-                        hasta: analisisArrayAsc[i - 1].fecha,
-                        precioInicio: precioInicioFase,
-                        precioFin: analisisArrayAsc[i - 1].precio_cierre
-                    });
-                }
-                faseActual = caso;
-                inicioFase = reg.fecha;
-                precioInicioFase = reg.precio_cierre;
-            }
-        }
-        // Añadir la última fase
-        if (faseActual !== null && inicioFase) {
-            fases.push({
-                caso: faseActual,
-                desde: inicioFase,
-                hasta: analisisArrayAsc[analisisArrayAsc.length - 1].fecha,
-                precioInicio: precioInicioFase,
-                precioFin: analisisArrayAsc[analisisArrayAsc.length - 1].precio_cierre
-            });
-        }
-        
-        // INVERTIR EL ORDEN: de más actual a más antiguo
-        fases.reverse();
-        
-        // Texto descriptivo para cada caso
-        const descripcionFase = {
-            1: { nombre: "COMPRA INMEDIATA", color: "#1e7e34", icono: "🔴", texto: "El precio ha roto resistencias clave con fuerza. Las velas semanales confirman cambio de tendencia. Es momento de ejecutar compra." },
-            2: { nombre: "COMPRA ANTICIPADA", color: "#ffc107", icono: "🟡", texto: "Buen potencial alcista, pero la señal aún no se ha activado completamente. Se recomienda precaución y ajustar tamaño de posición." },
-            3: { nombre: "REBOTE CORTO PLAZO", color: "#000000", icono: "⚫", texto: "El rebote se produce dentro de una tendencia bajista más amplia. Podría encontrar resistencia en niveles superiores antes de continuar cayendo. Operativa de muy corto plazo." },
-            4: { nombre: "COMPRA CONSOLIDADA", color: "#2c7da0", icono: "🔵", texto: "Tendencia alcista confirmada. La señal de entrada ya pasó, pero se mantiene la dirección. Mantener visión de medio plazo." },
-            5: { nombre: "AGOTAMIENTO", color: "#dc3545", icono: "🔴", texto: "Aunque en velas horarias vemos fuerza compradora, en el contexto diario la señal de agotamiento indica que el precio podría girar a la baja en los próximos días. Recomendación: tomar beneficios parciales." },
-            6: { nombre: "COMPRA RÁPIDA", color: "#28a745", icono: "🟢", texto: "Momento óptimo para entrada rápida. Stop ajustado y objetivo definido. Ideal para trading de corto plazo." },
-            7: { nombre: "PRE-COMPRA", color: "#17a2b8", icono: "🔷", texto: "Señal a punto de activarse. El precio se acerca a soportes clave. Vigilar evolución y preparar entrada." },
-            "sin_senal": { nombre: "SIN SEÑAL", color: "#8ba0bc", icono: "⚪", texto: "No hay señal activa en este momento. Esperar a que se desarrollen las condiciones técnicas." }
-        };
-        
-        // Generar HTML del análisis (sin precio actual, sin soportes, sin resistencias)
-        let html = `<div class="analisis-narrativo">
-            <h4>📋 ANÁLISIS NARRATIVO POR FASES</h4>
-            <div>`;
-        
-        for (let i = 0; i < fases.length; i++) {
-            const fase = fases[i];
-            const info = descripcionFase[fase.caso] || descripcionFase["sin_senal"];
-            const desdeFecha = new Date(fase.desde).toLocaleDateString('es-ES');
-            const hastaFecha = new Date(fase.hasta).toLocaleDateString('es-ES');
-            
-            html += `<div class="fase">
-                <div>
-                    <span class="badge-fase" style="background: ${info.color}; color: white;">${info.icono} ${info.nombre}</span>
-                    <strong>${desdeFecha} → ${hastaFecha}</strong>
-                </div>
-                <p style="margin-top: 8px; margin-bottom: 4px;">📊 Precio: ${fase.precioInicio}€ → ${fase.precioFin}€</p>
-                <p style="margin: 0;">💡 ${info.texto}</p>`;
-            
-            // Añadir recomendación específica según el caso
-            if (fase.caso === 1 || fase.caso === 6) {
-                html += `<p style="margin-top: 6px; color: #1e7e34;">✅ RECOMENDACIÓN: Ejecutar compra con stop debajo del último soporte.</p>`;
-            } else if (fase.caso === 5) {
-                html += `<p style="margin-top: 6px; color: #dc3545;">⚠️ RECOMENDACIÓN: Tomar beneficios parciales y mover stop a breakeven.</p>`;
-            } else if (fase.caso === 7) {
-                html += `<p style="margin-top: 6px; color: #17a2b8;">⏳ RECOMENDACIÓN: Preparar orden de compra, alerta en soporte.</p>`;
-            } else if (fase.caso === 2) {
-                html += `<p style="margin-top: 6px; color: #ffc107;">🔍 RECOMENDACIÓN: Vigilar evolución, entrada con precaución.</p>`;
-            } else if (fase.caso === 3) {
-                html += `<p style="margin-top: 6px; color: #000000;">📉 RECOMENDACIÓN: Trading de rebote con stop ajustado.</p>`;
-            }
-            
-            html += `</div>`;
-        }
-        
-        html += `</div></div>`;
-        
-        return html;
-    }
-
-    function extraerTresNivelesNumericos(texto) {
-        if (!texto || texto === 'No hay datos') return [];
-        const lineas = texto.split('\n');
+    // Función para extraer números de los textos de niveles clave
+    function extraerNumerosDeTextoHTML(textoHTML) {
+        if (!textoHTML || textoHTML.length === 0) return [];
         const numeros = [];
-        for (let linea of lineas) {
-            linea = linea.trim();
-            if (!linea) continue;
-            const rangoMatch = linea.match(/([\d\.]+)\s*-\s*([\d\.]+)/);
-            if (rangoMatch) {
-                numeros.push(parseFloat(rangoMatch[1].replace(/\./g, '')));
-                numeros.push(parseFloat(rangoMatch[2].replace(/\./g, '')));
-            } else {
-                const numMatch = linea.match(/([\d\.]+)/);
-                if (numMatch) numeros.push(parseFloat(numMatch[1].replace(/\./g, '')));
-            }
+        const regex = /(\d+\.?\d*)/g;
+        // Si es un array (como viene de formatearNiveles), unirlo en un string
+        const textoStr = Array.isArray(textoHTML) ? textoHTML.join(' ') : textoHTML;
+        let match;
+        while ((match = regex.exec(textoStr)) !== null) {
+            numeros.push(parseFloat(match[1]));
         }
-        const unicos = [...new Set(numeros)];
-        unicos.sort((a, b) => a - b);
-        return unicos.slice(0, 3);
+        return numeros;
     }
 
     function calcularComisiones(dineroInvertido, precioCompra, precioVenta, numAcciones) {
@@ -1156,51 +1047,9 @@
         const tendenciaTexto = tendenciaObj.texto;
         const tendenciaClase = tendenciaObj.clase;
         
-        // Extraer números de soportes y resistencias para el gráfico
-        let soportesNumeros = [];
-        let resistenciasNumeros = [];
-        
-        if (ultimo.soportes && ultimo.soportes !== 'No hay datos') {
-            const lineasSoportes = ultimo.soportes.split('\n');
-            for (let linea of lineasSoportes) {
-                const nums = extraerNumerosDeNiveles(linea);
-                soportesNumeros.push(...nums);
-            }
-            soportesNumeros = [...new Set(soportesNumeros)].sort((a, b) => a - b).slice(0, 3);
-        }
-        
-        if (ultimo.resistencias && ultimo.resistencias !== 'No hay datos') {
-            const lineasResistencias = ultimo.resistencias.split('\n');
-            for (let linea of lineasResistencias) {
-                const nums = extraerNumerosDeNiveles(linea);
-                resistenciasNumeros.push(...nums);
-            }
-            resistenciasNumeros = [...new Set(resistenciasNumeros)].sort((a, b) => a - b).slice(0, 3);
-        }
-        
         let primeraCompraHtml = '';
         let gananciaMaxHtml = '';
-
         
-        // Extraer números de soportes y resistencias desde los mismos textos que se muestran en la web
-        const soportesWebTextos = formatearNiveles(ultimo.soportes, 'soporte');
-        const resistenciasWebTextos = formatearNiveles(ultimo.resistencias, 'resistencia');
-        
-        function extraerNumerosDeTextoHTML(textoHTML) {
-            const numeros = [];
-            const regex = /(\d+\.?\d*)/g;
-            let match;
-            while ((match = regex.exec(textoHTML)) !== null) {
-                numeros.push(parseFloat(match[1]));
-            }
-            return numeros;
-        }
-        
-        const soportesNumeros = extraerNumerosDeTextoHTML(soportesWebTextos);
-        const resistenciasNumeros = extraerNumerosDeTextoHTML(resistenciasWebTextos);
-        
-        console.log('📊 Soportes desde formatearNiveles:', soportesNumeros);
-        console.log('📊 Resistencias desde formatearNiveles:', resistenciasNumeros);        
         if (primeraCompra && precioPrimeraCompra) {
             const fechaPrimeraFormateada = new Date(fechaPrimeraCompra).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
             const resultadoActual = calcularResultadoNeto(precioPrimeraCompra, ultimo.precio_cierre, acciones, dineroInvertir);
@@ -1242,6 +1091,13 @@
             `;
         }
         
+        // Extraer números de soportes y resistencias desde los mismos textos que se muestran en la web
+        const soportesWebTextos = formatearNiveles(ultimo.soportes, 'soporte');
+        const resistenciasWebTextos = formatearNiveles(ultimo.resistencias, 'resistencia');
+        
+        const soportesNumeros = extraerNumerosDeTextoHTML(soportesWebTextos);
+        const resistenciasNumeros = extraerNumerosDeTextoHTML(resistenciasWebTextos);
+        
         let html = `
             <div class="resultado-detalle">
                 <button class="btn-cerrar" onclick="cerrarDetalle()">← Volver a empresas</button>
@@ -1260,18 +1116,18 @@
                 </div>
         `;
         
-        // ANÁLISIS NARRATIVO (antes del gráfico)
+        // Análisis narrativo (antes del gráfico)
         const analisisNarrativo = generarAnalisisNarrativo(analisisArrayAsc, ultimo.caso_numero);
         html += analisisNarrativo;
         
-        // GRÁFICA
+        // Gráfica
         html += `<div class="seccion"><h3>📈 GRÁFICA DE PRECIO</h3><div id="graficaContainer" class="grafica-container"></div></div>`;
         
-        // NIVELES CLAVE (después de la gráfica)
+        // Niveles clave (después de la gráfica)
         if (ultimo.soportes || ultimo.resistencias) {
             html += `<div class="seccion"><h3>📊 NIVELES CLAVE</h3><div class="grid-2col">
-                        <div><h4 style="margin-bottom:10px; color:#1e7e34;">📉 SOPORTES</h4><div class="lista-items">${formatearNiveles(ultimo.soportes, 'soporte')}</div></div>
-                        <div><h4 style="margin-bottom:10px; color:#b91c1c;">📈 RESISTENCIAS</h4><div class="lista-items">${formatearNiveles(ultimo.resistencias, 'resistencia')}</div></div>
+                        <div><h4 style="margin-bottom:10px; color:#1e7e34;">📉 SOPORTES</h4><div class="lista-items">${soportesWebTextos}</div></div>
+                        <div><h4 style="margin-bottom:10px; color:#b91c1c;">📈 RESISTENCIAS</h4><div class="lista-items">${resistenciasWebTextos}</div></div>
                     </div></div>`;
         }
         
@@ -1297,6 +1153,93 @@
         }, 100);
         
         window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Función para generar análisis narrativo automático
+    function generarAnalisisNarrativo(analisisArrayAsc, casoActual) {
+        if (!analisisArrayAsc || analisisArrayAsc.length === 0) {
+            return '<div class="analisis-narrativo">📭 No hay datos suficientes para generar análisis.</div>';
+        }
+        
+        // Detectar cambios de fase
+        const fases = [];
+        let faseActual = null;
+        let inicioFase = null;
+        let precioInicioFase = null;
+        
+        for (let i = 0; i < analisisArrayAsc.length; i++) {
+            const reg = analisisArrayAsc[i];
+            const caso = reg.caso_numero;
+            
+            if (faseActual !== caso) {
+                if (faseActual !== null && inicioFase) {
+                    fases.push({
+                        caso: faseActual,
+                        desde: inicioFase,
+                        hasta: analisisArrayAsc[i - 1].fecha,
+                        precioInicio: precioInicioFase,
+                        precioFin: analisisArrayAsc[i - 1].precio_cierre
+                    });
+                }
+                faseActual = caso;
+                inicioFase = reg.fecha;
+                precioInicioFase = reg.precio_cierre;
+            }
+        }
+        if (faseActual !== null && inicioFase) {
+            fases.push({
+                caso: faseActual,
+                desde: inicioFase,
+                hasta: analisisArrayAsc[analisisArrayAsc.length - 1].fecha,
+                precioInicio: precioInicioFase,
+                precioFin: analisisArrayAsc[analisisArrayAsc.length - 1].precio_cierre
+            });
+        }
+        
+        // Invertir orden: de más actual a más antiguo
+        fases.reverse();
+        
+        const descripcionFase = {
+            1: { nombre: "COMPRA INMEDIATA", color: "#1e7e34", icono: "🔴", texto: "El precio ha roto resistencias clave con fuerza. Es momento de ejecutar compra." },
+            2: { nombre: "COMPRA ANTICIPADA", color: "#ffc107", icono: "🟡", texto: "Buen potencial alcista, pero la señal aún no se ha activado completamente. Precaución." },
+            3: { nombre: "REBOTE CORTO PLAZO", color: "#000000", icono: "⚫", texto: "Rebote dentro de tendencia bajista. Operativa de muy corto plazo." },
+            4: { nombre: "COMPRA CONSOLIDADA", color: "#2c7da0", icono: "🔵", texto: "Tendencia alcista confirmada. Mantener visión de medio plazo." },
+            5: { nombre: "AGOTAMIENTO", color: "#dc3545", icono: "🔴", texto: "Posible giro a la baja. Recomendación: tomar beneficios parciales." },
+            6: { nombre: "COMPRA RÁPIDA", color: "#28a745", icono: "🟢", texto: "Momento óptimo para entrada rápida. Stop ajustado." },
+            7: { nombre: "PRE-COMPRA", color: "#17a2b8", icono: "🔷", texto: "Señal a punto de activarse. Vigilar evolución." },
+            "sin_senal": { nombre: "SIN SEÑAL", color: "#8ba0bc", icono: "⚪", texto: "No hay señal activa. Esperar." }
+        };
+        
+        let html = `<div class="analisis-narrativo">
+            <h4>📋 ANÁLISIS NARRATIVO POR FASES</h4>
+            <div>`;
+        
+        for (const fase of fases) {
+            const info = descripcionFase[fase.caso] || descripcionFase["sin_senal"];
+            const desdeFecha = new Date(fase.desde).toLocaleDateString('es-ES');
+            const hastaFecha = new Date(fase.hasta).toLocaleDateString('es-ES');
+            
+            html += `<div class="fase">
+                <div>
+                    <span class="badge-fase" style="background: ${info.color}; color: white;">${info.icono} ${info.nombre}</span>
+                    <strong>${desdeFecha} → ${hastaFecha}</strong>
+                </div>
+                <p style="margin-top: 8px; margin-bottom: 4px;">📊 Precio: ${fase.precioInicio}€ → ${fase.precioFin}€</p>
+                <p style="margin: 0;">💡 ${info.texto}</p>`;
+            
+            if (fase.caso === 1 || fase.caso === 6) {
+                html += `<p style="margin-top: 6px; color: #1e7e34;">✅ Ejecutar compra con stop debajo del soporte.</p>`;
+            } else if (fase.caso === 5) {
+                html += `<p style="margin-top: 6px; color: #dc3545;">⚠️ Tomar beneficios parciales.</p>`;
+            } else if (fase.caso === 7) {
+                html += `<p style="margin-top: 6px; color: #17a2b8;">⏳ Preparar orden de compra.</p>`;
+            }
+            
+            html += `</div>`;
+        }
+        
+        html += `</div></div>`;
+        return html;
     }
 
     function cerrarDetalle() {
