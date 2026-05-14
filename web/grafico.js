@@ -40,6 +40,20 @@ function agruparPorDia(analisisArrayAsc) {
     return dailyArray;
 }
 
+function encontrarNivelMasCercano(niveles, precioActual) {
+    if (!niveles || niveles.length === 0) return null;
+    let masCercano = niveles[0];
+    let minDiferencia = Math.abs(precioActual - masCercano);
+    for (let i = 1; i < niveles.length; i++) {
+        const diferencia = Math.abs(precioActual - niveles[i]);
+        if (diferencia < minDiferencia) {
+            minDiferencia = diferencia;
+            masCercano = niveles[i];
+        }
+    }
+    return masCercano;
+}
+
 function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia, soportesNumeros, resistenciasNumeros) {
     const container = document.getElementById('graficaContainer');
     if (!container) return;
@@ -126,10 +140,11 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia, soportesNumer
         return nivel;
     }
     
-    // Dibujar líneas de SOPORTE (usando los números recibidos del index)
+    // Dibujar SOLO el SOPORTE más cercano al precio actual
     if (soportesNumeros && soportesNumeros.length > 0) {
-        for (const nivel of soportesNumeros) {
-            const nivelNumerico = ajustarNivel(nivel, precioActual);
+        const soporteCercano = encontrarNivelMasCercano(soportesNumeros, precioActual);
+        if (soporteCercano !== null) {
+            const nivelNumerico = ajustarNivel(soporteCercano, precioActual);
             const lineSeriesSoporte = chart.addLineSeries({
                 color: '#1e7e34',
                 lineWidth: 2,
@@ -146,10 +161,11 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia, soportesNumer
         }
     }
     
-    // Dibujar líneas de RESISTENCIA (usando los números recibidos del index)
+    // Dibujar SOLO la RESISTENCIA más cercana al precio actual
     if (resistenciasNumeros && resistenciasNumeros.length > 0) {
-        for (const nivel of resistenciasNumeros) {
-            const nivelNumerico = ajustarNivel(nivel, precioActual);
+        const resistenciaCercana = encontrarNivelMasCercano(resistenciasNumeros, precioActual);
+        if (resistenciaCercana !== null) {
+            const nivelNumerico = ajustarNivel(resistenciaCercana, precioActual);
             const lineSeriesResistencia = chart.addLineSeries({
                 color: '#b91c1c',
                 lineWidth: 2,
@@ -206,11 +222,29 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia, soportesNumer
         });
     }
     
+
     lineSeries.setMarkers(markers);
-    chart.timeScale().fitContent();
+    
+    // Mostrar solo los últimos 50 datos inicialmente (sin autoajuste)
+    if (lineData.length > 50) {
+        const lastIndex = lineData.length - 1;
+        const firstVisibleIndex = Math.max(0, lastIndex - 50);
+        chart.timeScale().setVisibleRange({
+            from: lineData[firstVisibleIndex].time,
+            to: lineData[lastIndex].time
+        });
+    } else {
+        // Si hay menos de 50 datos, mostrar todos pero sin zoom automático extremo
+        chart.timeScale().setVisibleRange({
+            from: lineData[0].time,
+            to: lineData[lineData.length - 1].time
+        });
+    }
     
     // Crear botones si no existen
-    crearBotones(container);
+    crearBotones(container);   
+    
+
     
     // Añadir leyenda
     crearLeyenda(container);
