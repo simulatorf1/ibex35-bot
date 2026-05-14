@@ -68,25 +68,21 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
     
     container.innerHTML = '';
     
+    // IMPORTANTE: Esta es la configuración que FUNCIONA (del grafico.js original)
     chart = LightweightCharts.createChart(container, {
         width: container.clientWidth,
         height: 500,
         layout: { background: { color: '#ffffff' }, textColor: '#333' },
         grid: { vertLines: { color: '#f0f0f0' }, horzLines: { color: '#f0f0f0' } },
         crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
-        rightPriceScale: { borderColor: '#d1d4dc' },
+        rightPriceScale: { borderColor: '#d1d4dc' },  // <--- SIN autoScale ni scaleMargins
         timeScale: { borderColor: '#d1d4dc', timeVisible: true, secondsVisible: false }
     });
     
     const lineData = [];
     for (let i = 0; i < dataToShow.length; i++) {
         const a = dataToShow[i];
-        const date = new Date(a.fecha);
-        const time = {
-            year: date.getFullYear(),
-            month: date.getMonth() + 1,
-            day: date.getDate()
-        };
+        const time = Math.floor(new Date(a.fecha).getTime() / 1000);
         lineData.push({ time: time, value: a.precio_cierre });
     }
     
@@ -100,8 +96,7 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
     });
     lineSeries.setData(lineData);
     
-    chart.timeScale().fitContent();
-    
+    // Los markers SOLO para casos con color (excluyendo caso 4 y sin señal)
     const markers = [];
     for (let i = 0; i < dataToShow.length; i++) {
         const a = dataToShow[i];
@@ -119,8 +114,7 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
     }
     
     if (newIdxCompra !== -1) {
-        const compraReg = dataToShow[newIdxCompra];
-        const compraTime = Math.floor(new Date(compraReg.fecha).getTime() / 1000);
+        const compraTime = Math.floor(new Date(dataToShow[newIdxCompra].fecha).getTime() / 1000);
         markers.push({ 
             time: compraTime, 
             position: 'aboveBar', 
@@ -132,8 +126,7 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
     }
     
     if (newIdxMaxGanancia !== -1 && newIdxMaxGanancia !== newIdxCompra) {
-        const maxReg = dataToShow[newIdxMaxGanancia];
-        const maxTime = Math.floor(new Date(maxReg.fecha).getTime() / 1000);
+        const maxTime = Math.floor(new Date(dataToShow[newIdxMaxGanancia].fecha).getTime() / 1000);
         markers.push({ 
             time: maxTime, 
             position: 'aboveBar', 
@@ -145,6 +138,9 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
     }
     
     lineSeries.setMarkers(markers);
+    chart.timeScale().fitContent();
+    
+    // Leyenda (esto NO afecta a las fechas porque está fuera del chart)
     crearLeyenda(container);
     
     window.addEventListener('resize', () => { 
