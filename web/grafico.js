@@ -10,46 +10,29 @@ const COLOR_CASO = {
     5: '#dc3545',  // Rojo - Agotamiento
     6: '#28a745',  // Verde claro - Compra Rápida
     7: '#17a2b8'   // Cyan - Pre-Compra
-    // Caso 4 (Compra Consolidada) y sin señal: NO TIENEN COLOR
-};
-
-// Texto descriptivo para la leyenda
-const TEXTO_CASO = {
-    1: '🔴 COMPRA INMEDIATA',
-    2: '🟡 COMPRA ANTICIPADA',
-    3: '⚫ REBOTE CORTO',
-    5: '🔴 AGOTAMIENTO',
-    6: '🟢 COMPRA RÁPIDA',
-    7: '🔷 PRE-COMPRA'
 };
 
 let chart = null;
 let currentData = null;
-let currentView = 'all'; // 'all' o 'daily'
+let currentView = 'all';
 
 function getColorForCaso(casoNumero) {
-    // Caso 4 y sin señal: no tienen color
     if (casoNumero === 4) return null;
     if (casoNumero === null || casoNumero === undefined) return null;
-    // Para los casos que tienen color definido, devolver su color
     if (COLOR_CASO[casoNumero]) return COLOR_CASO[casoNumero];
     return null;
 }
 
-// Agrupar por día (último precio del día)
 function agruparPorDia(analisisArrayAsc) {
     const dailyMap = new Map();
-    
     for (const registro of analisisArrayAsc) {
         const fechaKey = new Date(registro.fecha).toISOString().split('T')[0];
         if (!dailyMap.has(fechaKey) || new Date(registro.fecha) > new Date(dailyMap.get(fechaKey).fecha)) {
             dailyMap.set(fechaKey, registro);
         }
     }
-    
     const dailyArray = Array.from(dailyMap.values());
     dailyArray.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
-    
     return dailyArray;
 }
 
@@ -58,7 +41,6 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
     if (!container) return;
     
     currentData = analisisArrayAsc;
-    
     let dataToShow = currentView === 'daily' ? agruparPorDia(analisisArrayAsc) : analisisArrayAsc;
     
     let newIdxCompra = -1;
@@ -93,7 +75,15 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
         grid: { vertLines: { color: '#f0f0f0' }, horzLines: { color: '#f0f0f0' } },
         crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
         rightPriceScale: { borderColor: '#d1d4dc', autoScale: true, scaleMargins: { top: 0.1, bottom: 0.1 } },
-        timeScale: { borderColor: '#d1d4dc', timeVisible: true, secondsVisible: false }
+        timeScale: { 
+            borderColor: '#d1d4dc', 
+            timeVisible: true, 
+            secondsVisible: false,
+            tickMarkFormatter: (time) => {
+                const date = new Date(time * 1000);
+                return date.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
+            }
+        }
     });
     
     const lineData = [];
@@ -115,13 +105,10 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
     
     chart.timeScale().fitContent();
     
-    // Marcadores de colores para TODOS los puntos que tienen color asignado
     const markers = [];
     for (let i = 0; i < dataToShow.length; i++) {
         const a = dataToShow[i];
         const markerColor = getColorForCaso(a.caso_numero);
-        
-        // Solo añadir marcador si tiene color (no es null)
         if (markerColor !== null) {
             const time = Math.floor(new Date(a.fecha).getTime() / 1000);
             markers.push({ 
@@ -134,7 +121,6 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
         }
     }
     
-    // Añadir marcador especial para COMPRA (CON TEXTO)
     if (newIdxCompra !== -1) {
         const compraReg = dataToShow[newIdxCompra];
         const compraTime = Math.floor(new Date(compraReg.fecha).getTime() / 1000);
@@ -148,7 +134,6 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
         });
     }
     
-    // Añadir marcador especial para MÁXIMO BENEFICIO (CON TEXTO)
     if (newIdxMaxGanancia !== -1 && newIdxMaxGanancia !== newIdxCompra) {
         const maxReg = dataToShow[newIdxMaxGanancia];
         const maxTime = Math.floor(new Date(maxReg.fecha).getTime() / 1000);
@@ -163,8 +148,6 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
     }
     
     lineSeries.setMarkers(markers);
-    
-    // Crear leyenda de colores
     crearLeyenda(container);
     
     window.addEventListener('resize', () => { 
@@ -222,7 +205,6 @@ function cambiarVista(tipo) {
             const maxGananciaInfo = encontrarMaximoGananciaEnDatos(currentData, primeraCompra.precio_cierre, acciones, 10000, idxCompra);
             if (maxGananciaInfo) idxMaxGanancia = maxGananciaInfo.idx;
         }
-        
         crearGrafica(currentData, idxCompra, idxMaxGanancia);
     }
 }
