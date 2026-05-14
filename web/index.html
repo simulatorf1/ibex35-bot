@@ -1082,7 +1082,7 @@
         
 
         
-        html += `<div class="seccion"><h3>📈 GRÁFICA DE PRECIO</h3>${botonesHtml}<div id="graficaContainer" class="grafica-container"></div></div>`;
+        html += `<div class="seccion"><h3>📈 GRÁFICA DE PRECIO</h3><div id="graficaContainer" class="grafica-container"></div></div>`;
         
         if (ultimo.gaps_alcistas || ultimo.gaps_bajistas) {
             html += `<div class="seccion"><h3>🕳️ GAPS</h3><div class="grid-2col">
@@ -1104,44 +1104,7 @@
         setTimeout(() => {
             crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia);
             
-            // Configurar eventos de los botones después de que existan en el DOM
-            const btnTodos = document.getElementById('btnVistaTodos');
-            const btnDiaria = document.getElementById('btnVistaDiaria');
-            
-            if (btnTodos) {
-                // Eliminar event listeners anteriores para evitar duplicados
-                const newBtnTodos = btnTodos.cloneNode(true);
-                btnTodos.parentNode.replaceChild(newBtnTodos, btnTodos);
-                
-                newBtnTodos.addEventListener('click', () => {
-                    if (typeof cambiarVista === 'function') {
-                        cambiarVista('all');
-                        newBtnTodos.style.background = '#2c7da0';
-                        newBtnTodos.style.color = 'white';
-                        if (btnDiaria) {
-                            btnDiaria.style.background = 'white';
-                            btnDiaria.style.color = '#2c7da0';
-                        }
-                    }
-                });
-            }
-            
-            if (btnDiaria) {
-                const newBtnDiaria = btnDiaria.cloneNode(true);
-                btnDiaria.parentNode.replaceChild(newBtnDiaria, btnDiaria);
-                
-                newBtnDiaria.addEventListener('click', () => {
-                    if (typeof cambiarVista === 'function') {
-                        cambiarVista('daily');
-                        newBtnDiaria.style.background = '#2c7da0';
-                        newBtnDiaria.style.color = 'white';
-                        if (btnTodos) {
-                            btnTodos.style.background = 'white';
-                            btnTodos.style.color = '#2c7da0';
-                        }
-                    }
-                });
-            }
+
         }, 100);
         
         window.scrollTo({ top: 0, behavior: 'smooth' });
