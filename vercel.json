@@ -12,6 +12,14 @@
       "dest": "/web/$1"
     },
     {
+      "src": "/web/index.html",
+      "dest": "/web/index.html"
+    },
+    {
+      "src": "/web/dashboard.html",
+      "dest": "/web/dashboard.html"
+    },
+    {
       "src": "/(.*)",
       "dest": "/web/index.html"
     }
