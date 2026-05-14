@@ -39,56 +39,6 @@ function agruparPorDia(analisisArrayAsc) {
     dailyArray.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
     return dailyArray;
 }
-function extraerNivelesNumericosDelTexto(texto) {
-    if (!texto || texto === 'No hay datos') return [];
-    const lineas = texto.split('\n');
-    const numeros = [];
-    for (let linea of lineas) {
-        linea = linea.trim();
-        if (!linea) continue;
-        
-        // Buscar rangos tipo "14.32-14.86€"
-        const rangoMatch = linea.match(/([\d\.]+)\s*[-–]\s*([\d\.]+)/);
-        if (rangoMatch) {
-            // Mantener el punto como separador decimal
-            let num1 = parseFloat(rangoMatch[1]);
-            let num2 = parseFloat(rangoMatch[2]);
-            if (!isNaN(num1)) numeros.push(num1);
-            if (!isNaN(num2)) numeros.push(num2);
-        } else {
-            // Buscar número individual
-            const numMatch = linea.match(/([\d\.]+)/);
-            if (numMatch) {
-                let num = parseFloat(numMatch[1]);
-                if (!isNaN(num)) numeros.push(num);
-            }
-        }
-    }
-    // Eliminar duplicados y ordenar
-    const unicos = [...new Set(numeros)];
-    unicos.sort((a, b) => a - b);
-    return unicos.slice(0, 3);
-}
-function extraerNivelesNumericos(texto) {
-    if (!texto || texto === 'No hay datos') return [];
-    const lineas = texto.split('\n');
-    const numeros = [];
-    for (let linea of lineas) {
-        linea = linea.trim();
-        if (!linea) continue;
-        const rangoMatch = linea.match(/([\d\.]+)\s*-\s*([\d\.]+)/);
-        if (rangoMatch) {
-            numeros.push(parseFloat(rangoMatch[1].replace(/\./g, '')));
-            numeros.push(parseFloat(rangoMatch[2].replace(/\./g, '')));
-        } else {
-            const numMatch = linea.match(/([\d\.]+)/);
-            if (numMatch) numeros.push(parseFloat(numMatch[1].replace(/\./g, '')));
-        }
-    }
-    const unicos = [...new Set(numeros)];
-    unicos.sort((a, b) => a - b);
-    return unicos.slice(0, 3);
-}
 
 function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia, soportesNumeros, resistenciasNumeros) {
     const container = document.getElementById('graficaContainer');
@@ -98,8 +48,8 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia, soportesNumer
     currentData = analisisArrayAsc;
     currentDataCompra = idxCompra;
     currentDataMax = idxMaxGanancia;
-    currentSoportes = soportesTexto;
-    currentResistencias = resistenciasTexto;
+    currentSoportes = soportesNumeros;
+    currentResistencias = resistenciasNumeros;
     
     let dataToShow = currentView === 'daily' ? agruparPorDia(analisisArrayAsc) : analisisArrayAsc;
     
@@ -160,11 +110,9 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia, soportesNumer
     // Calcular el precio actual (último valor de la línea)
     const precioActual = lineData[lineData.length - 1].value;
     
-    // Función para ajustar el nivel
+    // Función para ajustar el nivel (si viene en miles)
     function ajustarNivel(nivel, precioActual) {
-        // Si el nivel es muy grande comparado con el precio actual (más de 50 veces)
         if (nivel > precioActual * 50) {
-            // Intentar dividir hasta que esté en el rango correcto
             if (nivel / 1000 > precioActual * 0.5 && nivel / 1000 < precioActual * 2) {
                 return nivel / 1000;
             }
@@ -178,42 +126,44 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia, soportesNumer
         return nivel;
     }
     
-    // Dibujar líneas de SOPORTE
-
-    for (const nivel of soportes) {
-        const nivelNumerico = ajustarNivel(nivel, precioActual);
-        const lineSeriesSoporte = chart.addLineSeries({
-            color: '#1e7e34',
-            lineWidth: 1,
-            lineStyle: LightweightCharts.LineStyle.Dotted,
-            priceLineVisible: false,
-            lastValueVisible: false,
-            crosshairMarkerVisible: false
-        });
-        const lineDataSoporte = [
-            { time: lineData[0].time, value: nivelNumerico },
-            { time: lineData[lineData.length - 1].time, value: nivelNumerico }
-        ];
-        lineSeriesSoporte.setData(lineDataSoporte);
+    // Dibujar líneas de SOPORTE (usando los números recibidos del index)
+    if (soportesNumeros && soportesNumeros.length > 0) {
+        for (const nivel of soportesNumeros) {
+            const nivelNumerico = ajustarNivel(nivel, precioActual);
+            const lineSeriesSoporte = chart.addLineSeries({
+                color: '#1e7e34',
+                lineWidth: 1,
+                lineStyle: LightweightCharts.LineStyle.Dotted,
+                priceLineVisible: false,
+                lastValueVisible: false,
+                crosshairMarkerVisible: false
+            });
+            const lineDataSoporte = [
+                { time: lineData[0].time, value: nivelNumerico },
+                { time: lineData[lineData.length - 1].time, value: nivelNumerico }
+            ];
+            lineSeriesSoporte.setData(lineDataSoporte);
+        }
     }
     
-    // Dibujar líneas de RESISTENCIA
-
-    for (const nivel of resistencias) {
-        const nivelNumerico = ajustarNivel(nivel, precioActual);
-        const lineSeriesResistencia = chart.addLineSeries({
-            color: '#b91c1c',
-            lineWidth: 1,
-            lineStyle: LightweightCharts.LineStyle.Dotted,
-            priceLineVisible: false,
-            lastValueVisible: false,
-            crosshairMarkerVisible: false
-        });
-        const lineDataResistencia = [
-            { time: lineData[0].time, value: nivelNumerico },
-            { time: lineData[lineData.length - 1].time, value: nivelNumerico }
-        ];
-        lineSeriesResistencia.setData(lineDataResistencia);
+    // Dibujar líneas de RESISTENCIA (usando los números recibidos del index)
+    if (resistenciasNumeros && resistenciasNumeros.length > 0) {
+        for (const nivel of resistenciasNumeros) {
+            const nivelNumerico = ajustarNivel(nivel, precioActual);
+            const lineSeriesResistencia = chart.addLineSeries({
+                color: '#b91c1c',
+                lineWidth: 1,
+                lineStyle: LightweightCharts.LineStyle.Dotted,
+                priceLineVisible: false,
+                lastValueVisible: false,
+                crosshairMarkerVisible: false
+            });
+            const lineDataResistencia = [
+                { time: lineData[0].time, value: nivelNumerico },
+                { time: lineData[lineData.length - 1].time, value: nivelNumerico }
+            ];
+            lineSeriesResistencia.setData(lineDataResistencia);
+        }
     }
     
     const markers = [];
