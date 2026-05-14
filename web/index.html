@@ -1071,7 +1071,7 @@
     function mostrarDetalleCompleto(analisisArrayAsc) {
         const resultadoDiv = document.getElementById('resultadoDetalle');
         const ultimo = analisisArrayAsc[analisisArrayAsc.length - 1];
-        const dineroInvertir = parseFloat(document.getElementById('dineroInvertir').value) || 10000;
+        const dineroInvertir = 10000;
         
         const primeraCompra = encontrarPrimeraCompra(analisisArrayAsc);
         let acciones = 0;
@@ -1353,7 +1353,7 @@
 
     document.getElementById('btnBuscar').addEventListener('click', buscarEmpresa);
     document.getElementById('inputEmpresa').addEventListener('keypress', (e) => { if(e.key === 'Enter') buscarEmpresa(); });
-    document.getElementById('dineroInvertir').addEventListener('input', actualizarDetallePorCambioDinero);
+
     
     cargarSeñales();
     window.verDetalle = verDetalle;
