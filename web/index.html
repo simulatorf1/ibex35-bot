@@ -628,6 +628,9 @@
     const SUPABASE_URL = "https://klwcletpqqsabtdanldx.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtsd2NsZXRwcXFzYWJ0ZGFubGR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4MDg2NTEsImV4cCI6MjA5MjM4NDY1MX0.nbs0tYbFOL-I8qIkgB7Ub_jcOwHTdzg0EcAp1DS6sCU";
 
+    const CASOS_COMPRA_REAL = [1, 6];
+    const CASOS_ESPERA = [2, 3, 5, 7];
+    
     const descripcionCompra = {
         1: "COMPRA INMEDIATA - Señal directa por máxima fuerza alcista",
         2: "COMPRA ANTICIPADA CON RIESGO - Buen potencial pero de subida pero aun no se ha activado la señal",
@@ -644,7 +647,7 @@
 
     let tickerActual = null;
 
-    // Función para generar análisis narrativo automático (sin precio actual, sin soportes/resistencias)
+    // Función para generar análisis narrativo automático (sin precio actual ni soportes/resistencias)
     function generarAnalisisNarrativo(analisisArrayAsc, casoActual) {
         if (!analisisArrayAsc || analisisArrayAsc.length === 0) {
             return '<div class="analisis-narrativo">📭 No hay datos suficientes para generar análisis.</div>';
@@ -686,7 +689,7 @@
             });
         }
         
-        // Invertir el orden: de más actual a más antiguo
+        // INVERTIR EL ORDEN: de más actual a más antiguo
         fases.reverse();
         
         // Texto descriptivo para cada caso
@@ -701,7 +704,7 @@
             "sin_senal": { nombre: "SIN SEÑAL", color: "#8ba0bc", icono: "⚪", texto: "No hay señal activa en este momento. Esperar a que se desarrollen las condiciones técnicas." }
         };
         
-        // Generar HTML del análisis (sin precio actual ni soportes/resistencias)
+        // Generar HTML del análisis (sin precio actual, sin soportes, sin resistencias)
         let html = `<div class="analisis-narrativo">
             <h4>📋 ANÁLISIS NARRATIVO POR FASES</h4>
             <div>`;
@@ -741,6 +744,27 @@
         return html;
     }
 
+    function extraerTresNivelesNumericos(texto) {
+        if (!texto || texto === 'No hay datos') return [];
+        const lineas = texto.split('\n');
+        const numeros = [];
+        for (let linea of lineas) {
+            linea = linea.trim();
+            if (!linea) continue;
+            const rangoMatch = linea.match(/([\d\.]+)\s*-\s*([\d\.]+)/);
+            if (rangoMatch) {
+                numeros.push(parseFloat(rangoMatch[1].replace(/\./g, '')));
+                numeros.push(parseFloat(rangoMatch[2].replace(/\./g, '')));
+            } else {
+                const numMatch = linea.match(/([\d\.]+)/);
+                if (numMatch) numeros.push(parseFloat(numMatch[1].replace(/\./g, '')));
+            }
+        }
+        const unicos = [...new Set(numeros)];
+        unicos.sort((a, b) => a - b);
+        return unicos.slice(0, 3);
+    }
+
     function calcularComisiones(dineroInvertido, precioCompra, precioVenta, numAcciones) {
         const comisionCompra = 11 + (dineroInvertido * 0.004);
         const comisionVenta = 11 + (precioVenta * numAcciones * 0.004);
@@ -757,15 +781,15 @@
         if (!analisisArrayAsc || analisisArrayAsc.length === 0) return null;
         for (let i = 0; i < analisisArrayAsc.length; i++) {
             const registro = analisisArrayAsc[i];
-            if (window.CASOS_COMPRA_REAL && window.CASOS_COMPRA_REAL.includes(registro.caso_numero)) {
+            if (CASOS_COMPRA_REAL.includes(registro.caso_numero)) {
                 if (i === 0) return registro;
                 const anterior = analisisArrayAsc[i - 1];
-                if (anterior && !window.CASOS_COMPRA_REAL.includes(anterior.caso_numero)) {
+                if (anterior && !CASOS_COMPRA_REAL.includes(anterior.caso_numero)) {
                     return registro;
                 }
             }
         }
-        return null;
+        return analisisArrayAsc.find(r => CASOS_COMPRA_REAL.includes(r.caso_numero)) || null;
     }
 
     function calcularAcciones(dinero, precioCompra) {
@@ -948,9 +972,9 @@
                 
                 const empresaData = { ...masReciente, variacionVsAnterior: variacion, historial: arr };
                 
-                if (window.CASOS_COMPRA_REAL && window.CASOS_COMPRA_REAL.includes(masReciente.caso_numero)) {
+                if (CASOS_COMPRA_REAL.includes(masReciente.caso_numero)) {
                     compraReal.push(empresaData);
-                } else if (window.CASOS_ESPERA && window.CASOS_ESPERA.includes(masReciente.caso_numero)) {
+                } else if (CASOS_ESPERA.includes(masReciente.caso_numero)) {
                     espera.push(empresaData);
                 } else {
                     sinSeñal.push(empresaData);
@@ -1222,9 +1246,7 @@
         resultadoDiv.innerHTML = html;
         
         setTimeout(() => {
-            if (typeof crearGrafica === 'function') {
-                crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia);
-            }
+            crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia);
         }, 100);
         
         window.scrollTo({ top: 0, behavior: 'smooth' });
