@@ -588,13 +588,8 @@
         <input type="text" id="inputEmpresa" placeholder="Buscar por nombre (Santander, BBVA, Inditex, Iberdrola...)" autocomplete="off">
         <button id="btnBuscar">🔍 Analizar ticker</button>
     </div>
-
-    <div class="inversor-container">
-        <div class="card-inversor">
-            <label>💰 DINERO A INVERTIR</label>
-            <input type="number" id="dineroInvertir" value="10000" step="1000" min="100">
-            <span class="euro-simbolo">€</span>
-        </div>
+    <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+        <button id="btnLogin" style="padding: 8px 20px; background: #1e4668; color: white; border: none; border-radius: 40px; cursor: pointer; font-weight: 600;">🔑 Iniciar sesión</button>
     </div>
 
     <div id="seccionSeñales" class="seccion-principal">
@@ -622,8 +617,79 @@
 
     <div id="resultadoDetalle" class="hidden"></div>
 </div>
+<!-- Modal Login -->
+<div id="modalLogin" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+    <div style="background: white; border-radius: 24px; padding: 32px; width: 400px; max-width: 90%;">
+        <h3 style="margin-bottom: 20px;">🔐 Iniciar sesión / Registrarse</h3>
+        <input type="email" id="loginEmail" placeholder="Email" style="width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #cfdfed; border-radius: 12px;">
+        <input type="password" id="loginPassword" placeholder="Contraseña" style="width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #cfdfed; border-radius: 12px;">
+        <button id="btnLoginSubmit" style="width: 100%; padding: 12px; background: #1e4668; color: white; border: none; border-radius: 40px; cursor: pointer; font-weight: 600;">Ingresar / Registrarse</button>
+        <button id="btnCloseModal" style="width: 100%; margin-top: 12px; padding: 10px; background: #eef2fa; border: none; border-radius: 40px; cursor: pointer;">Cancelar</button>
+    </div>
+</div>    
 <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
 <script src="/web/grafico.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    // Inicializar Supabase para Auth
+    const supabaseUrl = 'https://klwcletpqqsabtdanldx.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtsd2NsZXRwcXFzYWJ0ZGFubGR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4MDg2NTEsImV4cCI6MjA5MjM4NDY1MX0.nbs0tYbFOL-I8qIkgB7Ub_jcOwHTdzg0EcAp1DS6sCU';
+    const supabaseAuth = supabase.createClient(supabaseUrl, supabaseKey);
+    
+    // Modal logic
+    const modal = document.getElementById('modalLogin');
+    const btnLogin = document.getElementById('btnLogin');
+    const btnCloseModal = document.getElementById('btnCloseModal');
+    const btnLoginSubmit = document.getElementById('btnLoginSubmit');
+    
+    btnLogin.onclick = () => { modal.style.display = 'flex'; };
+    btnCloseModal.onclick = () => { modal.style.display = 'none'; };
+    
+    btnLoginSubmit.onclick = async () => {
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        
+        if (!email || !password) {
+            alert('Completa email y contraseña');
+            return;
+        }
+        
+        // Intentar iniciar sesión primero
+        let { data, error } = await supabaseAuth.auth.signInWithPassword({ email, password });
+        
+        // Si no existe, registrar
+        if (error && error.message.includes('Invalid login credentials')) {
+            const { data: signUpData, error: signUpError } = await supabaseAuth.auth.signUp({ email, password });
+            if (signUpError) {
+                alert('Error: ' + signUpError.message);
+                return;
+            }
+            alert('Usuario registrado. Ahora inicia sesión con tu contraseña.');
+            modal.style.display = 'none';
+            return;
+        }
+        
+        if (error) {
+            alert('Error: ' + error.message);
+            return;
+        }
+        
+        // Login exitoso
+        alert('✅ Sesión iniciada correctamente');
+        modal.style.display = 'none';
+        
+        // Redirigir al dashboard
+        window.location.href = '/web/dashboard.html';
+    };
+    
+    // Verificar si ya hay sesión activa al cargar
+    supabaseAuth.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+            // Si ya está logueado, redirigir al dashboard
+            window.location.href = '/web/dashboard.html';
+        }
+    });
+</script>    
 <script>
     const SUPABASE_URL = "https://klwcletpqqsabtdanldx.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtsd2NsZXRwcXFzYWJ0ZGFubGR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4MDg2NTEsImV4cCI6MjA5MjM4NDY1MX0.nbs0tYbFOL-I8qIkgB7Ub_jcOwHTdzg0EcAp1DS6sCU";
