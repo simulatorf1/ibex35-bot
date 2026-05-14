@@ -450,16 +450,6 @@
             gap: 24px;
         }
 
-        .recomendacion-texto {
-            font-size: 0.95rem;
-            line-height: 1.4;
-            background: #f0f6fe;
-            padding: 16px 20px;
-            border-radius: 20px;
-            color: #1e3a5f;
-            font-weight: 500;
-        }
-
         .analisis-narrativo {
             background: #f8f9fa;
             border-radius: 20px;
@@ -475,10 +465,6 @@
             color: #1e4668;
             margin-bottom: 12px;
             font-size: 1rem;
-        }
-
-        .analisis-narrativo p {
-            margin-bottom: 10px;
         }
 
         .analisis-narrativo .fase {
@@ -641,7 +627,6 @@
 <script>
     const SUPABASE_URL = "https://klwcletpqqsabtdanldx.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtsd2NsZXRwcXFzYWJ0ZGFubGR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4MDg2NTEsImV4cCI6MjA5MjM4NDY1MX0.nbs0tYbFOL-I8qIkgB7Ub_jcOwHTdzg0EcAp1DS6sCU";
-
     
     const descripcionCompra = {
         1: "COMPRA INMEDIATA - Señal directa por máxima fuerza alcista",
@@ -659,15 +644,11 @@
 
     let tickerActual = null;
 
-    // Función para generar análisis narrativo automático
-    function generarAnalisisNarrativo(analisisArrayAsc, soportesTexto, resistenciasTexto, tendenciaTexto, precioActual, casoActual) {
+    // Función para generar análisis narrativo automático (sin precio actual, sin soportes/resistencias)
+    function generarAnalisisNarrativo(analisisArrayAsc, casoActual) {
         if (!analisisArrayAsc || analisisArrayAsc.length === 0) {
             return '<div class="analisis-narrativo">📭 No hay datos suficientes para generar análisis.</div>';
         }
-        
-        // Extraer niveles numéricos de soportes y resistencias
-        const soportes = extraerTresNivelesNumericos(soportesTexto);
-        const resistencias = extraerTresNivelesNumericos(resistenciasTexto);
         
         // Detectar cambios de fase (cuando cambia el caso_numero)
         const fases = [];
@@ -705,6 +686,9 @@
             });
         }
         
+        // Invertir el orden: de más actual a más antiguo
+        fases.reverse();
+        
         // Texto descriptivo para cada caso
         const descripcionFase = {
             1: { nombre: "COMPRA INMEDIATA", color: "#1e7e34", icono: "🔴", texto: "El precio ha roto resistencias clave con fuerza. Las velas semanales confirman cambio de tendencia. Es momento de ejecutar compra." },
@@ -717,19 +701,10 @@
             "sin_senal": { nombre: "SIN SEÑAL", color: "#8ba0bc", icono: "⚪", texto: "No hay señal activa en este momento. Esperar a que se desarrollen las condiciones técnicas." }
         };
         
-        // Generar HTML del análisis
+        // Generar HTML del análisis (sin precio actual ni soportes/resistencias)
         let html = `<div class="analisis-narrativo">
             <h4>📋 ANÁLISIS NARRATIVO POR FASES</h4>
-            <p><strong>Tendencia actual:</strong> ${tendenciaTexto} | <strong>Precio actual:</strong> ${precioActual} €</p>`;
-        
-        if (soportes.length > 0) {
-            html += `<p><strong>📉 Soporte clave:</strong> ${soportes.map(s => s + ' €').join(' / ')}</p>`;
-        }
-        if (resistencias.length > 0) {
-            html += `<p><strong>📈 Resistencia clave:</strong> ${resistencias.map(r => r + ' €').join(' / ')}</p>`;
-        }
-        
-        html += `<div style="margin-top: 16px;">`;
+            <div>`;
         
         for (let i = 0; i < fases.length; i++) {
             const fase = fases[i];
@@ -761,39 +736,9 @@
             html += `</div>`;
         }
         
-        // Añadir análisis de la situación actual
-        const infoActual = descripcionFase[casoActual] || descripcionFase["sin_senal"];
-        html += `<div class="fase" style="background: #e8f4f8; border-radius: 12px; padding: 12px; margin-top: 8px;">
-            <div>
-                <span class="badge-fase" style="background: ${infoActual.color}; color: white;">${infoActual.icono} SITUACIÓN ACTUAL</span>
-            </div>
-            <p style="margin-top: 8px;">${infoActual.texto}</p>
-        </div>`;
-        
         html += `</div></div>`;
         
         return html;
-    }
-
-    function extraerTresNivelesNumericos(texto) {
-        if (!texto || texto === 'No hay datos') return [];
-        const lineas = texto.split('\n');
-        const numeros = [];
-        for (let linea of lineas) {
-            linea = linea.trim();
-            if (!linea) continue;
-            const rangoMatch = linea.match(/([\d\.]+)\s*-\s*([\d\.]+)/);
-            if (rangoMatch) {
-                numeros.push(parseFloat(rangoMatch[1].replace(/\./g, '')));
-                numeros.push(parseFloat(rangoMatch[2].replace(/\./g, '')));
-            } else {
-                const numMatch = linea.match(/([\d\.]+)/);
-                if (numMatch) numeros.push(parseFloat(numMatch[1].replace(/\./g, '')));
-            }
-        }
-        const unicos = [...new Set(numeros)];
-        unicos.sort((a, b) => a - b);
-        return unicos.slice(0, 3);
     }
 
     function calcularComisiones(dineroInvertido, precioCompra, precioVenta, numAcciones) {
@@ -812,15 +757,15 @@
         if (!analisisArrayAsc || analisisArrayAsc.length === 0) return null;
         for (let i = 0; i < analisisArrayAsc.length; i++) {
             const registro = analisisArrayAsc[i];
-            if (CASOS_COMPRA_REAL.includes(registro.caso_numero)) {
+            if (window.CASOS_COMPRA_REAL && window.CASOS_COMPRA_REAL.includes(registro.caso_numero)) {
                 if (i === 0) return registro;
                 const anterior = analisisArrayAsc[i - 1];
-                if (anterior && !CASOS_COMPRA_REAL.includes(anterior.caso_numero)) {
+                if (anterior && !window.CASOS_COMPRA_REAL.includes(anterior.caso_numero)) {
                     return registro;
                 }
             }
         }
-        return analisisArrayAsc.find(r => CASOS_COMPRA_REAL.includes(r.caso_numero)) || null;
+        return null;
     }
 
     function calcularAcciones(dinero, precioCompra) {
@@ -1003,9 +948,9 @@
                 
                 const empresaData = { ...masReciente, variacionVsAnterior: variacion, historial: arr };
                 
-                if (CASOS_COMPRA_REAL.includes(masReciente.caso_numero)) {
+                if (window.CASOS_COMPRA_REAL && window.CASOS_COMPRA_REAL.includes(masReciente.caso_numero)) {
                     compraReal.push(empresaData);
-                } else if (CASOS_ESPERA.includes(masReciente.caso_numero)) {
+                } else if (window.CASOS_ESPERA && window.CASOS_ESPERA.includes(masReciente.caso_numero)) {
                     espera.push(empresaData);
                 } else {
                     sinSeñal.push(empresaData);
@@ -1106,8 +1051,6 @@
         grid.innerHTML = html;
     }
 
-
-
     async function verDetalle(ticker) {
         tickerActual = ticker;
         const seccionSeñales = document.getElementById('seccionSeñales');
@@ -1184,8 +1127,6 @@
         const tendenciaTexto = tendenciaObj.texto;
         const tendenciaClase = tendenciaObj.clase;
         
-        let recomendacionLimpia = descripcionCompra[ultimo.caso_numero] || "Sin señal activa en este momento";
-        
         let primeraCompraHtml = '';
         let gananciaMaxHtml = '';
         
@@ -1246,28 +1187,22 @@
                     <div class="info-card"><h3>📈 MEDIO PLAZO (Diario)</h3>${generarBarra(puntosMedio)}<div class="barra-label ${tendenciaClase}">Tendencia: ${tendenciaTexto}</div></div>
                     <div class="info-card"><h3>📆 LARGO PLAZO (Semanal)</h3>${generarBarra(puntosLargo)}</div>
                 </div>
-                <div class="seccion"><h3>💡 RECOMENDACIÓN TÉCNICA</h3><div class="recomendacion-texto">${recomendacionLimpia}</div></div>
         `;
         
+        // ANÁLISIS NARRATIVO (antes del gráfico)
+        const analisisNarrativo = generarAnalisisNarrativo(analisisArrayAsc, ultimo.caso_numero);
+        html += analisisNarrativo;
+        
+        // GRÁFICA
+        html += `<div class="seccion"><h3>📈 GRÁFICA DE PRECIO</h3><div id="graficaContainer" class="grafica-container"></div></div>`;
+        
+        // NIVELES CLAVE (después de la gráfica)
         if (ultimo.soportes || ultimo.resistencias) {
             html += `<div class="seccion"><h3>📊 NIVELES CLAVE</h3><div class="grid-2col">
                         <div><h4 style="margin-bottom:10px; color:#1e7e34;">📉 SOPORTES</h4><div class="lista-items">${formatearNiveles(ultimo.soportes, 'soporte')}</div></div>
                         <div><h4 style="margin-bottom:10px; color:#b91c1c;">📈 RESISTENCIAS</h4><div class="lista-items">${formatearNiveles(ultimo.resistencias, 'resistencia')}</div></div>
                     </div></div>`;
         }
-        
-        html += `<div class="seccion"><h3>📈 GRÁFICA DE PRECIO</h3><div id="graficaContainer" class="grafica-container"></div></div>`;
-        
-        // Generar análisis narrativo automático
-        const analisisNarrativo = generarAnalisisNarrativo(
-            analisisArrayAsc, 
-            ultimo.soportes, 
-            ultimo.resistencias, 
-            tendenciaTexto, 
-            ultimo.precio_cierre, 
-            ultimo.caso_numero
-        );
-        html += analisisNarrativo;
         
         if (ultimo.gaps_alcistas || ultimo.gaps_bajistas) {
             html += `<div class="seccion"><h3>🕳️ GAPS</h3><div class="grid-2col">
@@ -1287,7 +1222,9 @@
         resultadoDiv.innerHTML = html;
         
         setTimeout(() => {
-            crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia);
+            if (typeof crearGrafica === 'function') {
+                crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia);
+            }
         }, 100);
         
         window.scrollTo({ top: 0, behavior: 'smooth' });
