@@ -644,6 +644,8 @@
     };
     function extraerNumerosDeNiveles(texto) {
         if (!texto || texto === 'No hay datos') return [];
+        // Buscar números con formato español (punto como separador de miles o decimal)
+        // Ejemplos: "55.44 €", "14.665 €", "9.664 €"
         const matches = texto.match(/(\d+\.?\d*)/g);
         if (!matches) return [];
         return matches.map(m => parseFloat(m));
