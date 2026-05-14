@@ -132,8 +132,8 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia, soportesNumer
             const nivelNumerico = ajustarNivel(nivel, precioActual);
             const lineSeriesSoporte = chart.addLineSeries({
                 color: '#1e7e34',
-                lineWidth: 1,
-                lineStyle: LightweightCharts.LineStyle.Dotted,
+                lineWidth: 2,
+                lineStyle: LightweightCharts.LineStyle.Dashed,
                 priceLineVisible: false,
                 lastValueVisible: false,
                 crosshairMarkerVisible: false
@@ -152,8 +152,8 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia, soportesNumer
             const nivelNumerico = ajustarNivel(nivel, precioActual);
             const lineSeriesResistencia = chart.addLineSeries({
                 color: '#b91c1c',
-                lineWidth: 1,
-                lineStyle: LightweightCharts.LineStyle.Dotted,
+                lineWidth: 2,
+                lineStyle: LightweightCharts.LineStyle.Dashed,
                 priceLineVisible: false,
                 lastValueVisible: false,
                 crosshairMarkerVisible: false
