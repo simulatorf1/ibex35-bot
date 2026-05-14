@@ -1198,14 +1198,15 @@
         // Invertir orden: de más actual a más antiguo
         fases.reverse();
         
+
         const descripcionFase = {
             1: { nombre: "COMPRA INMEDIATA", color: "#1e7e34", icono: "🔴", texto: "El precio ha roto resistencias clave con fuerza. Es momento de ejecutar compra." },
             2: { nombre: "COMPRA ANTICIPADA", color: "#ffc107", icono: "🟡", texto: "Buen potencial alcista, pero la señal aún no se ha activado completamente. Precaución." },
             3: { nombre: "REBOTE CORTO PLAZO", color: "#000000", icono: "⚫", texto: "Rebote dentro de tendencia bajista. Operativa de muy corto plazo." },
-
             5: { nombre: "AGOTAMIENTO", color: "#dc3545", icono: "🔴", texto: "Posible giro a la baja. Recomendación: tomar beneficios parciales." },
             6: { nombre: "COMPRA RÁPIDA", color: "#28a745", icono: "🟢", texto: "Momento óptimo para entrada rápida. Stop ajustado." },
-            7: { nombre: "PRE-COMPRA", color: "#17a2b8", icono: "🔷", texto: "Señal a punto de activarse. Vigilar evolución." }
+            7: { nombre: "PRE-COMPRA", color: "#17a2b8", icono: "🔷", texto: "Señal a punto de activarse. Vigilar evolución." },
+            "sin_senal": { nombre: "SIN SEÑAL", color: "#8ba0bc", icono: "⚪", texto: "No hay señal activa. Esperar." }
 
         };
         
