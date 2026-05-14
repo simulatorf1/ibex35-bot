@@ -90,7 +90,7 @@ function extraerNivelesNumericos(texto) {
     return unicos.slice(0, 3);
 }
 
-function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia, soportesTexto, resistenciasTexto) {
+function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia, soportesNumeros, resistenciasNumeros) {
     const container = document.getElementById('graficaContainer');
     if (!container) return;
     
@@ -179,7 +179,7 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia, soportesTexto
     }
     
     // Dibujar líneas de SOPORTE
-    const soportes = extraerNivelesNumericosDelTexto(soportesTexto);
+
     for (const nivel of soportes) {
         const nivelNumerico = ajustarNivel(nivel, precioActual);
         const lineSeriesSoporte = chart.addLineSeries({
@@ -198,7 +198,7 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia, soportesTexto
     }
     
     // Dibujar líneas de RESISTENCIA
-    const resistencias = extraerNivelesNumericosDelTexto(resistenciasTexto);
+
     for (const nivel of resistencias) {
         const nivelNumerico = ajustarNivel(nivel, precioActual);
         const lineSeriesResistencia = chart.addLineSeries({
