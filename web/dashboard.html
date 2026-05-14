@@ -2,50 +2,225 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Mi Panel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Panel - Análisis estructuras</title>
     <style>
-        body { font-family: Arial; padding: 20px; background: #f0f2f5; }
-        .card { background: white; border-radius: 16px; padding: 20px; margin-bottom: 20px; }
-        button { padding: 8px 16px; margin: 5px; cursor: pointer; }
-        .empresa-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; }
-        .btn-add { background: #1e7e34; color: white; border: none; border-radius: 20px; padding: 4px 12px; }
-        .btn-remove { background: #dc3545; color: white; border: none; border-radius: 20px; padding: 4px 12px; }
-        .loading { text-align: center; padding: 20px; color: gray; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+            padding: 24px 20px;
+            color: #1a2634;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: white;
+            padding: 8px 20px;
+            border-radius: 60px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .user-email { font-weight: 600; color: #1e4668; }
+        .btn-logout {
+            padding: 6px 16px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+        .btn-logout:hover { background: #b91c1c; }
+        .panel-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+        .panel-card {
+            background: white;
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border: 1px solid #e9ecef;
+        }
+        .panel-card h3 {
+            color: #1e4668;
+            margin-bottom: 16px;
+            font-size: 1.1rem;
+        }
+        .selector-empresas {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .empresa-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .empresa-item:hover { background: #f8f9fa; }
+        .empresa-nombre { font-weight: 500; }
+        .empresa-ticker { font-size: 0.7rem; color: #8ba0bc; }
+        .btn-fav {
+            padding: 4px 12px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .btn-fav.add { background: #1e7e34; color: white; }
+        .btn-fav.remove { background: #dc3545; color: white; }
+        .fav-list { display: flex; flex-direction: column; gap: 12px; }
+        .fav-item {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .fav-item:hover { background: #e9ecef; transform: translateX(4px); }
+        .fav-info h4 { font-size: 0.9rem; margin-bottom: 4px; }
+        .fav-signal {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        .signal-buy { background: #1e7e34; color: white; }
+        .signal-wait { background: #e68a2e; color: white; }
+        .signal-none { background: #8ba0bc; color: white; }
+        .simulador-input {
+            display: flex;
+            gap: 12px;
+            margin: 16px 0;
+            flex-wrap: wrap;
+        }
+        .simulador-input input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #cfdfed;
+            border-radius: 12px;
+            font-size: 1rem;
+        }
+        .simulador-input button {
+            padding: 12px 24px;
+            background: #1e4668;
+            color: white;
+            border: none;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .resultado-simulacion {
+            background: #e8f5e9;
+            border-radius: 16px;
+            padding: 16px;
+            margin-top: 16px;
+            font-size: 0.9rem;
+        }
+        .tabla-historial {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.75rem;
+        }
+        .tabla-historial th {
+            background: #1e3a5f;
+            color: white;
+            padding: 10px;
+            text-align: left;
+        }
+        .tabla-historial td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .scroll-table { overflow-x: auto; max-height: 400px; overflow-y: auto; }
+        .loading { text-align: center; padding: 40px; color: #8ba0bc; }
+        .hidden { display: none; }
+        .positivo { color: #1e7e34; font-weight: 600; }
+        .negativo { color: #dc3545; font-weight: 600; }
+        @media (max-width: 700px) {
+            .panel-grid { grid-template-columns: 1fr; }
+            .header { flex-direction: column; align-items: stretch; }
+        }
     </style>
 </head>
 <body>
-<h1>📊 Mi Panel de Inversión</h1>
+<div class="container">
+    <div class="header">
+        <h1>📊 Mi Panel de Inversión</h1>
+        <div class="user-info">
+            <span class="user-email" id="userEmail">Cargando...</span>
+            <button class="btn-logout" id="btnLogout">🚪 Cerrar sesión</button>
+        </div>
+    </div>
 
-<div class="card">
-    <h3>👤 Usuario</h3>
-    <p id="userEmail">Cargando...</p>
-    <button id="btnLogout">Cerrar sesión</button>
-</div>
+    <div class="panel-grid">
+        <div class="panel-card">
+            <h3>⭐ MIS EMPRESAS</h3>
+            <div id="favoritasList" class="fav-list"><div class="loading">Cargando tus empresas...</div></div>
+        </div>
 
-<div class="card">
-    <h3>⭐ MIS EMPRESAS</h3>
-    <div id="favoritasList"><div class="loading">Cargando...</div></div>
-</div>
+        <div class="panel-card">
+            <h3>➕ AÑADIR EMPRESA</h3>
+            <input type="text" id="buscadorEmpresas" placeholder="Buscar empresa..." style="width:100%; padding:10px; border-radius:40px; border:1px solid #cfdfed; margin-bottom:12px;">
+            <div id="listaTodasEmpresas" class="selector-empresas"><div class="loading">Cargando empresas...</div></div>
+        </div>
 
-<div class="card">
-    <h3>➕ AÑADIR EMPRESA</h3>
-    <input type="text" id="buscador" placeholder="Buscar..." style="width:100%; padding:8px; margin-bottom:10px;">
-    <div id="listaEmpresas"><div class="loading">Cargando empresas...</div></div>
+        <div class="panel-card">
+            <h3>💰 SIMULADOR</h3>
+            <div class="simulador-input">
+                <input type="number" id="simuladorDinero" placeholder="Cantidad a invertir (€)" value="10000">
+                <button id="btnSimular">Calcular</button>
+            </div>
+            <div id="simuladorResultado" class="resultado-simulacion hidden"></div>
+        </div>
+    </div>
+
+    <div class="panel-card">
+        <h3>📜 HISTORIAL DE SEÑALES RECIENTES</h3>
+        <div class="scroll-table">
+            <table class="tabla-historial" id="tablaHistorial">
+                <thead><tr><th>Fecha</th><th>Empresa</th><th>Precio</th><th>Señal</th><th>Precio Actual</th><th>Rendimiento</th></tr></thead>
+                <tbody id="historialBody"><tr><td colspan="6" class="loading">Cargando historial...</td></tr></tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
     const SUPABASE_URL = "https://klwcletpqqsabtdanldx.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtsd2NsZXRwcXFzYWJ0ZGFubGR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4MDg2NTEsImV4cCI6MjA5MjM4NDY1MX0.nbs0tYbFOL-I8qIkgB7Ub_jcOwHTdzg0EcAp1DS6sCU";
-    
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    
     let currentUser = null;
+    let allEmpresas = [];
+    let favoritas = [];
+    const CASOS_COMPRA_REAL = [1, 6];
+    const CASOS_ESPERA = [2, 3, 5, 7];
 
-    // Cerrar sesión
-    document.getElementById('btnLogout').onclick = async () => {
+    document.getElementById('btnLogout').addEventListener('click', async () => {
         await _supabase.auth.signOut();
         window.location.href = '/web/index.html';
-    };
+    });
 
     async function init() {
         const { data: { session } } = await _supabase.auth.getSession();
@@ -56,17 +231,149 @@
         currentUser = session.user;
         document.getElementById('userEmail').innerText = currentUser.email;
         
-        // Cargar listado de empresas (simulado)
-        document.getElementById('listaEmpresas').innerHTML = `
-            <div class="empresa-item">Santander <button class="btn-add" onclick="alert('Añadir Santander')">+ Añadir</button></div>
-            <div class="empresa-item">BBVA <button class="btn-add" onclick="alert('Añadir BBVA')">+ Añadir</button></div>
-            <div class="empresa-item">Inditex <button class="btn-add" onclick="alert('Añadir Inditex')">+ Añadir</button></div>
-            <div class="empresa-item">Iberdrola <button class="btn-add" onclick="alert('Añadir Iberdrola')">+ Añadir</button></div>
-            <div class="empresa-item">Telefónica <button class="btn-add" onclick="alert('Añadir Telefónica')">+ Añadir</button></div>
-        `;
-        
-        document.getElementById('favoritasList').innerHTML = '<div class="loading">No tienes empresas favoritas. Añade algunas.</div>';
+        await cargarFavoritas();
+        await cargarCatalogoEmpresas();
+        await cargarHistorial();
     }
+
+    async function cargarFavoritas() {
+        const { data } = await _supabase
+            .from('user_preferences')
+            .select('ticker')
+            .eq('user_id', currentUser.id);
+        favoritas = data?.map(f => f.ticker) || [];
+        await renderFavoritas();
+    }
+
+    async function renderFavoritas() {
+        const container = document.getElementById('favoritasList');
+        if (favoritas.length === 0) {
+            container.innerHTML = '<div class="loading">No tienes empresas favoritas. Añade algunas.</div>';
+            return;
+        }
+        const tickersStr = favoritas.map(t => `"${t}"`).join(',');
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?ticker=in.(${tickersStr})&order=fecha.desc`, {
+            headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+        });
+        const data = await response.json();
+        const ultimos = {};
+        for (const item of data) {
+            if (!ultimos[item.ticker] || new Date(item.fecha) > new Date(ultimos[item.ticker].fecha)) {
+                ultimos[item.ticker] = item;
+            }
+        }
+        let html = '';
+        for (const ticker of favoritas) {
+            const emp = ultimos[ticker];
+            if (!emp) continue;
+            let señalClass = '', señalText = '';
+            if (CASOS_COMPRA_REAL.includes(emp.caso_numero)) { señalClass = 'signal-buy'; señalText = '🔴 COMPRA'; }
+            else if (CASOS_ESPERA.includes(emp.caso_numero)) { señalClass = 'signal-wait'; señalText = '🟡 ESPERA'; }
+            else { señalClass = 'signal-none'; señalText = '⚪ SIN SEÑAL'; }
+            html += `
+                <div class="fav-item" onclick="window.location.href='/web/index.html?ticker=${ticker}'">
+                    <div class="fav-info"><h4>${emp.nombre_empresa || ticker}</h4><div class="fav-signal ${señalClass}">${señalText}</div></div>
+                    <div><strong>${emp.precio_cierre}€</strong><button class="btn-fav remove" onclick="event.stopPropagation(); eliminarFavorita('${ticker}')">❌</button></div>
+                </div>
+            `;
+        }
+        container.innerHTML = html;
+    }
+
+    async function cargarCatalogoEmpresas() {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?select=ticker,nombre_empresa&order=fecha.desc&limit=1000`, {
+            headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+        });
+        const data = await response.json();
+        const unique = new Map();
+        for (const item of data) {
+            if (!unique.has(item.ticker)) unique.set(item.ticker, { ticker: item.ticker, nombre: item.nombre_empresa });
+        }
+        allEmpresas = Array.from(unique.values()).sort((a,b) => (a.nombre || a.ticker).localeCompare(b.nombre || b.ticker));
+        renderCatalogo();
+    }
+
+    function renderCatalogo(filtro = '') {
+        const container = document.getElementById('listaTodasEmpresas');
+        const filtradas = allEmpresas.filter(e => (e.nombre || e.ticker).toLowerCase().includes(filtro.toLowerCase()));
+        let html = '';
+        for (const emp of filtradas) {
+            const esFavorita = favoritas.includes(emp.ticker);
+            html += `
+                <div class="empresa-item">
+                    <div><div class="empresa-nombre">${emp.nombre || emp.ticker}</div><div class="empresa-ticker">${emp.ticker}</div></div>
+                    ${!esFavorita ? `<button class="btn-fav add" onclick="añadirFavorita('${emp.ticker}')">+ Añadir</button>` : `<button class="btn-fav remove" onclick="eliminarFavorita('${emp.ticker}')">✓ Añadida</button>`}
+                </div>
+            `;
+        }
+        container.innerHTML = html || '<div class="loading">No hay empresas</div>';
+    }
+
+    async function añadirFavorita(ticker) {
+        await _supabase.from('user_preferences').insert({ user_id: currentUser.id, ticker: ticker });
+        favoritas.push(ticker);
+        await renderFavoritas();
+        renderCatalogo(document.getElementById('buscadorEmpresas').value);
+    }
+
+    async function eliminarFavorita(ticker) {
+        await _supabase.from('user_preferences').delete().eq('user_id', currentUser.id).eq('ticker', ticker);
+        favoritas = favoritas.filter(f => f !== ticker);
+        await renderFavoritas();
+        renderCatalogo(document.getElementById('buscadorEmpresas').value);
+    }
+
+    async function cargarHistorial() {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?select=*&order=fecha.desc&limit=100`, {
+            headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+        });
+        const data = await response.json();
+        let html = '';
+        for (const reg of data.slice(0, 50)) {
+            const fecha = new Date(reg.fecha).toLocaleDateString('es-ES');
+            let señalText = CASOS_COMPRA_REAL.includes(reg.caso_numero) ? '🔴 COMPRA' : (CASOS_ESPERA.includes(reg.caso_numero) ? '🟡 ESPERA' : '⚪ SIN SEÑAL');
+            const precioActual = data.find(r => r.ticker === reg.ticker)?.precio_cierre || '--';
+            const rendimiento = precioActual !== '--' ? ((precioActual - reg.precio_cierre) / reg.precio_cierre * 100).toFixed(2) : '--';
+            const rendimientoClass = rendimiento !== '--' && rendimiento >= 0 ? 'positivo' : 'negativo';
+            html += `<tr><td>${fecha}</td><td><strong>${reg.nombre_empresa || reg.ticker}</strong></td><td>${reg.precio_cierre}€</td><td>${señalText}</td><td>${precioActual !== '--' ? precioActual + '€' : '--'}</td><td class="${rendimientoClass}">${rendimiento !== '--' ? (rendimiento >= 0 ? '+' : '') + rendimiento + '%' : '--'}</td></tr>`;
+        }
+        document.getElementById('historialBody').innerHTML = html;
+    }
+
+    document.getElementById('btnSimular').onclick = async () => {
+        const dinero = parseFloat(document.getElementById('simuladorDinero').value);
+        if (isNaN(dinero) || dinero <= 0) { alert('Introduce una cantidad válida'); return; }
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?select=*&order=fecha.desc&limit=500`, {
+            headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+        });
+        const data = await response.json();
+        const ultimosPorTicker = {};
+        for (const item of data) {
+            if (!ultimosPorTicker[item.ticker] || new Date(item.fecha) > new Date(ultimosPorTicker[item.ticker].fecha)) {
+                ultimosPorTicker[item.ticker] = item;
+            }
+        }
+        const mejoresSeñales = Object.values(ultimosPorTicker).filter(reg => CASOS_COMPRA_REAL.includes(reg.caso_numero));
+        if (mejoresSeñales.length === 0) {
+            document.getElementById('simuladorResultado').innerHTML = '<p>No hay señales de compra activas.</p>';
+            document.getElementById('simuladorResultado').classList.remove('hidden');
+            return;
+        }
+        const dineroPorSeñal = dinero / mejoresSeñales.length;
+        let totalResultado = 0;
+        let html = `<h4>📊 Resultado</h4><p>Capital: ${dinero.toFixed(2)}€</p><p>Señales: ${mejoresSeñales.length}</p><hr><table style="width:100%">`;
+        for (const reg of mejoresSeñales) {
+            const acciones = Math.floor(dineroPorSeñal / reg.precio_cierre);
+            const resultado = (reg.precio_cierre * acciones) - (11 + (dineroPorSeñal * 0.004));
+            totalResultado += resultado;
+            html += `<tr><td><strong>${reg.nombre_empresa || reg.ticker}</strong></td><td>${reg.precio_cierre}€</td><td>${acciones} uds</td><td>${resultado.toFixed(2)}€</td></tr>`;
+        }
+        html += `</table><hr><p><strong>💰 Total: ${totalResultado.toFixed(2)}€</strong></p><p><strong>📈 Rentabilidad: ${((totalResultado - dinero) / dinero * 100).toFixed(2)}%</strong></p>`;
+        document.getElementById('simuladorResultado').innerHTML = html;
+        document.getElementById('simuladorResultado').classList.remove('hidden');
+    };
+
+    document.getElementById('buscadorEmpresas').addEventListener('input', (e) => renderCatalogo(e.target.value));
     
     init();
 </script>
