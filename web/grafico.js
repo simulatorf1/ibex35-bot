@@ -2,28 +2,26 @@
 const CASOS_COMPRA_REAL = [1, 6];
 const CASOS_ESPERA = [2, 3, 5, 7];
 
-// Colores para cada caso (bien diferenciados)
+// Colores para cada caso
+// Caso 4 (Compra Consolidada) y sin señal: SIN COLOR (no aparecen)
 const COLOR_CASO = {
     1: '#1e7e34',  // Verde oscuro - Compra Inmediata
     2: '#ffc107',  // Amarillo - Compra Anticipada
-    3: '#fd7e14',  // Naranja - Rebote corto
-    4: '#6f42c1',  // Púrpura - Compra Consolidada
+    3: '#000000',  // NEGRO - Rebote corto
     5: '#dc3545',  // Rojo - Agotamiento
     6: '#28a745',  // Verde claro - Compra Rápida
-    7: '#17a2b8',  // Cyan - Pre-Compra
-    'sin_senal': '#d1d5db'  // Gris muy claro - SIN SEÑAL (casi no se ve)
+    7: '#17a2b8'   // Cyan - Pre-Compra
+    // Caso 4 y sin señal: NO TIENEN COLOR (no se dibuja la bola)
 };
 
-// Texto descriptivo para cada caso (SOLO PARA LA LEYENDA, NO PARA LOS PUNTOS)
+// Texto descriptivo para la leyenda (solo los que tienen color)
 const TEXTO_CASO = {
     1: '🔴 COMPRA INMEDIATA',
     2: '🟡 COMPRA ANTICIPADA',
-    3: '🟠 REBOTE CORTO',
-    4: '🟣 COMPRA CONSOLIDADA',
+    3: '⚫ REBOTE CORTO',
     5: '🔴 AGOTAMIENTO',
     6: '🟢 COMPRA RÁPIDA',
-    7: '🔷 PRE-COMPRA',
-    'sin_senal': '⚪ SIN SEÑAL'
+    7: '🔷 PRE-COMPRA'
 };
 
 let chart = null;
@@ -31,9 +29,11 @@ let currentData = null;
 let currentView = 'all'; // 'all' o 'daily'
 
 function getColorForCaso(casoNumero) {
-    if (casoNumero === null || casoNumero === undefined) return COLOR_CASO.sin_senal;
+    // Si es caso 4 o sin señal (null/undefined), devolver null = NO DIBUJAR BOLA
+    if (casoNumero === 4) return null;
+    if (casoNumero === null || casoNumero === undefined) return null;
     if (COLOR_CASO[casoNumero]) return COLOR_CASO[casoNumero];
-    return COLOR_CASO.sin_senal;
+    return null; // Cualquier otro caso, no dibujar bola
 }
 
 // Agrupar por día (último precio del día)
@@ -115,21 +115,23 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
     
     chart.timeScale().fitContent();
     
-    // Marcadores SIN TEXTO (solo color)
+    // Marcadores SOLO para casos que tienen color (excluyendo caso 4 y sin señal)
     const markers = [];
     for (let i = 0; i < dataToShow.length; i++) {
         const a = dataToShow[i];
-        const time = Math.floor(new Date(a.fecha).getTime() / 1000);
         const markerColor = getColorForCaso(a.caso_numero);
         
-        // SOLO EL COLOR - SIN TEXTO
-        markers.push({ 
-            time: time, 
-            position: 'aboveBar', 
-            color: markerColor, 
-            shape: 'circle', 
-            size: 1
-        });
+        // Solo añadir marcador si tiene color (no es null)
+        if (markerColor !== null) {
+            const time = Math.floor(new Date(a.fecha).getTime() / 1000);
+            markers.push({ 
+                time: time, 
+                position: 'aboveBar', 
+                color: markerColor, 
+                shape: 'circle', 
+                size: 1
+            });
+        }
     }
     
     // Añadir marcador especial para COMPRA (CON TEXTO)
@@ -162,7 +164,7 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
     
     lineSeries.setMarkers(markers);
     
-    // Crear leyenda de colores (SOLO AQUÍ SE VEN LOS TEXTOS)
+    // Crear leyenda de colores (solo los casos que tienen color)
     crearLeyenda(container);
     
     window.addEventListener('resize', () => { 
@@ -184,11 +186,11 @@ function crearLeyenda(container) {
         border: 1px solid #e9ecef;
     `;
     
+    // Solo los casos que tienen color (excluyendo caso 4 y sin señal)
     const items = [
         { color: COLOR_CASO[1], text: 'Caso 1 - Compra Inmediata' },
         { color: COLOR_CASO[2], text: 'Caso 2 - Compra Anticipada' },
         { color: COLOR_CASO[3], text: 'Caso 3 - Rebote corto' },
-        { color: COLOR_CASO[4], text: 'Caso 4 - Compra Consolidada' },
         { color: COLOR_CASO[5], text: 'Caso 5 - Agotamiento' },
         { color: COLOR_CASO[6], text: 'Caso 6 - Compra Rápida' },
         { color: COLOR_CASO[7], text: 'Caso 7 - Pre-Compra' },
