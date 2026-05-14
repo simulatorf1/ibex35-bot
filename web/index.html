@@ -1080,13 +1080,7 @@
                     </div></div>`;
         }
         
-        // Añadir botones de selector de vista antes de la gráfica
-        const botonesHtml = `
-            <div style="display: flex; gap: 12px; margin: 20px 0 16px 0; justify-content: flex-end;">
-                <button id="btnVistaTodos" style="padding: 8px 16px; border-radius: 8px; border: 1px solid #2c7da0; background: #2c7da0; color: white; cursor: pointer; font-weight: 600;">📊 Todos los registros</button>
-                <button id="btnVistaDiaria" style="padding: 8px 16px; border-radius: 8px; border: 1px solid #2c7da0; background: white; color: #2c7da0; cursor: pointer; font-weight: 600;">📅 Solo cierres diarios</button>
-            </div>
-        `;
+
         
         html += `<div class="seccion"><h3>📈 GRÁFICA DE PRECIO</h3>${botonesHtml}<div id="graficaContainer" class="grafica-container"></div></div>`;
         
