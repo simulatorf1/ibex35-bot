@@ -39,7 +39,34 @@ function agruparPorDia(analisisArrayAsc) {
     dailyArray.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
     return dailyArray;
 }
-
+function extraerNivelesNumericosDelTexto(texto) {
+    if (!texto || texto === 'No hay datos') return [];
+    const lineas = texto.split('\n');
+    const numeros = [];
+    for (let linea of lineas) {
+        linea = linea.trim();
+        if (!linea) continue;
+        // Buscar rangos tipo "12,300 - 12,500"
+        const rangoMatch = linea.match(/([\d\.]+)\s*-\s*([\d\.]+)/);
+        if (rangoMatch) {
+            const num1 = parseFloat(rangoMatch[1].replace(/\./g, '').replace(/,/g, '.'));
+            const num2 = parseFloat(rangoMatch[2].replace(/\./g, '').replace(/,/g, '.'));
+            numeros.push(num1);
+            numeros.push(num2);
+        } else {
+            // Buscar número individual
+            const numMatch = linea.match(/([\d\.]+)/);
+            if (numMatch) {
+                const num = parseFloat(numMatch[1].replace(/\./g, '').replace(/,/g, '.'));
+                numeros.push(num);
+            }
+        }
+    }
+    // Eliminar duplicados y ordenar
+    const unicos = [...new Set(numeros)];
+    unicos.sort((a, b) => a - b);
+    return unicos.slice(0, 3);
+}
 function extraerNivelesNumericos(texto) {
     if (!texto || texto === 'No hay datos') return [];
     const lineas = texto.split('\n');
@@ -150,7 +177,7 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia, soportesTexto
     }
     
     // Dibujar líneas de SOPORTE
-    const soportes = extraerNivelesNumericos(soportesTexto);
+    const soportes = extraerNivelesNumericosDelTexto(soportesTexto);
     for (const nivel of soportes) {
         const nivelNumerico = ajustarNivel(nivel, precioActual);
         const lineSeriesSoporte = chart.addLineSeries({
@@ -169,7 +196,7 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia, soportesTexto
     }
     
     // Dibujar líneas de RESISTENCIA
-    const resistencias = extraerNivelesNumericos(resistenciasTexto);
+    const resistencias = extraerNivelesNumericosDelTexto(resistenciasTexto);
     for (const nivel of resistencias) {
         const nivelNumerico = ajustarNivel(nivel, precioActual);
         const lineSeriesResistencia = chart.addLineSeries({
