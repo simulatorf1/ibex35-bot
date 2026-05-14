@@ -13,18 +13,66 @@ const COLOR_CASO = {
 };
 
 let chart = null;
+let currentData = null;
+let currentDataCompra = null;
+let currentDataMax = null;
+let currentView = 'all';
 
 function getColorForCaso(casoNumero) {
-    // Caso 4 y sin señal: NO tienen color
     if (casoNumero === 4) return null;
     if (casoNumero === null || casoNumero === undefined) return null;
     if (COLOR_CASO[casoNumero]) return COLOR_CASO[casoNumero];
     return null;
 }
 
+function agruparPorDia(analisisArrayAsc) {
+    const dailyMap = new Map();
+    for (const registro of analisisArrayAsc) {
+        const fechaKey = new Date(registro.fecha).toISOString().split('T')[0];
+        if (!dailyMap.has(fechaKey) || new Date(registro.fecha) > new Date(dailyMap.get(fechaKey).fecha)) {
+            dailyMap.set(fechaKey, registro);
+        }
+    }
+    const dailyArray = Array.from(dailyMap.values());
+    dailyArray.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+    return dailyArray;
+}
+
 function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
     const container = document.getElementById('graficaContainer');
     if (!container) return;
+    
+    // Guardar datos originales y los índices para cambiar vista después
+    currentData = analisisArrayAsc;
+    currentDataCompra = idxCompra;
+    currentDataMax = idxMaxGanancia;
+    
+    let dataToShow = currentView === 'daily' ? agruparPorDia(analisisArrayAsc) : analisisArrayAsc;
+    
+    let newIdxCompra = -1;
+    let newIdxMaxGanancia = -1;
+    
+    if (idxCompra !== -1) {
+        const compraReg = analisisArrayAsc[idxCompra];
+        if (currentView === 'daily') {
+            const dailyData = dataToShow;
+            const compraFecha = new Date(compraReg.fecha).toISOString().split('T')[0];
+            newIdxCompra = dailyData.findIndex(r => new Date(r.fecha).toISOString().split('T')[0] === compraFecha);
+        } else {
+            newIdxCompra = idxCompra;
+        }
+    }
+    
+    if (idxMaxGanancia !== -1 && idxMaxGanancia !== idxCompra) {
+        const maxReg = analisisArrayAsc[idxMaxGanancia];
+        if (currentView === 'daily') {
+            const dailyData = dataToShow;
+            const maxFecha = new Date(maxReg.fecha).toISOString().split('T')[0];
+            newIdxMaxGanancia = dailyData.findIndex(r => new Date(r.fecha).toISOString().split('T')[0] === maxFecha);
+        } else {
+            newIdxMaxGanancia = idxMaxGanancia;
+        }
+    }
     
     container.innerHTML = '';
     
@@ -39,8 +87,8 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
     });
     
     const lineData = [];
-    for (let i = 0; i < analisisArrayAsc.length; i++) {
-        const a = analisisArrayAsc[i];
+    for (let i = 0; i < dataToShow.length; i++) {
+        const a = dataToShow[i];
         const time = Math.floor(new Date(a.fecha).getTime() / 1000);
         lineData.push({ time: time, value: a.precio_cierre });
     }
@@ -56,8 +104,8 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
     lineSeries.setData(lineData);
     
     const markers = [];
-    for (let i = 0; i < analisisArrayAsc.length; i++) {
-        const a = analisisArrayAsc[i];
+    for (let i = 0; i < dataToShow.length; i++) {
+        const a = dataToShow[i];
         const markerColor = getColorForCaso(a.caso_numero);
         if (markerColor !== null) {
             const time = Math.floor(new Date(a.fecha).getTime() / 1000);
@@ -71,8 +119,8 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
         }
     }
     
-    if (idxCompra !== -1) {
-        const compraTime = Math.floor(new Date(analisisArrayAsc[idxCompra].fecha).getTime() / 1000);
+    if (newIdxCompra !== -1) {
+        const compraTime = Math.floor(new Date(dataToShow[newIdxCompra].fecha).getTime() / 1000);
         markers.push({ 
             time: compraTime, 
             position: 'aboveBar', 
@@ -83,8 +131,8 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
         });
     }
     
-    if (idxMaxGanancia !== -1 && idxMaxGanancia !== idxCompra) {
-        const maxTime = Math.floor(new Date(analisisArrayAsc[idxMaxGanancia].fecha).getTime() / 1000);
+    if (newIdxMaxGanancia !== -1 && newIdxMaxGanancia !== newIdxCompra) {
+        const maxTime = Math.floor(new Date(dataToShow[newIdxMaxGanancia].fecha).getTime() / 1000);
         markers.push({ 
             time: maxTime, 
             position: 'aboveBar', 
@@ -98,7 +146,10 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
     lineSeries.setMarkers(markers);
     chart.timeScale().fitContent();
     
-    // Añadir leyenda FUERA del gráfico (después del contenedor)
+    // Crear botones si no existen
+    crearBotones(container);
+    
+    // Añadir leyenda
     crearLeyenda(container);
     
     window.addEventListener('resize', () => { 
@@ -106,8 +157,94 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
     });
 }
 
+function crearBotones(container) {
+    // Buscar si ya existen los botones
+    let botonesDiv = document.getElementById('graficoBotones');
+    if (botonesDiv) {
+        // Actualizar estilos de los botones según la vista actual
+        const btnTodos = document.getElementById('btnVistaTodos');
+        const btnDiario = document.getElementById('btnVistaDiario');
+        if (btnTodos && btnDiario) {
+            if (currentView === 'all') {
+                btnTodos.style.background = '#2c7da0';
+                btnTodos.style.color = 'white';
+                btnDiario.style.background = 'white';
+                btnDiario.style.color = '#2c7da0';
+            } else {
+                btnTodos.style.background = 'white';
+                btnTodos.style.color = '#2c7da0';
+                btnDiario.style.background = '#2c7da0';
+                btnDiario.style.color = 'white';
+            }
+        }
+        return;
+    }
+    
+    botonesDiv = document.createElement('div');
+    botonesDiv.id = 'graficoBotones';
+    botonesDiv.style.cssText = `
+        display: flex;
+        gap: 12px;
+        margin-bottom: 16px;
+        justify-content: flex-end;
+    `;
+    
+    const btnTodos = document.createElement('button');
+    btnTodos.id = 'btnVistaTodos';
+    btnTodos.textContent = '📊 Todos los registros';
+    btnTodos.style.cssText = `
+        padding: 6px 14px;
+        border-radius: 20px;
+        border: 1px solid #2c7da0;
+        background: #2c7da0;
+        color: white;
+        cursor: pointer;
+        font-size: 0.75rem;
+        font-weight: 500;
+        transition: all 0.2s;
+    `;
+    
+    const btnDiario = document.createElement('button');
+    btnDiario.id = 'btnVistaDiario';
+    btnDiario.textContent = '📅 Solo cierres diarios';
+    btnDiario.style.cssText = `
+        padding: 6px 14px;
+        border-radius: 20px;
+        border: 1px solid #2c7da0;
+        background: white;
+        color: #2c7da0;
+        cursor: pointer;
+        font-size: 0.75rem;
+        font-weight: 500;
+        transition: all 0.2s;
+    `;
+    
+    btnTodos.onclick = () => {
+        if (currentView !== 'all') {
+            currentView = 'all';
+            if (currentData) {
+                crearGrafica(currentData, currentDataCompra, currentDataMax);
+            }
+        }
+    };
+    
+    btnDiario.onclick = () => {
+        if (currentView !== 'daily') {
+            currentView = 'daily';
+            if (currentData) {
+                crearGrafica(currentData, currentDataCompra, currentDataMax);
+            }
+        }
+    };
+    
+    botonesDiv.appendChild(btnTodos);
+    botonesDiv.appendChild(btnDiario);
+    
+    // Insertar botones ANTES del contenedor del gráfico
+    container.parentNode.insertBefore(botonesDiv, container);
+}
+
 function crearLeyenda(container) {
-    // Buscar si ya existe una leyenda para no duplicar
     let legendDiv = document.getElementById('graficoLeyenda');
     if (legendDiv) {
         legendDiv.remove();
@@ -148,13 +285,13 @@ function crearLeyenda(container) {
         legendDiv.appendChild(itemDiv);
     }
     
-    // Poner la leyenda DESPUÉS del contenedor del gráfico (por fuera)
     container.parentNode.insertBefore(legendDiv, container.nextSibling);
 }
 
 function limpiarGrafica() {
-    // Limpiar también la leyenda
     const legend = document.getElementById('graficoLeyenda');
     if (legend) legend.remove();
+    const botones = document.getElementById('graficoBotones');
+    if (botones) botones.remove();
     if (chart) { chart = null; }
 }
