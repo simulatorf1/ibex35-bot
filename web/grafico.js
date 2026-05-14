@@ -2,8 +2,7 @@
 const CASOS_COMPRA_REAL = [1, 6];
 const CASOS_ESPERA = [2, 3, 5, 7];
 
-// Colores para cada caso
-// Caso 4 (Compra Consolidada) y sin señal: SIN COLOR (no aparecen)
+// Colores para cada caso (solo los que queremos que tengan punto de color)
 const COLOR_CASO = {
     1: '#1e7e34',  // Verde oscuro - Compra Inmediata
     2: '#ffc107',  // Amarillo - Compra Anticipada
@@ -11,10 +10,10 @@ const COLOR_CASO = {
     5: '#dc3545',  // Rojo - Agotamiento
     6: '#28a745',  // Verde claro - Compra Rápida
     7: '#17a2b8'   // Cyan - Pre-Compra
-    // Caso 4 y sin señal: NO TIENEN COLOR (no se dibuja la bola)
+    // Caso 4 (Compra Consolidada) y sin señal: NO TIENEN COLOR
 };
 
-// Texto descriptivo para la leyenda (solo los que tienen color)
+// Texto descriptivo para la leyenda
 const TEXTO_CASO = {
     1: '🔴 COMPRA INMEDIATA',
     2: '🟡 COMPRA ANTICIPADA',
@@ -29,11 +28,12 @@ let currentData = null;
 let currentView = 'all'; // 'all' o 'daily'
 
 function getColorForCaso(casoNumero) {
-    // Si es caso 4 o sin señal (null/undefined), devolver null = NO DIBUJAR BOLA
+    // Caso 4 y sin señal: no tienen color
     if (casoNumero === 4) return null;
     if (casoNumero === null || casoNumero === undefined) return null;
+    // Para los casos que tienen color definido, devolver su color
     if (COLOR_CASO[casoNumero]) return COLOR_CASO[casoNumero];
-    return null; // Cualquier otro caso, no dibujar bola
+    return null;
 }
 
 // Agrupar por día (último precio del día)
@@ -115,7 +115,7 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
     
     chart.timeScale().fitContent();
     
-    // Marcadores SOLO para casos que tienen color (excluyendo caso 4 y sin señal)
+    // Marcadores de colores para TODOS los puntos que tienen color asignado
     const markers = [];
     for (let i = 0; i < dataToShow.length; i++) {
         const a = dataToShow[i];
@@ -164,7 +164,7 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
     
     lineSeries.setMarkers(markers);
     
-    // Crear leyenda de colores (solo los casos que tienen color)
+    // Crear leyenda de colores
     crearLeyenda(container);
     
     window.addEventListener('resize', () => { 
@@ -186,7 +186,6 @@ function crearLeyenda(container) {
         border: 1px solid #e9ecef;
     `;
     
-    // Solo los casos que tienen color (excluyendo caso 4 y sin señal)
     const items = [
         { color: COLOR_CASO[1], text: 'Caso 1 - Compra Inmediata' },
         { color: COLOR_CASO[2], text: 'Caso 2 - Compra Anticipada' },
