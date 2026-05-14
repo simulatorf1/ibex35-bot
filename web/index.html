@@ -1180,7 +1180,27 @@
         
         let primeraCompraHtml = '';
         let gananciaMaxHtml = '';
+
         
+        // Extraer números de soportes y resistencias desde los mismos textos que se muestran en la web
+        const soportesWebTextos = formatearNiveles(ultimo.soportes, 'soporte');
+        const resistenciasWebTextos = formatearNiveles(ultimo.resistencias, 'resistencia');
+        
+        function extraerNumerosDeTextoHTML(textoHTML) {
+            const numeros = [];
+            const regex = /(\d+\.?\d*)/g;
+            let match;
+            while ((match = regex.exec(textoHTML)) !== null) {
+                numeros.push(parseFloat(match[1]));
+            }
+            return numeros;
+        }
+        
+        const soportesNumeros = extraerNumerosDeTextoHTML(soportesWebTextos);
+        const resistenciasNumeros = extraerNumerosDeTextoHTML(resistenciasWebTextos);
+        
+        console.log('📊 Soportes desde formatearNiveles:', soportesNumeros);
+        console.log('📊 Resistencias desde formatearNiveles:', resistenciasNumeros);        
         if (primeraCompra && precioPrimeraCompra) {
             const fechaPrimeraFormateada = new Date(fechaPrimeraCompra).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
             const resultadoActual = calcularResultadoNeto(precioPrimeraCompra, ultimo.precio_cierre, acciones, dineroInvertir);
