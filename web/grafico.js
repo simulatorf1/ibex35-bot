@@ -131,14 +131,28 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia, soportesTexto
     // Calcular el precio actual (último valor de la línea)
     const precioActual = lineData[lineData.length - 1].value;
     
-    // Dibujar líneas de SOPORTE (verde punteado)
+    // Función para ajustar el nivel
+    function ajustarNivel(nivel, precioActual) {
+        // Si el nivel es más de 5 veces el precio actual, probablemente está en céntimos o miles
+        if (nivel > precioActual * 5) {
+            // Intentar dividir por 10, 100, o 1000 para que se acerque al precio actual
+            if (nivel / 1000 > precioActual * 0.5 && nivel / 1000 < precioActual * 2) {
+                return nivel / 1000;
+            }
+            if (nivel / 100 > precioActual * 0.5 && nivel / 100 < precioActual * 2) {
+                return nivel / 100;
+            }
+            if (nivel / 10 > precioActual * 0.5 && nivel / 10 < precioActual * 2) {
+                return nivel / 10;
+            }
+        }
+        return nivel;
+    }
+    
+    // Dibujar líneas de SOPORTE
     const soportes = extraerNivelesNumericos(soportesTexto);
     for (const nivel of soportes) {
-        // Si el nivel es más de 100 veces el precio actual, dividir entre 1000
-        let nivelNumerico = nivel;
-        if (nivel > precioActual * 100) {
-            nivelNumerico = nivel / 1000;
-        }
+        const nivelNumerico = ajustarNivel(nivel, precioActual);
         const lineSeriesSoporte = chart.addLineSeries({
             color: '#1e7e34',
             lineWidth: 1,
@@ -154,14 +168,10 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia, soportesTexto
         lineSeriesSoporte.setData(lineDataSoporte);
     }
     
-    // Dibujar líneas de RESISTENCIA (rojo punteado)
+    // Dibujar líneas de RESISTENCIA
     const resistencias = extraerNivelesNumericos(resistenciasTexto);
     for (const nivel of resistencias) {
-        // Si el nivel es más de 100 veces el precio actual, dividir entre 1000
-        let nivelNumerico = nivel;
-        if (nivel > precioActual * 100) {
-            nivelNumerico = nivel / 1000;
-        }
+        const nivelNumerico = ajustarNivel(nivel, precioActual);
         const lineSeriesResistencia = chart.addLineSeries({
             color: '#b91c1c',
             lineWidth: 1,
