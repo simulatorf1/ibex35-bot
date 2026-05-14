@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mi Panel - Análisis estructuras</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -13,8 +13,8 @@
             padding: 24px 20px;
             color: #1a2634;
         }
-        .container { max-width: 1440px; margin: 0 auto; }
-        .dashboard-header {
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -45,7 +45,7 @@
         .btn-logout:hover { background: #b91c1c; }
         .panel-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
             gap: 24px;
             margin-bottom: 40px;
         }
@@ -60,14 +60,10 @@
             color: #1e4668;
             margin-bottom: 16px;
             font-size: 1.1rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
         .selector-empresas {
             max-height: 300px;
             overflow-y: auto;
-            margin-bottom: 16px;
         }
         .empresa-item {
             display: flex;
@@ -97,10 +93,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            cursor: pointer;
-            transition: all 0.2s;
         }
-        .fav-item:hover { background: #e9ecef; transform: translateX(4px); }
         .fav-info h4 { font-size: 0.9rem; margin-bottom: 4px; }
         .fav-signal {
             font-size: 0.7rem;
@@ -138,6 +131,7 @@
             border-radius: 16px;
             padding: 16px;
             margin-top: 16px;
+            font-size: 0.9rem;
         }
         .tabla-historial {
             width: 100%;
@@ -154,24 +148,20 @@
             padding: 8px 10px;
             border-bottom: 1px solid #e9ecef;
         }
-        .scroll-table {
-            overflow-x: auto;
-            max-height: 400px;
-            overflow-y: auto;
-        }
+        .scroll-table { overflow-x: auto; max-height: 400px; overflow-y: auto; }
         .loading { text-align: center; padding: 40px; color: #8ba0bc; }
         .hidden { display: none; }
         .positivo { color: #1e7e34; font-weight: 600; }
         .negativo { color: #dc3545; font-weight: 600; }
         @media (max-width: 700px) {
-            .dashboard-header { flex-direction: column; align-items: stretch; }
             .panel-grid { grid-template-columns: 1fr; }
+            .header { flex-direction: column; align-items: stretch; }
         }
     </style>
 </head>
 <body>
 <div class="container">
-    <div class="dashboard-header">
+    <div class="header">
         <h1>📊 Mi Panel de Inversión</h1>
         <div class="user-info">
             <span class="user-email" id="userEmail">Cargando...</span>
@@ -182,13 +172,15 @@
     <div class="panel-grid">
         <div class="panel-card">
             <h3>⭐ MIS EMPRESAS</h3>
-            <div id="favoritasList" class="fav-list"><div class="loading">Cargando...</div></div>
+            <div id="favoritasList" class="fav-list"><div class="loading">Cargando tus empresas...</div></div>
         </div>
+
         <div class="panel-card">
             <h3>➕ AÑADIR EMPRESA</h3>
             <input type="text" id="buscadorEmpresas" placeholder="Buscar empresa..." style="width:100%; padding:10px; border-radius:40px; border:1px solid #cfdfed; margin-bottom:12px;">
             <div id="listaTodasEmpresas" class="selector-empresas"><div class="loading">Cargando empresas...</div></div>
         </div>
+
         <div class="panel-card">
             <h3>💰 SIMULADOR</h3>
             <div class="simulador-input">
@@ -204,7 +196,7 @@
         <div class="scroll-table">
             <table class="tabla-historial" id="tablaHistorial">
                 <thead><tr><th>Fecha</th><th>Empresa</th><th>Precio</th><th>Señal</th><th>Precio Actual</th><th>Rendimiento</th></tr></thead>
-                <tbody id="historialBody"><tr><td colspan="6" class="loading">Cargando...</td></tr></tbody>
+                <tbody id="historialBody"><tr><td colspan="6" class="loading">Cargando historial...</td></tr></tbody>
             </table>
         </div>
     </div>
@@ -222,6 +214,12 @@
     const CASOS_COMPRA_REAL = [1, 6];
     const CASOS_ESPERA = [2, 3, 5, 7];
 
+    // Cerrar sesión
+    document.getElementById('btnLogout').onclick = async () => {
+        await supabase.auth.signOut();
+        window.location.href = '/web/index.html';
+    };
+
     async function checkSession() {
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error || !session) {
@@ -230,46 +228,76 @@
         }
         currentUser = session.user;
         document.getElementById('userEmail').textContent = currentUser.email;
+        
         await cargarFavoritas();
         await cargarTodasEmpresas();
         await cargarHistorial();
     }
 
     async function cargarFavoritas() {
-        const { data, error } = await supabase.from('user_preferences').select('ticker').eq('user_id', currentUser.id);
-        if (!error) favoritas = data.map(f => f.ticker);
-        await cargarDatosFavoritas();
-    }
-
-    async function cargarDatosFavoritas() {
-        const container = document.getElementById('favoritasList');
-        if (favoritas.length === 0) {
-            container.innerHTML = '<div class="loading">No tienes empresas favoritas.</div>';
+        const { data, error } = await supabase
+            .from('user_preferences')
+            .select('ticker')
+            .eq('user_id', currentUser.id);
+        
+        if (error) {
+            console.error('Error cargando favoritas:', error);
+            document.getElementById('favoritasList').innerHTML = '<div class="loading">Error cargando empresas</div>';
             return;
         }
+        favoritas = data?.map(f => f.ticker) || [];
+        await mostrarFavoritas();
+    }
+
+    async function mostrarFavoritas() {
+        const container = document.getElementById('favoritasList');
+        if (favoritas.length === 0) {
+            container.innerHTML = '<div class="loading">No tienes empresas favoritas. Añade algunas desde la columna derecha.</div>';
+            return;
+        }
+
         const tickersStr = favoritas.map(t => `"${t}"`).join(',');
         const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?ticker=in.(${tickersStr})&order=fecha.desc&limit=100`, {
             headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
         });
         const data = await response.json();
+        
         const ultimos = {};
         for (const item of data) {
             if (!ultimos[item.ticker] || new Date(item.fecha) > new Date(ultimos[item.ticker].fecha)) {
                 ultimos[item.ticker] = item;
             }
         }
+        
         let html = '';
         for (const ticker of favoritas) {
             const emp = ultimos[ticker];
             if (!emp) continue;
+            
             let señalClass = '', señalText = '';
-            if (CASOS_COMPRA_REAL.includes(emp.caso_numero)) { señalClass = 'signal-buy'; señalText = '🔴 COMPRA'; }
-            else if (CASOS_ESPERA.includes(emp.caso_numero)) { señalClass = 'signal-wait'; señalText = '🟡 ESPERA'; }
-            else { señalClass = 'signal-none'; señalText = '⚪ SIN SEÑAL'; }
-            html += `<div class="fav-item" onclick="window.location.href='/web/index.html?ticker=${ticker}'">
-                <div class="fav-info"><h4>${emp.nombre_empresa || ticker}</h4><div class="fav-signal ${señalClass}">${señalText}</div></div>
-                <div><strong>${emp.precio_cierre}€</strong><button class="btn-fav remove" onclick="event.stopPropagation(); eliminarFavorita('${ticker}')">❌</button></div>
-            </div>`;
+            if (CASOS_COMPRA_REAL.includes(emp.caso_numero)) {
+                señalClass = 'signal-buy';
+                señalText = '🔴 COMPRA';
+            } else if (CASOS_ESPERA.includes(emp.caso_numero)) {
+                señalClass = 'signal-wait';
+                señalText = '🟡 ESPERA';
+            } else {
+                señalClass = 'signal-none';
+                señalText = '⚪ SIN SEÑAL';
+            }
+            
+            html += `
+                <div class="fav-item" onclick="window.location.href='/web/index.html?ticker=${ticker}'">
+                    <div class="fav-info">
+                        <h4>${emp.nombre_empresa || ticker}</h4>
+                        <div class="fav-signal ${señalClass}">${señalText}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <strong>${emp.precio_cierre}€</strong>
+                        <button class="btn-fav remove" onclick="event.stopPropagation(); eliminarFavorita('${ticker}')">❌</button>
+                    </div>
+                </div>
+            `;
         }
         container.innerHTML = html;
     }
@@ -279,9 +307,12 @@
             headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
         });
         const data = await response.json();
+        
         const unique = new Map();
         for (const item of data) {
-            if (!unique.has(item.ticker)) unique.set(item.ticker, { ticker: item.ticker, nombre: item.nombre_empresa });
+            if (!unique.has(item.ticker)) {
+                unique.set(item.ticker, { ticker: item.ticker, nombre: item.nombre_empresa });
+            }
         }
         allEmpresas = Array.from(unique.values()).sort((a,b) => (a.nombre || a.ticker).localeCompare(b.nombre || b.ticker));
         renderListaTodas();
@@ -289,29 +320,54 @@
 
     function renderListaTodas(filtro = '') {
         const container = document.getElementById('listaTodasEmpresas');
-        const filtradas = allEmpresas.filter(e => (e.nombre || e.ticker).toLowerCase().includes(filtro.toLowerCase()));
+        const filtradas = allEmpresas.filter(e => 
+            (e.nombre || e.ticker).toLowerCase().includes(filtro.toLowerCase())
+        );
+        
         let html = '';
         for (const emp of filtradas) {
             const esFavorita = favoritas.includes(emp.ticker);
-            html += `<div class="empresa-item">
-                <div><div class="empresa-nombre">${emp.nombre || emp.ticker}</div><div class="empresa-ticker">${emp.ticker}</div></div>
-                ${!esFavorita ? `<button class="btn-fav add" onclick="añadirFavorita('${emp.ticker}')">+ Añadir</button>` : `<button class="btn-fav remove" onclick="eliminarFavorita('${emp.ticker}')">✓ Añadida</button>`}
-            </div>`;
+            html += `
+                <div class="empresa-item">
+                    <div>
+                        <div class="empresa-nombre">${emp.nombre || emp.ticker}</div>
+                        <div class="empresa-ticker">${emp.ticker}</div>
+                    </div>
+                    ${!esFavorita ? 
+                        `<button class="btn-fav add" onclick="añadirFavorita('${emp.ticker}')">+ Añadir</button>` :
+                        `<button class="btn-fav remove" onclick="eliminarFavorita('${emp.ticker}')">✓ Añadida</button>`
+                    }
+                </div>
+            `;
         }
         container.innerHTML = html || '<div class="loading">No hay empresas</div>';
     }
 
     async function añadirFavorita(ticker) {
-        await supabase.from('user_preferences').insert({ user_id: currentUser.id, ticker: ticker });
+        const { error } = await supabase
+            .from('user_preferences')
+            .insert({ user_id: currentUser.id, ticker: ticker });
+        if (error) {
+            alert('Error al añadir: ' + error.message);
+            return;
+        }
         favoritas.push(ticker);
-        await cargarDatosFavoritas();
+        await mostrarFavoritas();
         renderListaTodas(document.getElementById('buscadorEmpresas').value);
     }
 
     async function eliminarFavorita(ticker) {
-        await supabase.from('user_preferences').delete().eq('user_id', currentUser.id).eq('ticker', ticker);
+        const { error } = await supabase
+            .from('user_preferences')
+            .delete()
+            .eq('user_id', currentUser.id)
+            .eq('ticker', ticker);
+        if (error) {
+            alert('Error al eliminar: ' + error.message);
+            return;
+        }
         favoritas = favoritas.filter(f => f !== ticker);
-        await cargarDatosFavoritas();
+        await mostrarFavoritas();
         renderListaTodas(document.getElementById('buscadorEmpresas').value);
     }
 
@@ -320,54 +376,101 @@
             headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
         });
         const data = await response.json();
+        
+        const tbody = document.getElementById('historialBody');
         let html = '';
+        
         for (const reg of data.slice(0, 50)) {
             const fecha = new Date(reg.fecha).toLocaleDateString('es-ES');
-            let señalText = CASOS_COMPRA_REAL.includes(reg.caso_numero) ? '🔴 COMPRA' : (CASOS_ESPERA.includes(reg.caso_numero) ? '🟡 ESPERA' : '⚪ SIN SEÑAL');
+            let señalText = '';
+            if (CASOS_COMPRA_REAL.includes(reg.caso_numero)) señalText = '🔴 COMPRA';
+            else if (CASOS_ESPERA.includes(reg.caso_numero)) señalText = '🟡 ESPERA';
+            else señalText = '⚪ SIN SEÑAL';
+            
             const precioActual = data.find(r => r.ticker === reg.ticker)?.precio_cierre || '--';
             const rendimiento = precioActual !== '--' ? ((precioActual - reg.precio_cierre) / reg.precio_cierre * 100).toFixed(2) : '--';
             const rendimientoClass = rendimiento !== '--' && rendimiento >= 0 ? 'positivo' : 'negativo';
-            html += `<tr><td>${fecha}</td><td><strong>${reg.nombre_empresa || reg.ticker}</strong></td><td>${reg.precio_cierre}€</td><td>${señalText}</td><td>${precioActual !== '--' ? precioActual + '€' : '--'}</td><td class="${rendimientoClass}">${rendimiento !== '--' ? (rendimiento >= 0 ? '+' : '') + rendimiento + '%' : '--'}</td></tr>`;
+            
+            html += `<tr>
+                <td>${fecha}</td>
+                <td><strong>${reg.nombre_empresa || reg.ticker}</strong></td>
+                <td>${reg.precio_cierre}€</td>
+                <td>${señalText}</td>
+                <td>${precioActual !== '--' ? precioActual + '€' : '--'}</td>
+                <td class="${rendimientoClass}">${rendimiento !== '--' ? (rendimiento >= 0 ? '+' : '') + rendimiento + '%' : '--'}</td>
+            </tr>`;
         }
-        document.getElementById('historialBody').innerHTML = html;
+        tbody.innerHTML = html;
     }
 
+    // Simulador
     document.getElementById('btnSimular').onclick = async () => {
         const dinero = parseFloat(document.getElementById('simuladorDinero').value);
-        if (isNaN(dinero) || dinero <= 0) { alert('Introduce una cantidad válida'); return; }
+        if (isNaN(dinero) || dinero <= 0) {
+            alert('Introduce una cantidad válida');
+            return;
+        }
+        
         const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?select=*&order=fecha.desc&limit=500`, {
             headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
         });
         const data = await response.json();
+        
         const ultimosPorTicker = {};
         for (const item of data) {
             if (!ultimosPorTicker[item.ticker] || new Date(item.fecha) > new Date(ultimosPorTicker[item.ticker].fecha)) {
                 ultimosPorTicker[item.ticker] = item;
             }
         }
-        const mejoresSeñales = Object.values(ultimosPorTicker).filter(reg => CASOS_COMPRA_REAL.includes(reg.caso_numero));
+        
+        const mejoresSeñales = [];
+        for (const [ticker, reg] of Object.entries(ultimosPorTicker)) {
+            if (CASOS_COMPRA_REAL.includes(reg.caso_numero)) {
+                mejoresSeñales.push(reg);
+            }
+        }
+        
         if (mejoresSeñales.length === 0) {
-            document.getElementById('simuladorResultado').innerHTML = '<p>No hay señales de compra activas.</p>';
+            document.getElementById('simuladorResultado').innerHTML = '<p>No hay señales de compra activas en este momento.</p>';
             document.getElementById('simuladorResultado').classList.remove('hidden');
             return;
         }
+        
         const dineroPorSeñal = dinero / mejoresSeñales.length;
         let totalResultado = 0;
-        let html = `<h4>📊 Resultado de la simulación</h4><p>Capital: ${dinero.toFixed(2)}€</p><p>Señales activas: ${mejoresSeñales.length}</p><p>Inversión por señal: ${dineroPorSeñal.toFixed(2)}€</p><hr><table style="width:100%">`;
+        let html = `<h4>📊 Resultado de la simulación</h4>
+                    <p><strong>Capital invertido:</strong> ${dinero.toFixed(2)}€</p>
+                    <p><strong>Señales activas:</strong> ${mejoresSeñales.length}</p>
+                    <p><strong>Inversión por señal:</strong> ${dineroPorSeñal.toFixed(2)}€</p>
+                    <hr>
+                    <table style="width:100%; font-size:0.8rem; border-collapse:collapse;">`;
+        
         for (const reg of mejoresSeñales) {
             const acciones = Math.floor(dineroPorSeñal / reg.precio_cierre);
-            const resultadoSimulado = (reg.precio_cierre * acciones) - (11 + (dineroPorSeñal * 0.004));
+            const comisionCompra = 11 + (dineroPorSeñal * 0.004);
+            const resultadoSimulado = (reg.precio_cierre * acciones) - comisionCompra;
             totalResultado += resultadoSimulado;
-            html += `<tr><td><strong>${reg.nombre_empresa || reg.ticker}</strong></td><td>${reg.precio_cierre}€</td><td>${acciones} uds</td><td>${resultadoSimulado.toFixed(2)}€</td></tr>`;
+            
+            html += `<tr style="border-bottom:1px solid #ddd;">
+                        <td style="padding:6px 0;"><strong>${reg.nombre_empresa || reg.ticker}</strong></td>
+                        <td style="padding:6px 0;">${reg.precio_cierre}€</td>
+                        <td style="padding:6px 0;">${acciones} uds</td>
+                        <td style="padding:6px 0;">${resultadoSimulado.toFixed(2)}€</td>
+                    </tr>`;
         }
-        html += `</table><hr><p><strong>💰 Valor total estimado:</strong> ${totalResultado.toFixed(2)}€</p><p><strong>📈 Rentabilidad:</strong> ${((totalResultado - dinero) / dinero * 100).toFixed(2)}%</p>`;
+        
+        html += `</table><hr>
+                <p><strong>💰 Valor total estimado:</strong> ${totalResultado.toFixed(2)}€</p>
+                <p><strong>📈 Rentabilidad estimada:</strong> ${((totalResultado - dinero) / dinero * 100).toFixed(2)}%</p>`;
+        
         document.getElementById('simuladorResultado').innerHTML = html;
         document.getElementById('simuladorResultado').classList.remove('hidden');
     };
 
-    document.getElementById('btnLogout').onclick = async () => { await supabase.auth.signOut(); window.location.href = '/web/index.html'; };
-    document.getElementById('buscadorEmpresas').addEventListener('input', (e) => renderListaTodas(e.target.value));
-    
+    document.getElementById('buscadorEmpresas').addEventListener('input', (e) => {
+        renderListaTodas(e.target.value);
+    });
+
     checkSession();
 </script>
 </body>
