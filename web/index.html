@@ -642,7 +642,12 @@
     const resumenCorto = {
         1: "Compra Rápida", 2: "Compra Anticipada", 3: "Rebote corto", 4: "Compra Consolidada", 5: "Compra Agotamiento", 6: "Compra Inmediata", 7: "Pre-Compra"
     };
-
+    function extraerNumerosDeNiveles(texto) {
+        if (!texto || texto === 'No hay datos') return [];
+        const matches = texto.match(/(\d+\.?\d*)/g);
+        if (!matches) return [];
+        return matches.map(m => parseFloat(m));
+    }
     let tickerActual = null;
 
     // Función para generar análisis narrativo automático (sin precio actual ni soportes/resistencias)
@@ -1148,6 +1153,28 @@
         const tendenciaObj = calcularTendenciaPorPendiente(analisisReversed);
         const tendenciaTexto = tendenciaObj.texto;
         const tendenciaClase = tendenciaObj.clase;
+        
+        // Extraer números de soportes y resistencias para el gráfico
+        let soportesNumeros = [];
+        let resistenciasNumeros = [];
+        
+        if (ultimo.soportes && ultimo.soportes !== 'No hay datos') {
+            const lineasSoportes = ultimo.soportes.split('\n');
+            for (let linea of lineasSoportes) {
+                const nums = extraerNumerosDeNiveles(linea);
+                soportesNumeros.push(...nums);
+            }
+            soportesNumeros = [...new Set(soportesNumeros)].sort((a, b) => a - b).slice(0, 3);
+        }
+        
+        if (ultimo.resistencias && ultimo.resistencias !== 'No hay datos') {
+            const lineasResistencias = ultimo.resistencias.split('\n');
+            for (let linea of lineasResistencias) {
+                const nums = extraerNumerosDeNiveles(linea);
+                resistenciasNumeros.push(...nums);
+            }
+            resistenciasNumeros = [...new Set(resistenciasNumeros)].sort((a, b) => a - b).slice(0, 3);
+        }
         
         let primeraCompraHtml = '';
         let gananciaMaxHtml = '';
