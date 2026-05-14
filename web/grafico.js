@@ -105,7 +105,7 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
         const a = dataToShow[i];
         const markerColor = getColorForCaso(a.caso_numero);
         if (markerColor !== null) {
-            const time = Math.floor(new Date(a.fecha).getTime() / 1000);
+            const time = new Date(a.fecha).toISOString().split('T')[0];
             markers.push({ 
                 time: time, 
                 position: 'aboveBar', 
@@ -117,7 +117,7 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
     }
     
     if (newIdxCompra !== -1) {
-        const compraTime = Math.floor(new Date(dataToShow[newIdxCompra].fecha).getTime() / 1000);
+        const compraTime = new Date(dataToShow[newIdxCompra].fecha).toISOString().split('T')[0];
         markers.push({ 
             time: compraTime, 
             position: 'aboveBar', 
@@ -129,7 +129,7 @@ function crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia) {
     }
     
     if (newIdxMaxGanancia !== -1 && newIdxMaxGanancia !== newIdxCompra) {
-        const maxTime = Math.floor(new Date(dataToShow[newIdxMaxGanancia].fecha).getTime() / 1000);
+        const maxTime = new Date(dataToShow[newIdxMaxGanancia].fecha).toISOString().split('T')[0];
         markers.push({ 
             time: maxTime, 
             position: 'aboveBar', 
