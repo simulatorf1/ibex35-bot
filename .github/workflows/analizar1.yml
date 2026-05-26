@@ -1,6 +1,7 @@
 name: Analizar IBEX35 nuevo
 on:
   schedule:
+  
     # Horarios UTC (2 horas menos que tu zona horaria)
     - cron: '1 7 * * 1-5'      # 7:00 UTC -> 9:00 local
     - cron: '31 7 * * 1-5'     # 7:30 UTC -> 9:30 local
