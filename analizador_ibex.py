@@ -7,6 +7,7 @@ import time
 import os
 import pytz
 
+
 # ============================================
 # CONFIGURACIÓN DE SUPABASE
 # ============================================
