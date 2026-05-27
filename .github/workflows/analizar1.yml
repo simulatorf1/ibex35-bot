@@ -1,5 +1,4 @@
 name: Analizar IBEX35 nuevo
-
 on:
   schedule:
     - cron: '0 7-15 * * 1-5'
