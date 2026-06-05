@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Análisis estructuras</title>
+    <title>IBEX Backtesting - Análisis de señales</title>
     <style>
-        
         * {
             margin: 0;
             padding: 0;
@@ -16,1350 +15,695 @@
             font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, 'Roboto', sans-serif;
             background: #f0f2f5;
             min-height: 100vh;
-            padding: 24px 20px;
+            padding: 20px;
             color: #1a2634;
         }
 
         .container {
-            max-width: 1440px;
+            max-width: 1600px;
             margin: 0 auto;
-        }
-
-        .buscador {
+            height: calc(100vh - 40px);
             display: flex;
-            gap: 12px;
-            justify-content: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
+            gap: 20px;
         }
 
-        #inputEmpresa {
-            flex: 1;
-            max-width: 420px;
-            padding: 14px 20px;
-            font-size: 0.95rem;
-            border: 1px solid #cfdfed;
-            border-radius: 60px;
-            outline: none;
-            background: #ffffff;
-            transition: all 0.2s;
-        }
-
-        #inputEmpresa:focus {
-            border-color: #2c7da0;
-            box-shadow: 0 0 0 3px rgba(44,125,160,0.1);
-        }
-
-        #btnBuscar {
-            padding: 14px 28px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            background: #1e4668;
-            color: white;
-            border: none;
-            border-radius: 60px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        #btnBuscar:hover {
-            background: #0f3552;
-            transform: translateY(-1px);
-        }
-
-        .inversor-container {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 32px;
-            flex-wrap: wrap;
-            gap: 16px;
-        }
-
-        .card-inversor {
-            background: linear-gradient(135deg, #1e4668 0%, #0f3552 100%);
-            border-radius: 60px;
-            padding: 8px 20px 8px 28px;
-            display: inline-flex;
-            align-items: center;
-            gap: 16px;
-            flex-wrap: wrap;
-            justify-content: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        .card-inversor label {
-            color: white;
-            font-weight: 600;
-            font-size: 0.9rem;
-            letter-spacing: 0.5px;
-        }
-
-        .card-inversor input {
-            padding: 10px 16px;
-            font-size: 1rem;
-            font-weight: 600;
-            border: none;
-            border-radius: 40px;
+        /* Panel izquierdo */
+        .panel-izquierdo {
+            width: 38%;
             background: white;
-            width: 160px;
-            text-align: center;
-            outline: none;
-        }
-
-        .card-inversor .euro-simbolo {
-            color: white;
-            font-weight: 600;
-        }
-
-        .seccion-principal {
-            background: transparent;
-            margin-bottom: 40px;
-        }
-
-        .seccion-principal h2 {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: #1a3e50;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            border-left: 4px solid #2c7da0;
-            padding-left: 14px;
-        }
-
-        .grid-grandes {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
-            gap: 22px;
-            margin-bottom: 32px;
-        }
-
-        .tarjeta-grande {
-            background: #ffffff;
             border-radius: 20px;
-            padding: 20px 22px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: 2px solid #1e7e34;
-            box-shadow: 0 4px 10px rgba(30,126,52,0.1);
-        }
-
-        .tarjeta-grande:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 25px -12px rgba(30,126,52,0.2);
-        }
-
-        .grid-medianas {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 16px;
-            margin-bottom: 32px;
-        }
-
-        .tarjeta-mediana {
-            background: #ffffff;
-            border-radius: 16px;
-            padding: 16px 18px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: 1px solid #e6edf4;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
-        }
-
-        .tarjeta-mediana:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 15px -8px rgba(0, 0, 0, 0.1);
-        }
-
-        .tarjeta-mediana-nombre {
-            font-size: 1rem;
-            font-weight: 700;
-            color: #1e3a5f;
-        }
-
-        .tarjeta-mediana-ticker {
-            font-size: 0.65rem;
-            color: #8ba0bc;
-            margin-bottom: 8px;
-        }
-
-        .tarjeta-mediana-precio {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: #0b2b3b;
-            margin: 8px 0 4px;
-        }
-
-        .tarjeta-mediana-porcentaje {
-            font-size: 0.75rem;
-            font-weight: 600;
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 20px;
-        }
-
-        .tarjeta-mediana-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 30px;
-            font-size: 0.65rem;
-            font-weight: 600;
-            margin-top: 8px;
-            background: #eef2fa;
-            color: #e68a2e;
-        }
-
-        .tarjeta-grande-nombre {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #1e3a5f;
-            margin-bottom: 4px;
-        }
-
-        .tarjeta-grande-ticker {
-            font-size: 0.75rem;
-            font-weight: 500;
-            color: #6c86a3;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            margin-bottom: 12px;
-        }
-
-        .tarjeta-grande-precio {
-            font-size: 1.9rem;
-            font-weight: 700;
-            color: #0b2b3b;
-            margin: 12px 0 6px;
-        }
-
-        .tarjeta-grande-porcentaje {
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin: 4px 0;
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 30px;
-        }
-
-        .tarjeta-grande-badge {
-            display: inline-block;
-            padding: 6px 16px;
-            border-radius: 40px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            margin: 12px 0 8px;
-            background: #1e7e34;
-            color: white;
-            letter-spacing: 0.2px;
-        }
-
-        .tarjeta-grande-fecha {
-            font-size: 0.7rem;
-            color: #8ba0bc;
-            margin-top: 12px;
-            border-top: 1px solid #ecf3f9;
-            padding-top: 12px;
-        }
-
-        .grid-pequenas {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 12px;
-        }
-
-        .tarjeta-pequena {
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 12px 16px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: 1px solid #e6edf4;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
-        }
-
-        .tarjeta-pequena:hover {
-            background: #f8fafd;
-            transform: translateY(-2px);
-        }
-
-        .tarjeta-pequena-nombre {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: #1e3a5f;
-        }
-
-        .tarjeta-pequena-ticker {
-            font-size: 0.65rem;
-            color: #8ba0bc;
-            margin-bottom: 6px;
-        }
-
-        .tarjeta-pequena-precio {
-            font-size: 1rem;
-            font-weight: 700;
-            color: #0b2b3b;
-            margin: 6px 0 4px;
-        }
-
-        .tarjeta-pequena-porcentaje {
-            font-size: 0.7rem;
-            font-weight: 600;
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 20px;
-        }
-
-        .positivo { background: #e9f6ec; color: #1e7e34; }
-        .negativo { background: #fee9e9; color: #b91c1c; }
-
-        .resultado-detalle {
-            background: white;
-            border-radius: 28px;
-            padding: 28px 32px;
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
-            margin-top: 8px;
-            border: 1px solid #e9f0f5;
-        }
-
-        .btn-cerrar {
-            background: #eef2fa;
-            color: #1e4668;
-            border: none;
-            padding: 10px 24px;
-            border-radius: 40px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-bottom: 28px;
-            transition: all 0.2s;
-            font-size: 0.85rem;
-        }
-
-        .btn-cerrar:hover {
-            background: #e2e8f2;
-        }
-
-        .tipo-compra-tag {
-            display: inline-block;
-            padding: 10px 24px;
-            border-radius: 40px;
-            font-weight: 700;
-            margin-bottom: 28px;
-            font-size: 1rem;
-            background: #1e7e34;
-            color: white;
-            letter-spacing: -0.2px;
-            box-shadow: 0 2px 8px rgba(30,126,52,0.3);
-        }
-
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.2rem;
-            margin-bottom: 32px;
-        }
-
-        .info-card {
-            background: #fafcff;
-            padding: 1rem;
-            border-radius: 20px;
-            text-align: center;
-            border: 1px solid #eef2f8;
-        }
-
-        .info-card h3 {
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: #5f7f9e;
-            letter-spacing: 0.5px;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-        }
-
-        .info-card .valor {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: #1a3e50;
-        }
-
-        .small-pct {
-            font-size: 0.7rem;
-            margin-top: 4px;
-            font-weight: 500;
-        }
-
-        .barra {
-            display: flex;
-            gap: 5px;
-            justify-content: center;
-            margin: 12px 0 8px;
-        }
-        .punto {
-            width: 24px;
-            height: 6px;
-            border-radius: 3px;
-            background-color: #e2e9f2;
-            transition: all 0.2s;
-        }
-        .punto.activo {
-            background-color: #2c7da0;
-        }
-
-        .barra-label {
-            font-size: 0.7rem;
-            font-weight: 500;
-        }
-
-        .tendencia-positiva { color: #1e7e34; font-weight: 600; }
-        .tendencia-negativa { color: #b91c1c; font-weight: 600; }
-        .tendencia-espera { color: #e68a2e; font-weight: 600; }
-
-        .seccion {
-            margin-top: 32px;
-            border-top: 1px solid #eef3fc;
-            padding-top: 28px;
-        }
-
-        .seccion h3 {
-            margin-bottom: 18px;
-            color: #1e4668;
-            font-weight: 600;
-            font-size: 1.1rem;
-        }
-
-        .lista-items {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            overflow: hidden;
         }
 
-        .item {
-            background: #f9fbfe;
-            padding: 10px 14px;
-            border-radius: 14px;
-            font-size: 0.85rem;
-            border-left: 3px solid #2c7da0;
-            display: flex;
-            align-items: center;
-            color: #1e4668;
-            font-weight: 500;
+        .panel-izquierdo h2 {
+            padding: 18px 20px;
+            font-size: 1.1rem;
+            background: #1e4668;
+            color: white;
+            margin: 0;
         }
 
-        .grid-2col {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
+        .tabla-empresas-wrapper {
+            flex: 1;
+            overflow-y: auto;
         }
 
-        .analisis-narrativo {
+        .tabla-empresas {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.75rem;
+        }
+
+        .tabla-empresas th {
+            position: sticky;
+            top: 0;
             background: #f8f9fa;
-            border-radius: 20px;
-            padding: 20px 24px;
-            margin: 20px 0;
-            border-left: 4px solid #2c7da0;
-            font-size: 0.9rem;
-            line-height: 1.5;
-            color: #2c3e50;
-        }
-
-        .analisis-narrativo h4 {
+            padding: 10px 8px;
+            text-align: left;
+            font-weight: 600;
             color: #1e4668;
-            margin-bottom: 12px;
-            font-size: 1rem;
+            border-bottom: 2px solid #e9ecef;
+            z-index: 10;
         }
 
-        .analisis-narrativo .fase {
-            margin-bottom: 16px;
-            padding-bottom: 12px;
+        .tabla-empresas td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #e9ecef;
+            cursor: pointer;
+        }
+
+        .tabla-empresas tr:hover td {
+            background: #f0f7ff;
+        }
+
+        .tabla-empresas tr.seleccionada td {
+            background: #e3f2fd;
+            border-left: 3px solid #2c7da0;
+        }
+
+        /* Colores de fila según estado */
+        .tabla-empresas tr.en-compra {
+            background-color: #e8f5e9;
+        }
+
+        .positivo {
+            color: #1e7e34;
+            font-weight: 600;
+        }
+
+        .negativo {
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        /* Panel derecho */
+        .panel-derecho {
+            width: 62%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-derecho h2 {
+            padding: 18px 20px;
+            font-size: 1.1rem;
+            background: #2c7da0;
+            color: white;
+            margin: 0;
+        }
+
+        .historial-wrapper {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .tabla-historial {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.7rem;
+        }
+
+        .tabla-historial th {
+            position: sticky;
+            top: 0;
+            background: #f8f9fa;
+            padding: 8px 6px;
+            text-align: left;
+            font-weight: 600;
+            color: #1e4668;
+            border-bottom: 2px solid #e9ecef;
+            z-index: 10;
+        }
+
+        .tabla-historial td {
+            padding: 8px 6px;
             border-bottom: 1px solid #e9ecef;
         }
 
-        .analisis-narrativo .fase:last-child {
-            border-bottom: none;
+        /* Colores por caso */
+        .caso-1, .caso-6 {
+            background-color: #d4edda;
+        }
+        .caso-2, .caso-7 {
+            background-color: #fff3cd;
+        }
+        .caso-3, .caso-5 {
+            background-color: #ffe2d6;
         }
 
-        .analisis-narrativo .badge-fase {
-            display: inline-block;
-            padding: 2px 10px;
-            border-radius: 20px;
-            font-size: 0.7rem;
+        .precio-clickeable {
+            cursor: pointer;
             font-weight: 600;
-            margin-right: 10px;
+            text-decoration: underline;
+            text-decoration-style: dotted;
+            text-underline-offset: 3px;
         }
 
-        .grafica-container {
-            width: 100%;
-            height: 500px;
-            margin: 20px 0;
-            background: #ffffff;
-            border-radius: 16px;
-            overflow: hidden;
-            border: 1px solid #e9f0f5;
+        .precio-seleccionado {
+            background-color: #ffc107;
+            border-radius: 4px;
+            padding: 2px 4px;
+            display: inline-block;
         }
 
-        .error {
-            background: #fff0f0;
-            color: #b91c1c;
-            padding: 20px;
-            border-radius: 24px;
-            text-align: center;
-            font-weight: 500;
+        .simulador {
+            padding: 16px 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 16px;
+            justify-content: space-between;
+        }
+
+        .simulador-info {
+            flex: 1;
+            font-size: 0.8rem;
+        }
+
+        .simulador-info span {
+            font-weight: 700;
+            color: #1e4668;
+        }
+
+        .btn-calcular {
+            background: #1e7e34;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .btn-calcular:hover {
+            background: #166b2c;
+        }
+
+        .resultado-sim {
+            font-size: 0.85rem;
+            font-weight: 700;
         }
 
         .loading {
             text-align: center;
-            padding: 50px;
-            color: #4a6885;
-            background: white;
-            border-radius: 28px;
+            padding: 40px;
+            color: #8ba0bc;
         }
 
-        .hidden {
-            display: none;
+        .sin-datos {
+            text-align: center;
+            padding: 40px;
+            color: #8ba0bc;
         }
 
-        .info-primera-compra {
-            background: #eef2fa;
+        @media (max-width: 900px) {
+            .container {
+                flex-direction: column;
+                height: auto;
+            }
+            .panel-izquierdo, .panel-derecho {
+                width: 100%;
+                min-height: 400px;
+            }
+        }
+
+        .badge-tendencia {
+            display: inline-block;
+            padding: 2px 8px;
             border-radius: 20px;
-            padding: 14px 20px;
-            margin-bottom: 24px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .info-primera-compra-item {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .info-primera-compra-item .label {
             font-size: 0.65rem;
             font-weight: 600;
-            color: #5f7f9e;
-            text-transform: uppercase;
         }
-
-        .info-primera-compra-item .value {
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: #1e3a5f;
-        }
-
-        .ganancia-max {
-            background: #e9f6ec;
-            border-radius: 16px;
-            padding: 12px 16px;
-            margin-top: 16px;
-            text-align: center;
-        }
-
-        .ganancia-max .label {
-            font-size: 0.7rem;
-            color: #1e7e34;
-            font-weight: 600;
-        }
-
-        .ganancia-max .valor {
-            font-size: 1.2rem;
-            font-weight: 700;
+        .tendencia-positiva {
+            background: #e8f5e9;
             color: #1e7e34;
         }
-
-        @media (max-width: 700px) {
-            .grid-2col { grid-template-columns: 1fr; }
-            .grid-grandes { grid-template-columns: 1fr; }
-            .grid-medianas { grid-template-columns: 1fr; }
-            .grid-pequenas { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
-            .resultado-detalle { padding: 20px; }
-            .punto { width: 16px; }
-            .info-primera-compra { flex-direction: column; align-items: flex-start; }
-            .grafica-container { height: 350px; }
-            .analisis-narrativo { padding: 16px; }
+        .tendencia-negativa {
+            background: #ffe2e2;
+            color: #dc3545;
+        }
+        .tendencia-espera {
+            background: #e9ecef;
+            color: #6c757d;
         }
     </style>
-    
 </head>
 <body>
 <div class="container">
-    <div class="buscador">
-        <input type="text" id="inputEmpresa" placeholder="Buscar por nombre (Santander, BBVA, Inditex, Iberdrola...)" autocomplete="off">
-        <button id="btnBuscar">🔍 Analizar ticker</button>
-    </div>
-    <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
-        <button id="btnLogin" style="padding: 8px 20px; background: #1e4668; color: white; border: none; border-radius: 40px; cursor: pointer; font-weight: 600;">🔑 Iniciar sesión</button>
-    </div>
-
-    <div id="seccionSeñales" class="seccion-principal">
-        <div id="listaCompraReal" class="seccion-principal">
-            <h2>🟢 Oportunidad de compra</h2>
-            <div id="gridCompraReal" class="grid-grandes">
-                <div class="loading">🔄 Cargando datos...</div>
-            </div>
-        </div>
-
-        <div id="listaEspera" class="seccion-principal">
-            <h2>🟡 Seguimiento cercano para entrar</h2>
-            <div id="gridEspera" class="grid-medianas">
-                <div class="loading">🔄 Cargando datos...</div>
-            </div>
-        </div>
-
-        <div id="listaSinSeñal" class="seccion-principal">
-            <h2>⚪ OTRAS EMPRESAS · SIN SEÑAL</h2>
-            <div id="gridSinSeñal" class="grid-pequenas">
-                <div class="loading">🔄 Cargando...</div>
-            </div>
+    <!-- PANEL IZQUIERDO: todas las empresas -->
+    <div class="panel-izquierdo">
+        <h2>📋 TODAS LAS EMPRESAS</h2>
+        <div class="tabla-empresas-wrapper">
+            <table class="tabla-empresas" id="tablaEmpresas">
+                <thead>
+                    <tr>
+                        <th>Empresa</th>
+                        <th>Precio</th>
+                        <th>Fecha</th>
+                        <th>Últ. compra</th>
+                        <th>Precio compra</th>
+                        <th>Subida</th>
+                        <th>SMI d</th>
+                        <th>Tend.</th>
+                    </tr>
+                </thead>
+                <tbody id="empresasBody">
+                    <tr><td colspan="8" class="loading">Cargando empresas...</td></tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <div id="resultadoDetalle" class="hidden"></div>
+    <!-- PANEL DERECHO: historial de la empresa seleccionada -->
+    <div class="panel-derecho">
+        <h2 id="tituloEmpresa">📊 Selecciona una empresa</h2>
+        <div class="historial-wrapper">
+            <table class="tabla-historial" id="tablaHistorial">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Precio</th>
+                        <th>Caso</th>
+                        <th>SMI 4h</th>
+                        <th>SMI diario</th>
+                        <th>Pendiente</th>
+                        <th>Soportes</th>
+                        <th>Resistencias</th>
+                    </tr>
+                </thead>
+                <tbody id="historialBody">
+                    <tr><td colspan="8" class="sin-datos">Selecciona una empresa del panel izquierdo</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="simulador" id="simuladorPanel" style="display: none;">
+            <div class="simulador-info">
+                📌 Compra: <span id="compraSeleccionada">---</span><br>
+                📌 Venta: <span id="ventaSeleccionada">---</span>
+            </div>
+            <button class="btn-calcular" id="btnCalcular">💰 Calcular resultado</button>
+            <div class="resultado-sim" id="resultadoSimulacion"></div>
+        </div>
+    </div>
 </div>
-<!-- Modal Login -->
-<div id="modalLogin" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
-    <div style="background: white; border-radius: 24px; padding: 32px; width: 400px; max-width: 90%;">
-        <h3 style="margin-bottom: 20px;">🔐 Iniciar sesión / Registrarse</h3>
-        <input type="email" id="loginEmail" placeholder="Email" style="width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #cfdfed; border-radius: 12px;">
-        <input type="password" id="loginPassword" placeholder="Contraseña" style="width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #cfdfed; border-radius: 12px;">
-        <button id="btnLoginSubmit" style="width: 100%; padding: 12px; background: #1e4668; color: white; border: none; border-radius: 40px; cursor: pointer; font-weight: 600;">Ingresar / Registrarse</button>
-        <button id="btnCloseModal" style="width: 100%; margin-top: 12px; padding: 10px; background: #eef2fa; border: none; border-radius: 40px; cursor: pointer;">Cancelar</button>
-    </div>
-</div>    
-<script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
-<script src="/web/grafico.js"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-    // Inicializar Supabase para Auth
-    const supabaseUrl = 'https://klwcletpqqsabtdanldx.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtsd2NsZXRwcXFzYWJ0ZGFubGR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4MDg2NTEsImV4cCI6MjA5MjM4NDY1MX0.nbs0tYbFOL-I8qIkgB7Ub_jcOwHTdzg0EcAp1DS6sCU';
-    const supabaseAuth = supabase.createClient(supabaseUrl, supabaseKey);
-    
-    // Modal logic
-    const modal = document.getElementById('modalLogin');
-    const btnLogin = document.getElementById('btnLogin');
-    const btnCloseModal = document.getElementById('btnCloseModal');
-    const btnLoginSubmit = document.getElementById('btnLoginSubmit');
-    
-    btnLogin.onclick = () => { modal.style.display = 'flex'; };
-    btnCloseModal.onclick = () => { modal.style.display = 'none'; };
-    
-    btnLoginSubmit.onclick = async () => {
-        const email = document.getElementById('loginEmail').value;
-        const password = document.getElementById('loginPassword').value;
-        
-        if (!email || !password) {
-            alert('Completa email y contraseña');
-            return;
-        }
-        
-        // Intentar iniciar sesión primero
-        let { data, error } = await supabaseAuth.auth.signInWithPassword({ email, password });
-        
-        // Si no existe, registrar
-        if (error && error.message.includes('Invalid login credentials')) {
-            const { data: signUpData, error: signUpError } = await supabaseAuth.auth.signUp({ email, password });
-            if (signUpError) {
-                alert('Error: ' + signUpError.message);
-                return;
-            }
-            alert('Usuario registrado. Ahora inicia sesión con tu contraseña.');
-            modal.style.display = 'none';
-            return;
-        }
-        
-        if (error) {
-            alert('Error: ' + error.message);
-            return;
-        }
-        
-        // Login exitoso
-        alert('✅ Sesión iniciada correctamente');
-        modal.style.display = 'none';
-        
-        // Redirigir al dashboard
-        window.location.href = '/web/dashboard.html';
-    };
-    
-    // Verificar si ya hay sesión activa al cargar
-    supabaseAuth.auth.getSession().then(({ data: { session } }) => {
-        if (session) {
-            // Si ya está logueado, redirigir al dashboard
-            window.location.href = '/web/dashboard.html';
-        }
-    });
-</script>    
-<script>
+    // ============================================
+    // CONFIGURACIÓN SUPABASE
+    // ============================================
     const SUPABASE_URL = "https://klwcletpqqsabtdanldx.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtsd2NsZXRwcXFzYWJ0ZGFubGR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4MDg2NTEsImV4cCI6MjA5MjM4NDY1MX0.nbs0tYbFOL-I8qIkgB7Ub_jcOwHTdzg0EcAp1DS6sCU";
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    // Casos de compra real
+    const CASOS_COMPRA = [1, 6];
+    const CASOS_ESPERA = [2, 7];
+    const CASOS_RIESGO = [3, 5];
 
-    
-    const descripcionCompra = {
-        1: "COMPRA INMEDIATA - Señal directa por máxima fuerza alcista",
-        2: "COMPRA ANTICIPADA CON RIESGO - Buen potencial pero de subida pero aun no se ha activado la señal",
-        3: "REBOTE MUY CORTO PLAZO - RIESGO - Tendencia general aún bajista, mucho riesgo",
-        4: "COMPRA YA CONSOLIDADA - La señal de entrada perfecta ocurrio registros atras. Tendencia alcista confirmada",
-        5: "COMPRA CON SEÑAL DE AGOTAMIENTO - RIESGO - Última oportunidad antes de ver caidas, posible techo",
-        6: "COMPRA INMEDIATA - Momento óptimo para entrada",
-        7: "PRE-COMPRA - A punto de activarse la señal, vigilar evolución y giros, preparar entrada"
-    };
-    
-    const resumenCorto = {
-        1: "Compra Rápida", 2: "Compra Anticipada", 3: "Rebote corto", 4: "Compra Consolidada", 5: "Compra Agotamiento", 6: "Compra Inmediata", 7: "Pre-Compra"
-    };
+    // Variables globales
+    let todasLasEmpresas = [];          // Array con todas las empresas (último registro + metadatos)
+    let historialActual = [];            // Historial de la empresa seleccionada
+    let tickerSeleccionado = null;
+    let compraSeleccionada = null;       // { idx, precio, fecha }
+    let ventaSeleccionada = null;        // { idx, precio, fecha }
+    let filaCompraIndex = -1;
+    let filaVentaIndex = -1;
 
-    let tickerActual = null;
-
-    // Función para extraer números de los textos de niveles clave
-    function extraerNumerosDeTextoHTML(textoHTML) {
-        if (!textoHTML || textoHTML.length === 0) return [];
-        const numeros = [];
-        const regex = /(\d+\.?\d*)/g;
-        // Si es un array (como viene de formatearNiveles), unirlo en un string
-        const textoStr = Array.isArray(textoHTML) ? textoHTML.join(' ') : textoHTML;
-        let match;
-        while ((match = regex.exec(textoStr)) !== null) {
-            numeros.push(parseFloat(match[1]));
-        }
-        return numeros;
-    }
-
-    function calcularComisiones(dineroInvertido, precioCompra, precioVenta, numAcciones) {
-        const comisionCompra = 11 + (dineroInvertido * 0.004);
-        const comisionVenta = 11 + (precioVenta * numAcciones * 0.004);
-        return comisionCompra + comisionVenta;
-    }
-
-    function calcularResultadoNeto(precioCompra, precioVenta, acciones, dineroInvertido) {
-        const resultadoBruto = (precioVenta - precioCompra) * acciones;
-        const comisiones = calcularComisiones(dineroInvertido, precioCompra, precioVenta, acciones);
-        return resultadoBruto - comisiones;
-    }
-
-    function encontrarPrimeraCompra(analisisArrayAsc) {
-        if (!analisisArrayAsc || analisisArrayAsc.length === 0) return null;
-        for (let i = 0; i < analisisArrayAsc.length; i++) {
-            const registro = analisisArrayAsc[i];
-            if (CASOS_COMPRA_REAL.includes(registro.caso_numero)) {
-                if (i === 0) return registro;
-                const anterior = analisisArrayAsc[i - 1];
-                if (anterior && !CASOS_COMPRA_REAL.includes(anterior.caso_numero)) {
-                    return registro;
-                }
-            }
-        }
-        return analisisArrayAsc.find(r => CASOS_COMPRA_REAL.includes(r.caso_numero)) || null;
-    }
-
-    function calcularAcciones(dinero, precioCompra) {
-        if (!dinero || !precioCompra || precioCompra <= 0) return 0;
-        return Math.floor(dinero / precioCompra);
-    }
-
-    function encontrarMaximoGanancia(analisisArrayAsc, precioCompra, acciones, dineroInvertir, idxCompra) {
-        if (!precioCompra || !acciones || acciones === 0) return null;
-        let maxGanancia = -Infinity;
-        let idxMax = idxCompra;
-        
-        for (let i = idxCompra; i < analisisArrayAsc.length; i++) {
-            const resultado = calcularResultadoNeto(precioCompra, analisisArrayAsc[i].precio_cierre, acciones, dineroInvertir);
-            if (resultado > maxGanancia) {
-                maxGanancia = resultado;
-                idxMax = i;
-            }
-        }
-        
-        return { idx: idxMax, ganancia: maxGanancia, precio: analisisArrayAsc[idxMax].precio_cierre };
-    }
-
-    function calcularPorcentajeVsDiaAnterior(analisisArrayAsc) {
-        if (!analisisArrayAsc || analisisArrayAsc.length === 0) return new Map();
-        const ultimoPrecioPorDia = new Map();
-        for (const registro of analisisArrayAsc) {
-            const fechaKey = new Date(registro.fecha).toISOString().split('T')[0];
-            ultimoPrecioPorDia.set(fechaKey, registro.precio_cierre);
-        }
-        const diasArray = Array.from(ultimoPrecioPorDia.keys()).sort();
-        const precioDiaAnterior = new Map();
-        for (let i = 0; i < diasArray.length; i++) {
-            if (i > 0) precioDiaAnterior.set(diasArray[i], ultimoPrecioPorDia.get(diasArray[i - 1]));
-        }
-        const variaciones = new Map();
-        for (let i = 0; i < analisisArrayAsc.length; i++) {
-            const registro = analisisArrayAsc[i];
-            const fechaKey = new Date(registro.fecha).toISOString().split('T')[0];
-            const precioAnterior = precioDiaAnterior.get(fechaKey);
-            if (precioAnterior && precioAnterior > 0) {
-                variaciones.set(i, ((registro.precio_cierre - precioAnterior) / precioAnterior) * 100);
-            } else {
-                variaciones.set(i, null);
-            }
-        }
-        return variaciones;
-    }
-
-    function smiToPuntos(smi) {
-        if (smi === null || smi === undefined) return 0;
-        let puntos = Math.round(((80 - smi) / 160) * 10);
-        return Math.max(0, Math.min(10, puntos));
-    }
-
-    function calcularTendenciaPorPendiente(analisisArray) {
-        if (!analisisArray || analisisArray.length < 2) return { texto: "Espera", clase: "tendencia-espera" };
-        const hoy = analisisArray[0];
-        const fechaHoy = new Date(hoy.fecha).toDateString();
-        let diaAnterior = null;
-        for (let i = 1; i < analisisArray.length; i++) {
-            if (new Date(analisisArray[i].fecha).toDateString() !== fechaHoy) {
-                diaAnterior = analisisArray[i];
-                break;
-            }
-        }
-        if (!diaAnterior || hoy.smi_diario === null || diaAnterior.smi_diario === null) {
-            return { texto: "Espera", clase: "tendencia-espera" };
-        }
-        const diff = hoy.smi_diario - diaAnterior.smi_diario;
-        if (diff > 0.3) return { texto: "Positiva ▲", clase: "tendencia-positiva" };
-        if (diff < -0.3) return { texto: "Negativa ▼", clase: "tendencia-negativa" };
-        return { texto: "Espera", clase: "tendencia-espera" };
-    }
-
-    function generarBarra(puntos) {
-        let html = '<div class="barra">';
-        for (let i = 0; i < 10; i++) html += `<div class="punto ${i < puntos ? 'activo' : ''}"></div>`;
-        html += '</div>';
-        return html;
-    }
-
-    function extraerTresNivelesLimpiar(texto, tipo) {
-        if (!texto || texto === 'No hay datos') return [];
-        const lineas = texto.split('\n');
-        const numerosTexto = [];
-        for (let linea of lineas) {
-            linea = linea.trim();
-            if (!linea) continue;
-            const rangoMatch = linea.match(/([\d\.]+)\s*-\s*([\d\.]+)/);
-            if (rangoMatch) {
-                numerosTexto.push(rangoMatch[1]);
-                numerosTexto.push(rangoMatch[2]);
-            } else {
-                const numMatch = linea.match(/([\d\.]+)/);
-                if (numMatch) numerosTexto.push(numMatch[1]);
-            }
-        }
-        const unicos = [...new Map(numerosTexto.map(n => [n, n])).values()];
-        const conNumero = unicos.map(txt => ({ txt, num: parseFloat(txt.replace(/\./g, '')) }));
-        if (tipo === 'soporte') {
-            conNumero.sort((a, b) => b.num - a.num);
-        } else {
-            conNumero.sort((a, b) => a.num - b.num);
-        }
-        return conNumero.slice(0, 3).map(item => `${item.txt} €`);
-    }
-
-    function formatearNiveles(texto, tipo) {
-        const niveles = extraerTresNivelesLimpiar(texto, tipo);
-        if (niveles.length === 0) return '<div class="item">No hay niveles destacados</div>';
-        return niveles.map(n => `<div class="item">📍 ${n}</div>`).join('');
-    }
-
-    function extraerTresMechas(texto) {
-        if (!texto || texto === 'No hay datos') return [];
-        const lineas = texto.split('\n');
-        const mechas = [];
-        for (let linea of lineas) {
-            linea = linea.trim();
-            if (!linea) continue;
-            let limpia = linea.replace(/\s*\(\d+\s*toques\)/i, '').trim();
-            mechas.push(limpia);
-            if (mechas.length >= 3) break;
-        }
-        return mechas.slice(0, 3);
-    }
-    
-    function formatearMechas(texto) {
-        const items = extraerTresMechas(texto);
-        if (items.length === 0) return '<div class="item">Sin velas destacadas</div>';
-        return items.map(i => `<div class="item">🕯️ ${i}</div>`).join('');
-    }
-
-    async function cargarSeñales() {
-        const gridCompraReal = document.getElementById('gridCompraReal');
-        const gridEspera = document.getElementById('gridEspera');
-        const gridSinSeñal = document.getElementById('gridSinSeñal');
-        
+    // ============================================
+    // 1. CARGAR TODAS LAS EMPRESAS (panel izquierdo)
+    // ============================================
+    async function cargarEmpresas() {
         try {
-            const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?select=*&order=fecha.desc&limit=1000`, {
-                headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
-            });
-            if (!response.ok) throw new Error('Error');
-            const todos = await response.json();
-            
-            console.log(`📊 Total registros descargados: ${todos.length}`);
-            
-            const tickerMap = new Map();
-            for (const item of todos) {
-                if (!tickerMap.has(item.ticker)) tickerMap.set(item.ticker, []);
-                tickerMap.get(item.ticker).push(item);
+            // Obtener todos los registros ordenados por fecha ASC para poder procesar ciclos
+            const { data, error } = await supabase
+                .from('recomendaciones_ibex')
+                .select('*')
+                .order('fecha', { ascending: true });
+
+            if (error) throw error;
+            if (!data || data.length === 0) {
+                document.getElementById('empresasBody').innerHTML = '<tr><td colspan="8" class="sin-datos">No hay datos</td></tr>';
+                return;
             }
-            for (let [ticker, arr] of tickerMap.entries()) {
-                arr.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+
+            // Agrupar por ticker
+            const porTicker = new Map();
+            for (const reg of data) {
+                if (!porTicker.has(reg.ticker)) porTicker.set(reg.ticker, []);
+                porTicker.get(reg.ticker).push(reg);
             }
-            
-            const compraReal = [];
-            const espera = [];
-            const sinSeñal = [];
-            
-            for (let [ticker, arr] of tickerMap.entries()) {
-                if (arr.length === 0) continue;
-                const masReciente = arr[arr.length - 1];
+
+            // Procesar cada empresa
+            const empresas = [];
+            for (let [ticker, registros] of porTicker.entries()) {
+                // Ordenar por fecha ASC (más antiguo a más reciente)
+                registros.sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
                 
-                let variacion = null;
-                const fechaUltimo = new Date(masReciente.fecha).toISOString().split('T')[0];
+                const ultimo = registros[registros.length - 1];
+                const nombre = ultimo.nombre_empresa || ticker;
+                const precioActual = ultimo.precio_cierre;
+                const fechaActual = ultimo.fecha;
+                const smiDiarioActual = ultimo.smi_diario;
+                const pendiente = ultimo.pendiente_diaria;
                 
-                const responseAyer = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?ticker=eq.${ticker}&fecha=lt.${fechaUltimo}T00:00:00&order=fecha.desc&limit=1`, {
-                    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
-                });
-                const dataAyer = await responseAyer.json();
+                // Determinar si está en compra ahora
+                const estaEnCompra = CASOS_COMPRA.includes(ultimo.caso_numero);
                 
-                if (dataAyer.length > 0) {
-                    const precioAyer = dataAyer[0].precio_cierre;
-                    if (precioAyer && precioAyer > 0) {
-                        variacion = ((masReciente.precio_cierre - precioAyer) / precioAyer) * 100;
+                // Calcular última compra (ciclo completo o actual)
+                let ultimaCompraInfo = calcularUltimaCompra(registros, estaEnCompra);
+                
+                let subida = null;
+                if (ultimaCompraInfo && ultimaCompraInfo.precioCompra && precioActual) {
+                    subida = ((precioActual - ultimaCompraInfo.precioCompra) / ultimaCompraInfo.precioCompra) * 100;
+                }
+                
+                // Tendencia
+                let tendencia = 'Espera';
+                let tendenciaClase = 'tendencia-espera';
+                if (pendiente !== null && pendiente !== undefined) {
+                    if (pendiente > 0.3) {
+                        tendencia = 'Positiva ▲';
+                        tendenciaClase = 'tendencia-positiva';
+                    } else if (pendiente < -0.3) {
+                        tendencia = 'Negativa ▼';
+                        tendenciaClase = 'tendencia-negativa';
                     }
                 }
                 
-                const empresaData = { ...masReciente, variacionVsAnterior: variacion, historial: arr };
-                
-                if (CASOS_COMPRA_REAL.includes(masReciente.caso_numero)) {
-                    compraReal.push(empresaData);
-                } else if (CASOS_ESPERA.includes(masReciente.caso_numero)) {
-                    espera.push(empresaData);
-                } else {
-                    sinSeñal.push(empresaData);
+                empresas.push({
+                    ticker,
+                    nombre,
+                    precioActual,
+                    fechaActual,
+                    estaEnCompra,
+                    ultimaCompraInfo,
+                    subida: subida !== null ? subida : null,
+                    smiDiarioActual,
+                    tendencia,
+                    tendenciaClase,
+                    registros
+                });
+            }
+            
+            // Ordenar alfabéticamente por nombre
+            empresas.sort((a,b) => a.nombre.localeCompare(b.nombre));
+            todasLasEmpresas = empresas;
+            renderizarPanelIzquierdo(empresas);
+            
+        } catch (err) {
+            console.error(err);
+            document.getElementById('empresasBody').innerHTML = '<tr><td colspan="8" class="sin-datos">Error al cargar</td></tr>';
+        }
+    }
+
+    // Calcular la última compra (ciclo completo o actual)
+    function calcularUltimaCompra(registros, estaEnCompraActual) {
+        // Buscar de atrás hacia adelante el último ciclo de compra
+        let cicloCompra = null;
+        let enCiclo = false;
+        let precioMinimoCiclo = null;
+        let fechaInicioCiclo = null;
+        
+        // Recorremos de atrás hacia adelante (del más reciente al más antiguo)
+        for (let i = registros.length - 1; i >= 0; i--) {
+            const reg = registros[i];
+            const esCompra = CASOS_COMPRA.includes(reg.caso_numero);
+            
+            if (!enCiclo && esCompra) {
+                // Inicio de un ciclo de compra (desde atrás)
+                enCiclo = true;
+                precioMinimoCiclo = reg.precio_cierre;
+                fechaInicioCiclo = reg.fecha;
+            } else if (enCiclo && !esCompra) {
+                // Terminó el ciclo de compra (encontramos una fila sin compra)
+                // Si estamos en compra actual, el ciclo aún no ha terminado
+                if (estaEnCompraActual && i === registros.length - 1) {
+                    // Sigue abierto
+                    break;
+                }
+                enCiclo = false;
+                break;
+            } else if (enCiclo && esCompra) {
+                // Actualizar mínimo precio dentro del ciclo
+                if (reg.precio_cierre < precioMinimoCiclo) {
+                    precioMinimoCiclo = reg.precio_cierre;
+                    fechaInicioCiclo = reg.fecha;
                 }
             }
-            
-            compraReal.sort((a,b) => {
-                const orden = [1, 6];
-                return orden.indexOf(a.caso_numero) - orden.indexOf(b.caso_numero);
-            });
-            espera.sort((a,b) => {
-                const orden = [2, 7, 3, 5];
-                return orden.indexOf(a.caso_numero) - orden.indexOf(b.caso_numero);
-            });
-            sinSeñal.sort((a,b) => (a.nombre_empresa || a.ticker).localeCompare(b.nombre_empresa || b.ticker));
-            
-            mostrarCompraReal(compraReal);
-            mostrarEspera(espera);
-            mostrarSinSeñal(sinSeñal);
-        } catch (err) {
-            console.error(err);
-            gridCompraReal.innerHTML = '<div class="error">❌ Error al cargar datos</div>';
-            gridEspera.innerHTML = '';
-            gridSinSeñal.innerHTML = '';
         }
-    }
-
-    function mostrarCompraReal(empresas) {
-        const grid = document.getElementById('gridCompraReal');
-        if (empresas.length === 0) {
-            grid.innerHTML = '<div style="background: white; border-radius: 28px; padding: 30px; text-align:center;">📭 No hay señales de compra real ahora mismo.</div>';
-            return;
-        }
-        let html = '';
-        for (const emp of empresas) {
-            const pctVal = emp.variacionVsAnterior !== null ? emp.variacionVsAnterior : 0;
-            const clasePct = pctVal >= 0 ? 'positivo' : 'negativo';
-            const simbolo = pctVal >= 0 ? '▲' : '▼';
-            const fechaFormateada = new Date(emp.fecha).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
-            html += `
-                <div class="tarjeta-grande" onclick="verDetalle('${emp.ticker}')">
-                    <div class="tarjeta-grande-nombre">${emp.nombre_empresa || emp.ticker}</div>
-                    <div class="tarjeta-grande-ticker">${emp.ticker}</div>
-                    <div class="tarjeta-grande-precio">${emp.precio_cierre} €</div>
-                    <div class="tarjeta-grande-porcentaje ${clasePct}">${simbolo} ${Math.abs(pctVal).toFixed(2)}%</div>
-                    <div class="tarjeta-grande-badge">${resumenCorto[emp.caso_numero] || 'Compra'}</div>
-                    <div class="tarjeta-grande-fecha">📅 ${fechaFormateada}</div>
-                </div>
-            `;
-        }
-        grid.innerHTML = html;
-    }
-
-    function mostrarEspera(empresas) {
-        const grid = document.getElementById('gridEspera');
-        if (empresas.length === 0) {
-            grid.innerHTML = '<div style="background: white; border-radius: 20px; padding: 20px; text-align:center; color:#8ba0bc;">📭 No hay señales de espera</div>';
-            return;
-        }
-        let html = '';
-        for (const emp of empresas) {
-            const pctVal = emp.variacionVsAnterior !== null ? emp.variacionVsAnterior : 0;
-            const clasePct = pctVal >= 0 ? 'positivo' : 'negativo';
-            const simbolo = pctVal >= 0 ? '▲' : '▼';
-            html += `
-                <div class="tarjeta-mediana" onclick="verDetalle('${emp.ticker}')">
-                    <div class="tarjeta-mediana-nombre">${emp.nombre_empresa || emp.ticker}</div>
-                    <div class="tarjeta-mediana-ticker">${emp.ticker}</div>
-                    <div class="tarjeta-mediana-precio">${emp.precio_cierre} €</div>
-                    <div class="tarjeta-mediana-porcentaje ${clasePct}">${simbolo} ${Math.abs(pctVal).toFixed(2)}%</div>
-                    <div class="tarjeta-mediana-badge">${resumenCorto[emp.caso_numero] || 'Señal'}</div>
-                </div>
-            `;
-        }
-        grid.innerHTML = html;
-    }
-
-    function mostrarSinSeñal(empresas) {
-        const grid = document.getElementById('gridSinSeñal');
-        if (empresas.length === 0) {
-            grid.innerHTML = '<div style="background: white; border-radius: 20px; padding: 20px; text-align:center; color:#8ba0bc;">📭 No hay otras empresas</div>';
-            return;
-        }
-        let html = '';
-        for (const emp of empresas) {
-            const pctVal = emp.variacionVsAnterior !== null ? emp.variacionVsAnterior : 0;
-            const clasePct = pctVal >= 0 ? 'positivo' : 'negativo';
-            const simbolo = pctVal >= 0 ? '▲' : '▼';
-            html += `
-                <div class="tarjeta-pequena" onclick="verDetalle('${emp.ticker}')">
-                    <div class="tarjeta-pequena-nombre">${emp.nombre_empresa || emp.ticker}</div>
-                    <div class="tarjeta-pequena-ticker">${emp.ticker}</div>
-                    <div class="tarjeta-pequena-precio">${emp.precio_cierre} €</div>
-                    <div class="tarjeta-pequena-porcentaje ${clasePct}">${simbolo} ${Math.abs(pctVal).toFixed(2)}%</div>
-                </div>
-            `;
-        }
-        grid.innerHTML = html;
-    }
-
-    async function verDetalle(ticker) {
-        tickerActual = ticker;
-        const seccionSeñales = document.getElementById('seccionSeñales');
-        const resultadoDiv = document.getElementById('resultadoDetalle');
-        seccionSeñales.classList.add('hidden');
-        resultadoDiv.classList.remove('hidden');
-        resultadoDiv.innerHTML = '<div class="loading">📊 Cargando análisis...</div>';
         
-        try {
-            const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?ticker=eq.${encodeURIComponent(ticker)}&order=fecha.asc`, {
-                headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+        if (enCiclo && precioMinimoCiclo !== null) {
+            return {
+                fecha: fechaInicioCiclo,
+                precioCompra: precioMinimoCiclo,
+                esActual: estaEnCompraActual
+            };
+        }
+        
+        // Si no encontramos ciclo, buscar la última compra histórica (ciclo cerrado)
+        for (let i = registros.length - 1; i >= 0; i--) {
+            if (CASOS_COMPRA.includes(registros[i].caso_numero)) {
+                // Encontrar el mínimo de ese ciclo hacia atrás
+                let minPrecio = registros[i].precio_cierre;
+                let fechaMin = registros[i].fecha;
+                let j = i;
+                while (j >= 0 && CASOS_COMPRA.includes(registros[j].caso_numero)) {
+                    if (registros[j].precio_cierre < minPrecio) {
+                        minPrecio = registros[j].precio_cierre;
+                        fechaMin = registros[j].fecha;
+                    }
+                    j--;
+                }
+                return {
+                    fecha: fechaMin,
+                    precioCompra: minPrecio,
+                    esActual: false
+                };
+            }
+        }
+        
+        return null;
+    }
+
+    function renderizarPanelIzquierdo(empresas) {
+        const tbody = document.getElementById('empresasBody');
+        if (!empresas.length) {
+            tbody.innerHTML = '<tr><td colspan="8" class="sin-datos">No hay empresas</td></tr>';
+            return;
+        }
+        
+        let html = '';
+        for (const emp of empresas) {
+            const fechaUltCompra = emp.ultimaCompraInfo ? new Date(emp.ultimaCompraInfo.fecha).toLocaleDateString('es-ES') : '---';
+            const precioUltCompra = emp.ultimaCompraInfo ? emp.ultimaCompraInfo.precioCompra.toFixed(2) + '€' : '---';
+            const subidaClass = emp.subida !== null ? (emp.subida >= 0 ? 'positivo' : 'negativo') : '';
+            const subidaText = emp.subida !== null ? (emp.subida >= 0 ? '+' : '') + emp.subida.toFixed(1) + '%' : '---';
+            const smiText = emp.smiDiarioActual !== null ? emp.smiDiarioActual.toFixed(1) : '---';
+            const precioText = emp.precioActual ? emp.precioActual.toFixed(2) + '€' : '---';
+            const fechaText = emp.fechaActual ? new Date(emp.fechaActual).toLocaleString('es-ES') : '---';
+            
+            const filaClass = emp.estaEnCompra ? 'en-compra' : '';
+            const seleccionadaClass = tickerSeleccionado === emp.ticker ? 'seleccionada' : '';
+            
+            html += `<tr class="${filaClass} ${seleccionadaClass}" data-ticker="${emp.ticker}" onclick="seleccionarEmpresa('${emp.ticker}')">
+                <td><strong>${emp.nombre}</strong><br><span style="font-size:0.6rem;color:#8ba0bc;">${emp.ticker}</span></td>
+                <td>${precioText}</td>
+                <td style="font-size:0.7rem;">${fechaText}</td>
+                <td style="font-size:0.7rem;">${fechaUltCompra}</td>
+                <td>${precioUltCompra}</td>
+                <td class="${subidaClass}">${subidaText}</td>
+                <td>${smiText}</td>
+                <td><span class="badge-tendencia ${emp.tendenciaClase}">${emp.tendencia}</span></td>
+            </tr>`;
+        }
+        tbody.innerHTML = html;
+    }
+
+    // ============================================
+    // 2. SELECCIONAR EMPRESA (cargar historial)
+    // ============================================
+    async function seleccionarEmpresa(ticker) {
+        tickerSeleccionado = ticker;
+        
+        // Actualizar estilo de selección en la tabla izquierda
+        document.querySelectorAll('#empresasBody tr').forEach(row => {
+            row.classList.remove('seleccionada');
+            if (row.getAttribute('data-ticker') === ticker) {
+                row.classList.add('seleccionada');
+            }
+        });
+        
+        // Buscar la empresa en todasLasEmpresas
+        const empresa = todasLasEmpresas.find(e => e.ticker === ticker);
+        if (!empresa) return;
+        
+        document.getElementById('tituloEmpresa').innerHTML = `📊 ${empresa.nombre} (${ticker})`;
+        
+        // Cargar historial
+        historialActual = [...empresa.registros];
+        // Ordenar: más reciente ARRIBA
+        historialActual.sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+        
+        renderizarPanelDerecho(historialActual);
+        
+        // Resetear selecciones de compra/venta
+        compraSeleccionada = null;
+        ventaSeleccionada = null;
+        filaCompraIndex = -1;
+        filaVentaIndex = -1;
+        document.getElementById('compraSeleccionada').innerHTML = '---';
+        document.getElementById('ventaSeleccionada').innerHTML = '---';
+        document.getElementById('resultadoSimulacion').innerHTML = '';
+        document.getElementById('simuladorPanel').style.display = 'flex';
+    }
+    
+    function renderizarPanelDerecho(historial) {
+        const tbody = document.getElementById('historialBody');
+        if (!historial.length) {
+            tbody.innerHTML = '<tr><td colspan="8" class="sin-datos">No hay historial</td></tr>';
+            return;
+        }
+        
+        let html = '';
+        for (let i = 0; i < historial.length; i++) {
+            const reg = historial[i];
+            const fecha = new Date(reg.fecha).toLocaleString('es-ES');
+            const precio = reg.precio_cierre ? reg.precio_cierre.toFixed(2) + '€' : '---';
+            const caso = reg.caso_numero !== null ? reg.caso_numero : '---';
+            
+            let casoClass = '';
+            if (CASOS_COMPRA.includes(reg.caso_numero)) casoClass = 'caso-1';
+            else if (CASOS_ESPERA.includes(reg.caso_numero)) casoClass = 'caso-2';
+            else if (CASOS_RIESGO.includes(reg.caso_numero)) casoClass = 'caso-3';
+            
+            const smi4h = reg.smi_4h !== null ? reg.smi_4h.toFixed(1) : '---';
+            const smiDiario = reg.smi_diario !== null ? reg.smi_diario.toFixed(1) : '---';
+            const pendiente = reg.pendiente_diaria !== null ? reg.pendiente_diaria.toFixed(1) : '---';
+            
+            // Soporte y resistencia (tomar primer nivel o mostrar texto)
+            let soporteText = '---';
+            let resistenciaText = '---';
+            if (reg.soportes) {
+                const soportes = reg.soportes.split('\n');
+                if (soportes.length > 0) soporteText = soportes[0].substring(0, 30);
+            }
+            if (reg.resistencias) {
+                const resistencias = reg.resistencias.split('\n');
+                if (resistencias.length > 0) resistenciaText = resistencias[0].substring(0, 30);
+            }
+            
+            const isCompraSeleccionada = (compraSeleccionada && compraSeleccionada.idx === i);
+            const isVentaSeleccionada = (ventaSeleccionada && ventaSeleccionada.idx === i);
+            
+            html += `<tr class="${casoClass}" data-idx="${i}">
+                <td style="font-size:0.7rem;">${fecha}</td>
+                <td class="precio-clickeable" data-idx="${i}" data-precio="${reg.precio_cierre}" data-fecha="${reg.fecha}">
+                    ${isCompraSeleccionada ? '<span class="precio-seleccionado">🔴 ' + precio + '</span>' : (isVentaSeleccionada ? '<span class="precio-seleccionado">🟢 ' + precio + '</span>' : precio)}
+                </td>
+                <td>${caso}</td>
+                <td>${smi4h}</td>
+                <td>${smiDiario}</td>
+                <td>${pendiente}</td>
+                <td style="font-size:0.65rem; max-width:120px;">${soporteText}</td>
+                <td style="font-size:0.65rem; max-width:120px;">${resistenciaText}</td>
+            </tr>`;
+        }
+        tbody.innerHTML = html;
+        
+        // Añadir event listeners a las celdas de precio
+        document.querySelectorAll('#tablaHistorial td.precio-clickeable').forEach(cell => {
+            cell.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const idx = parseInt(cell.getAttribute('data-idx'));
+                const precio = parseFloat(cell.getAttribute('data-precio'));
+                const fecha = cell.getAttribute('data-fecha');
+                seleccionarPrecio(idx, precio, fecha);
             });
-            
-            if (!response.ok) throw new Error('Error en la consulta');
-            
-            const data = await response.json();
-            
-            console.log(`📊 ${ticker} - Registros recibidos de Supabase: ${data.length}`);
-            
-            if (!data || data.length === 0) {
-                resultadoDiv.innerHTML = '<div class="error">❌ No hay datos para esta empresa</div><button class="btn-cerrar" onclick="cerrarDetalle()">← Volver</button>';
+        });
+    }
+    
+    function seleccionarPrecio(idx, precio, fecha) {
+        // Si no hay compra seleccionada, o si ya hay compra y venta, reiniciamos
+        if (compraSeleccionada === null) {
+            // Primera selección: COMPRA
+            compraSeleccionada = { idx, precio, fecha };
+            filaCompraIndex = idx;
+            document.getElementById('compraSeleccionada').innerHTML = `${new Date(fecha).toLocaleString('es-ES')} · ${precio.toFixed(2)}€`;
+            document.getElementById('ventaSeleccionada').innerHTML = '---';
+            ventaSeleccionada = null;
+            filaVentaIndex = -1;
+            document.getElementById('resultadoSimulacion').innerHTML = '';
+        } else if (ventaSeleccionada === null) {
+            // Segunda selección: VENTA (debe ser una fila más RECIENTE que la compra, es decir, índice menor porque está ordenado descendente)
+            if (idx >= filaCompraIndex) {
+                alert('❌ La venta debe seleccionarse en una fila MÁS RECIENTE (por encima de la compra)');
                 return;
             }
-            
-            mostrarDetalleCompleto(data);
-            
-        } catch (err) {
-            console.error(err);
-            resultadoDiv.innerHTML = `<div class="error">Error: ${err.message}</div><button class="btn-cerrar" onclick="cerrarDetalle()">← Volver</button>`;
-        }
-    }
-
-    function mostrarDetalleCompleto(analisisArrayAsc) {
-        const resultadoDiv = document.getElementById('resultadoDetalle');
-        const ultimo = analisisArrayAsc[analisisArrayAsc.length - 1];
-        const dineroInvertir = 10000;
-        
-        const primeraCompra = encontrarPrimeraCompra(analisisArrayAsc);
-        let acciones = 0;
-        let precioPrimeraCompra = null;
-        let fechaPrimeraCompra = null;
-        let idxCompra = -1;
-        
-        if (primeraCompra) {
-            precioPrimeraCompra = primeraCompra.precio_cierre;
-            fechaPrimeraCompra = primeraCompra.fecha;
-            acciones = calcularAcciones(dineroInvertir, precioPrimeraCompra);
-            idxCompra = analisisArrayAsc.findIndex(r => r.fecha === primeraCompra.fecha && r.precio_cierre === primeraCompra.precio_cierre);
-        }
-        
-        let maxGananciaInfo = null;
-        let idxMaxGanancia = -1;
-        if (primeraCompra && acciones > 0) {
-            maxGananciaInfo = encontrarMaximoGanancia(analisisArrayAsc, precioPrimeraCompra, acciones, dineroInvertir, idxCompra);
-            if (maxGananciaInfo) {
-                idxMaxGanancia = maxGananciaInfo.idx;
-            }
-        }
-        
-        const variacionesMap = calcularPorcentajeVsDiaAnterior(analisisArrayAsc);
-        const idxUltimo = analisisArrayAsc.length - 1;
-        let variacionUltimo = variacionesMap.get(idxUltimo) || null;
-        
-        const pctValor = variacionUltimo !== null ? variacionUltimo : 0;
-        const clasePct = pctValor >= 0 ? 'positivo' : 'negativo';
-        const simbolo = pctValor >= 0 ? '▲' : '▼';
-        const fechaFormateada = new Date(ultimo.fecha).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
-
-        const puntosCorto = smiToPuntos(ultimo.smi_4h);
-        const puntosMedio = smiToPuntos(ultimo.smi_diario);
-        const puntosLargo = smiToPuntos(ultimo.smi_semanal);
-        const analisisReversed = [...analisisArrayAsc].reverse();
-        const tendenciaObj = calcularTendenciaPorPendiente(analisisReversed);
-        const tendenciaTexto = tendenciaObj.texto;
-        const tendenciaClase = tendenciaObj.clase;
-        
-        let primeraCompraHtml = '';
-        let gananciaMaxHtml = '';
-        
-        if (primeraCompra && precioPrimeraCompra) {
-            const fechaPrimeraFormateada = new Date(fechaPrimeraCompra).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
-            const resultadoActual = calcularResultadoNeto(precioPrimeraCompra, ultimo.precio_cierre, acciones, dineroInvertir);
-            const rentabilidadActual = ((ultimo.precio_cierre - precioPrimeraCompra) / precioPrimeraCompra) * 100;
-            const rentabilidadClass = rentabilidadActual >= 0 ? 'resultado-positivo' : 'resultado-negativo';
-            const netoClass = resultadoActual >= 0 ? 'resultado-positivo' : 'resultado-negativo';
-            
-            primeraCompraHtml = `
-                <div class="info-primera-compra">
-                    <div class="info-primera-compra-item">
-                        <span class="label">🎯 PRIMERA COMPRA</span>
-                        <span class="value">${fechaPrimeraFormateada} · ${precioPrimeraCompra} €</span>
-                    </div>
-                    <div class="info-primera-compra-item">
-                        <span class="label">📊 ACCIONES</span>
-                        <span class="value">${acciones.toLocaleString('es-ES')} uds</span>
-                    </div>
-                </div>
-            `;
-            
-            if (maxGananciaInfo && maxGananciaInfo.ganancia > resultadoActual) {
-                const fechaMax = new Date(analisisArrayAsc[maxGananciaInfo.idx].fecha).toLocaleString('es-ES', { timeZone: 'Europe/Madrid' });
-                gananciaMaxHtml = `
-                    <div class="ganancia-max">
-                        <div class="label">🏆 MÁXIMO HISTÓRICO ALCANZADO</div>
-                        <div class="valor">+${maxGananciaInfo.ganancia.toFixed(2)} € (${maxGananciaInfo.precio} €/acción)</div>
-                        <div style="font-size:0.7rem; color:#1e7e34;">Alcanzado el ${fechaMax}</div>
-                    </div>
-                `;
-            }
+            ventaSeleccionada = { idx, precio, fecha };
+            filaVentaIndex = idx;
+            document.getElementById('ventaSeleccionada').innerHTML = `${new Date(fecha).toLocaleString('es-ES')} · ${precio.toFixed(2)}€`;
         } else {
-            primeraCompraHtml = `
-                <div class="info-primera-compra" style="background: #fff5e6;">
-                    <div class="info-primera-compra-item">
-                        <span class="label">📭 SIN COMPRA PREVIA</span>
-                        <span class="value">No hay registros de compra anteriores</span>
-                    </div>
-                </div>
-            `;
+            // Ya hay compra y venta, reiniciamos y empezamos de nuevo
+            compraSeleccionada = { idx, precio, fecha };
+            filaCompraIndex = idx;
+            ventaSeleccionada = null;
+            filaVentaIndex = -1;
+            document.getElementById('compraSeleccionada').innerHTML = `${new Date(fecha).toLocaleString('es-ES')} · ${precio.toFixed(2)}€`;
+            document.getElementById('ventaSeleccionada').innerHTML = '---';
+            document.getElementById('resultadoSimulacion').innerHTML = '';
         }
         
-        // Extraer números de soportes y resistencias desde los mismos textos que se muestran en la web
-        const soportesWebTextos = formatearNiveles(ultimo.soportes, 'soporte');
-        const resistenciasWebTextos = formatearNiveles(ultimo.resistencias, 'resistencia');
-        
-        const soportesNumeros = extraerNumerosDeTextoHTML(soportesWebTextos);
-        const resistenciasNumeros = extraerNumerosDeTextoHTML(resistenciasWebTextos);
-        
-        let html = `
-            <div class="resultado-detalle">
-                <button class="btn-cerrar" onclick="cerrarDetalle()">← Volver a empresas</button>
-                <div class="tipo-compra-tag">${descripcionCompra[ultimo.caso_numero] || 'ESTRATEGIA DE COMPRA'}</div>
-                <div class="info-grid">
-                    <div class="info-card"><h3>🏢 Empresa</h3><div class="valor">${ultimo.nombre_empresa}</div><div class="small">${ultimo.ticker}</div></div>
-                    <div class="info-card"><h3>💰 Precio actual</h3><div class="valor">${ultimo.precio_cierre} €</div><div class="small-pct ${clasePct}">${simbolo} ${Math.abs(pctValor).toFixed(2)}%</div></div>
-                    <div class="info-card"><h3>📅 Último análisis</h3><div class="valor">${fechaFormateada}</div></div>
-                </div>
-                ${primeraCompraHtml}
-                ${gananciaMaxHtml}
-                <div class="info-grid">
-                    <div class="info-card"><h3>🕐 CORTO PLAZO (4h)</h3>${generarBarra(puntosCorto)}</div>
-                    <div class="info-card"><h3>📈 MEDIO PLAZO (Diario)</h3>${generarBarra(puntosMedio)}<div class="barra-label ${tendenciaClase}">Tendencia: ${tendenciaTexto}</div></div>
-                    <div class="info-card"><h3>📆 LARGO PLAZO (Semanal)</h3>${generarBarra(puntosLargo)}</div>
-                </div>
-        `;
-        
-        // Análisis narrativo (antes del gráfico)
-        const analisisNarrativo = generarAnalisisNarrativo(analisisArrayAsc, ultimo.caso_numero);
-        html += analisisNarrativo;
-        
-        // Gráfica
-        html += `<div class="seccion"><h3>📈 GRÁFICA DE PRECIO</h3><div id="graficaContainer" class="grafica-container"></div></div>`;
-        
-        // Niveles clave (después de la gráfica)
-        if (ultimo.soportes || ultimo.resistencias) {
-            html += `<div class="seccion"><h3>📊 NIVELES CLAVE</h3><div class="grid-2col">
-                        <div><h4 style="margin-bottom:10px; color:#1e7e34;">📉 SOPORTES</h4><div class="lista-items">${soportesWebTextos}</div></div>
-                        <div><h4 style="margin-bottom:10px; color:#b91c1c;">📈 RESISTENCIAS</h4><div class="lista-items">${resistenciasWebTextos}</div></div>
-                    </div></div>`;
-        }
-        
-        if (ultimo.gaps_alcistas || ultimo.gaps_bajistas) {
-            html += `<div class="seccion"><h3>🕳️ GAPS</h3><div class="grid-2col">
-                        <div><h4 style="color:#1e7e34;">📈 Gaps Alcistas</h4><div class="lista-items">${formatearMechas(ultimo.gaps_alcistas)}</div></div>
-                        <div><h4 style="color:#b91c1c;">📉 Gaps Bajistas</h4><div class="lista-items">${formatearMechas(ultimo.gaps_bajistas)}</div></div>
-                    </div></div>`;
-        }
-        
-        if (ultimo.pinchos_alcistas || ultimo.pinchos_bajistas) {
-            html += `<div class="seccion"><h3>🕯️ VELAS CON MECHA LARGA</h3><div class="grid-2col">
-                        <div><h4 style="color:#1e7e34;">🔺 Mechas alcistas</h4><div class="lista-items">${formatearMechas(ultimo.pinchos_alcistas)}</div></div>
-                        <div><h4 style="color:#b91c1c;">🔻 Mechas bajistas</h4><div class="lista-items">${formatearMechas(ultimo.pinchos_bajistas)}</div></div>
-                    </div></div>`;
-        }
-        
-        html += `</div>`;
-        resultadoDiv.innerHTML = html;
-        
-        setTimeout(() => {
-            crearGrafica(analisisArrayAsc, idxCompra, idxMaxGanancia, soportesNumeros, resistenciasNumeros);
-        }, 100);
-        
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    // Función para generar análisis narrativo automático
-    function generarAnalisisNarrativo(analisisArrayAsc, casoActual) {
-        if (!analisisArrayAsc || analisisArrayAsc.length === 0) {
-            return '<div class="analisis-narrativo">📭 No hay datos suficientes para generar análisis.</div>';
-        }
-        
-        // Detectar cambios de fase
-        const fases = [];
-        let faseActual = null;
-        let inicioFase = null;
-        let precioInicioFase = null;
-        
-        for (let i = 0; i < analisisArrayAsc.length; i++) {
-            const reg = analisisArrayAsc[i];
-            const caso = reg.caso_numero;
-            
-            if (faseActual !== caso) {
-                if (faseActual !== null && inicioFase) {
-                    fases.push({
-                        caso: faseActual,
-                        desde: inicioFase,
-                        hasta: analisisArrayAsc[i - 1].fecha,
-                        precioInicio: precioInicioFase,
-                        precioFin: analisisArrayAsc[i - 1].precio_cierre
-                    });
-                }
-                faseActual = caso;
-                inicioFase = reg.fecha;
-                precioInicioFase = reg.precio_cierre;
-            }
-        }
-        if (faseActual !== null && inicioFase) {
-            fases.push({
-                caso: faseActual,
-                desde: inicioFase,
-                hasta: analisisArrayAsc[analisisArrayAsc.length - 1].fecha,
-                precioInicio: precioInicioFase,
-                precioFin: analisisArrayAsc[analisisArrayAsc.length - 1].precio_cierre
-            });
-        }
-        
-        // Invertir orden: de más actual a más antiguo
-        fases.reverse();
-        
-
-        const descripcionFase = {
-            1: { nombre: "COMPRA INMEDIATA", color: "#1e7e34", icono: "🔴", texto: "El precio ha roto resistencias clave con fuerza. Es momento de ejecutar compra." },
-            2: { nombre: "COMPRA ANTICIPADA", color: "#ffc107", icono: "🟡", texto: "Buen potencial alcista, pero la señal aún no se ha activado completamente. Precaución." },
-            3: { nombre: "REBOTE CORTO PLAZO", color: "#000000", icono: "⚫", texto: "Rebote dentro de tendencia bajista. Operativa de muy corto plazo." },
-            5: { nombre: "AGOTAMIENTO", color: "#dc3545", icono: "🔴", texto: "Posible giro a la baja. Recomendación: tomar beneficios parciales." },
-            6: { nombre: "COMPRA RÁPIDA", color: "#28a745", icono: "🟢", texto: "Momento óptimo para entrada rápida. Stop ajustado." },
-            7: { nombre: "PRE-COMPRA", color: "#17a2b8", icono: "🔷", texto: "Señal a punto de activarse. Vigilar evolución." },
-            "sin_senal": { nombre: "SIN SEÑAL", color: "#8ba0bc", icono: "⚪", texto: "No hay señal activa. Esperar." }
-
-        };
-        
-        let html = `<div class="analisis-narrativo">
-            <h4>📋 ANÁLISIS NARRATIVO POR FASES</h4>
-            <div>`;
-        
-        for (const fase of fases) {
-            const info = descripcionFase[fase.caso] || descripcionFase["sin_senal"];
-            const desdeFecha = new Date(fase.desde).toLocaleDateString('es-ES');
-            const hastaFecha = new Date(fase.hasta).toLocaleDateString('es-ES');
-            
-            html += `<div class="fase">
-                <div>
-                    <span class="badge-fase" style="background: ${info.color}; color: white;">${info.icono} ${info.nombre}</span>
-                    <strong>${desdeFecha} → ${hastaFecha}</strong>
-                </div>
-                <p style="margin-top: 8px; margin-bottom: 4px;">📊 Precio: ${fase.precioInicio}€ → ${fase.precioFin}€</p>
-                <p style="margin: 0;">💡 ${info.texto}</p>`;
-            
-            if (fase.caso === 1 || fase.caso === 6) {
-                html += `<p style="margin-top: 6px; color: #1e7e34;">✅ Ejecutar compra con stop debajo del soporte.</p>`;
-            } else if (fase.caso === 5) {
-                html += `<p style="margin-top: 6px; color: #dc3545;">⚠️ Tomar beneficios parciales.</p>`;
-            } else if (fase.caso === 7) {
-                html += `<p style="margin-top: 6px; color: #17a2b8;">⏳ Preparar orden de compra.</p>`;
-            }
-            
-            html += `</div>`;
-        }
-        
-        html += `</div></div>`;
-        return html;
-    }
-
-    function cerrarDetalle() {
-        if (typeof limpiarGrafica === 'function') {
-            limpiarGrafica();
-        }
-        document.getElementById('seccionSeñales').classList.remove('hidden');
-        document.getElementById('resultadoDetalle').classList.add('hidden');
-        cargarSeñales();
+        // Re-renderizar para mostrar los estilos de selección
+        renderizarPanelDerecho(historialActual);
     }
     
-    function actualizarDetallePorCambioDinero() {
-        if (tickerActual && document.getElementById('resultadoDetalle') && !document.getElementById('resultadoDetalle').classList.contains('hidden')) {
-            verDetalle(tickerActual);
+    // ============================================
+    // 3. CALCULAR RESULTADO
+    // ============================================
+    function calcularResultado() {
+        if (!compraSeleccionada || !ventaSeleccionada) {
+            alert('❌ Debes seleccionar una COMPRA y una VENTA');
+            return;
         }
+        
+        const precioCompra = compraSeleccionada.precio;
+        const precioVenta = ventaSeleccionada.precio;
+        const acciones = Math.floor(10000 / precioCompra); // Simulamos con 10.000€ fijos
+        const dineroInvertido = acciones * precioCompra;
+        
+        // Comisiones: 11€ + 0.4% por operación
+        const comisionCompra = 11 + (dineroInvertido * 0.004);
+        const comisionVenta = 11 + (precioVenta * acciones * 0.004);
+        const comisionesTotales = comisionCompra + comisionVenta;
+        
+        const resultadoBruto = (precioVenta - precioCompra) * acciones;
+        const resultadoNeto = resultadoBruto - comisionesTotales;
+        const rentabilidadPorcentaje = ((precioVenta - precioCompra) / precioCompra) * 100;
+        
+        const resultadoDiv = document.getElementById('resultadoSimulacion');
+        const resultadoClass = resultadoNeto >= 0 ? 'positivo' : 'negativo';
+        resultadoDiv.innerHTML = `<span class="${resultadoClass}">${resultadoNeto >= 0 ? '+' : ''}${resultadoNeto.toFixed(2)}€ (${rentabilidadPorcentaje >= 0 ? '+' : ''}${rentabilidadPorcentaje.toFixed(2)}%)</span>`;
     }
-
-    async function buscarEmpresa() {
-        const input = document.getElementById('inputEmpresa').value.trim();
-        if (!input) { cargarSeñales(); return; }
-        const seccionSeñales = document.getElementById('seccionSeñales');
-        const resultadoDiv = document.getElementById('resultadoDetalle');
-        seccionSeñales.classList.add('hidden');
-        resultadoDiv.classList.remove('hidden');
-        resultadoDiv.innerHTML = '<div class="loading">🔎 Buscando...</div>';
-        try {
-            const response = await fetch(`${SUPABASE_URL}/rest/v1/recomendaciones_ibex?nombre_empresa=ilike.%25${encodeURIComponent(input)}%25&order=fecha.asc`, {
-                headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
-            });
-            if (!response.ok) throw new Error();
-            let data = await response.json();
-            if (!data || data.length === 0) {
-                resultadoDiv.innerHTML = '<div class="error">❌ No encontrada</div><button class="btn-cerrar" onclick="cerrarDetalle()">← Volver</button>';
-                return;
-            }
-            data.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
-            if (data.length > 0) {
-                tickerActual = data[0].ticker;
-            }
-            mostrarDetalleCompleto(data);
-        } catch (e) {
-            resultadoDiv.innerHTML = `<div class="error">Error</div><button class="btn-cerrar" onclick="cerrarDetalle()">← Volver</button>`;
-        }
-    }
-
-    document.getElementById('btnBuscar').addEventListener('click', buscarEmpresa);
-    document.getElementById('inputEmpresa').addEventListener('keypress', (e) => { if(e.key === 'Enter') buscarEmpresa(); });
-
     
-    cargarSeñales();
-    window.verDetalle = verDetalle;
-    window.cerrarDetalle = cerrarDetalle;
+    // ============================================
+    // 4. INICIALIZAR
+    // ============================================
+    document.getElementById('btnCalcular').addEventListener('click', calcularResultado);
+    
+    // Hacer funciones globales para el onclick del HTML
+    window.seleccionarEmpresa = seleccionarEmpresa;
+    
+    cargarEmpresas();
 </script>
-
 </body>
 </html>
