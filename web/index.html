@@ -83,8 +83,9 @@
             border-left: 3px solid #2c7da0;
         }
 
+        /* Sombreado para cualquier caso de compra (1,2,3,6,7) */
         .tabla-empresas tr.en-compra {
-            background-color: #e8f5e9;
+            background-color: #d4edda;
         }
 
         .positivo {
@@ -251,6 +252,51 @@
             background: #e9ecef;
             color: #6c757d;
         }
+
+        /* Tooltip para los casos */
+        .caso-tooltip {
+            position: relative;
+            cursor: help;
+            text-decoration: underline dotted;
+            font-weight: 600;
+        }
+
+        .caso-tooltip .tooltip-text {
+            visibility: hidden;
+            opacity: 0;
+            background-color: #1e4668;
+            color: white;
+            text-align: center;
+            border-radius: 8px;
+            padding: 6px 12px;
+            position: absolute;
+            z-index: 100;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            font-size: 0.7rem;
+            font-weight: normal;
+            transition: opacity 0.2s;
+            pointer-events: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        .caso-tooltip .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #1e4668 transparent transparent transparent;
+        }
+
+        .caso-tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
@@ -262,7 +308,8 @@
                 <thead>
                     <tr><th>Empresa</th><th>Precio</th><th>Fecha</th><th>Últ. compra</th><th>Precio compra</th><th>Subida</th><th>SMI d</th><th>Tend.</th></tr>
                 </thead>
-                <tbody id="empresasBody"><tr><td colspan="8" class="loading">Cargando empresas...</td></tr></tbody>
+                <tbody id="empresasBody"><tr><td colspan="8" class="loading">Cargando empresas...</td></tr>
+                </tbody>
             </table>
         </div>
     </div>
@@ -272,7 +319,8 @@
         <div class="historial-wrapper">
             <table class="tabla-historial" id="tablaHistorial">
                 <thead><tr><th>Fecha</th><th>Precio</th><th>Caso</th><th>SMI 4h</th><th>SMI diario</th><th>Pendiente</th><th>Soportes</th><th>Resistencias</th></tr></thead>
-                <tbody id="historialBody"><tr><td colspan="8" class="sin-datos">Selecciona una empresa del panel izquierdo</td></tr></tbody>
+                <tbody id="historialBody"><tr><td colspan="8" class="sin-datos">Selecciona una empresa del panel izquierdo</td></tr>
+                </tbody>
             </table>
         </div>
         <div class="simulador" id="simuladorPanel" style="display: none;">
@@ -289,6 +337,7 @@
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtsd2NsZXRwcXFzYWJ0ZGFubGR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4MDg2NTEsImV4cCI6MjA5MjM4NDY1MX0.nbs0tYbFOL-I8qIkgB7Ub_jcOwHTdzg0EcAp1DS6sCU";
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    // CASOS DE COMPRA: 1,2,3,6,7 (excluimos 4,5,null)
     const CASOS_COMPRA = [1, 2, 3, 6, 7];
     const CASOS_ESPERA = [2, 7];
     const CASOS_RIESGO = [3, 5];
@@ -300,6 +349,19 @@
     let ventaSeleccionada = null;
     let filaCompraIndex = -1;
     let filaVentaIndex = -1;
+
+    function getNombreCaso(caso) {
+        const nombres = {
+            1: "🔴 COMPRA INMEDIATA",
+            2: "🟡 COMPRA ANTICIPADA (con riesgo)",
+            3: "⚫ REBOTE CORTO PLAZO (riesgo)",
+            4: "⚪ COMPRA YA CONSOLIDADA",
+            5: "🔴 AGOTAMIENTO (última subida)",
+            6: "🟢 COMPRA INMEDIATA (señal directa)",
+            7: "🔷 PRE-COMPRA"
+        };
+        return nombres[caso] || "SIN SEÑAL";
+    }
 
     async function traerTodosLosRegistros() {
         let allData = [];
@@ -459,7 +521,8 @@
             const precioText = emp.precioActual ? emp.precioActual.toFixed(2) + '€' : '---';
             const fechaText = emp.fechaActual ? new Date(emp.fechaActual).toLocaleString('es-ES') : '---';
             
-            const tieneAlgunaSeñal = emp.ultimoCaso && emp.ultimoCaso !== 4 && emp.ultimoCaso !== null;
+            // Sombreado para cualquier caso de compra (1,2,3,6,7)
+            const tieneAlgunaSeñal = emp.ultimoCaso && CASOS_COMPRA.includes(emp.ultimoCaso);
             const filaClass = tieneAlgunaSeñal ? 'en-compra' : '';
             const seleccionadaClass = tickerSeleccionado === emp.ticker ? 'seleccionada' : '';
             
@@ -547,7 +610,7 @@
                 <td class="precio-clickeable" data-idx="${i}" data-precio="${reg.precio_cierre}" data-fecha="${reg.fecha}">
                     ${isCompraSeleccionada ? '<span class="precio-seleccionado">🔴 ' + precio + '</span>' : (isVentaSeleccionada ? '<span class="precio-seleccionado">🟢 ' + precio + '</span>' : precio)}
                 </td>
-                <td>${caso}</td>
+                <td class="caso-tooltip">${caso}<span class="tooltip-text">${getNombreCaso(reg.caso_numero)}</span></td>
                 <td>${smi4h}</td>
                 <td>${smiDiario}</td>
                 <td>${pendiente}</td>
