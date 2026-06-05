@@ -28,6 +28,69 @@
             gap: 16px;
         }
 
+        /* Título principal */
+        .titulo-principal {
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        .titulo-principal h1 {
+            font-size: 1.4rem;
+            color: #1e4668;
+            font-weight: 600;
+        }
+        .titulo-principal p {
+            font-size: 0.75rem;
+            color: #6c86a3;
+            margin-top: 4px;
+        }
+
+        /* Leyenda de colores */
+        .leyenda-colores {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            justify-content: center;
+            margin-bottom: 12px;
+            font-size: 0.65rem;
+            background: white;
+            padding: 8px 16px;
+            border-radius: 40px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+        }
+        .leyenda-colores span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .leyenda-colores .verde { background: #d4edda; padding: 2px 10px; border-radius: 20px; }
+        .leyenda-colores .amarillo { background: #fff3cd; padding: 2px 10px; border-radius: 20px; }
+        .leyenda-colores .naranja { background: #ffe2d6; padding: 2px 10px; border-radius: 20px; }
+        .leyenda-colores .rojo { background: #f8d7da; padding: 2px 10px; border-radius: 20px; }
+
+        /* Mini guía paso a paso */
+        .mini-guia {
+            background: #eef2fa;
+            border-radius: 12px;
+            padding: 8px 12px;
+            margin: 8px 12px;
+            font-size: 0.65rem;
+            color: #1e4668;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .mini-guia strong {
+            background: #1e4668;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.6rem;
+        }
+
         .paneles {
             display: flex;
             gap: 20px;
@@ -91,12 +154,10 @@
             border-left: 3px solid #2c7da0;
         }
 
-        /* Interés alcista - fondo verde */
         .tabla-empresas tr.interes-alcista {
             background-color: #d4edda;
         }
 
-        /* Exclusión - fondo rojo */
         .tabla-empresas tr.exclusion {
             background-color: #f8d7da;
         }
@@ -157,7 +218,6 @@
             border-bottom: 1px solid #e9ecef;
         }
 
-        /* Colores para patrones de interés alcista */
         .patron-1, .patron-6 {
             background-color: #d4edda;
         }
@@ -167,7 +227,6 @@
         .patron-3, .patron-5 {
             background-color: #ffe2d6;
         }
-        /* Color para exclusión */
         .patron-exclusion {
             background-color: #f8d7da;
         }
@@ -338,7 +397,6 @@
             opacity: 1;
         }
 
-        /* Panel explicativo ocultable */
         .panel-explicativo {
             background: white;
             border-radius: 16px;
@@ -418,15 +476,13 @@
             color: #6c86a3;
         }
 
-        /* Disclaimer */
         .disclaimer {
-            font-size: 0.6rem;
+            font-size: 0.55rem;
             color: #8ba0bc;
             text-align: center;
-            padding: 12px 20px;
+            padding: 8px 12px;
             background: #f8f9fa;
-            border-radius: 12px;
-            border: 1px solid #e9ecef;
+            border-radius: 10px;
             line-height: 1.4;
         }
 
@@ -451,6 +507,10 @@
             .resultado-sim {
                 text-align: left;
             }
+            .leyenda-colores {
+                font-size: 0.55rem;
+                gap: 8px;
+            }
         }
     </style>
 <!-- Google tag (gtag.js) -->
@@ -459,21 +519,33 @@
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-
   gtag('config', 'G-LVV061GCPF');
 </script>
 
-    
 </head>
 <body>
 <div class="container">
+    <!-- TÍTULO PRINCIPAL -->
+    <div class="titulo-principal">
+        <h1>📊 Analizador Técnico IBEX35</h1>
+        <p>Herramienta de backtesting para ver cómo se comportan los precios después de ciertos patrones técnicos</p>
+    </div>
+
+    <!-- LEYENDA DE COLORES SIEMPRE VISIBLE -->
+    <div class="leyenda-colores">
+        <span class="verde">🟢 Señal de interés</span>
+        <span class="amarillo">🟡 Señal anticipada</span>
+        <span class="naranja">🟠 Rebote corto</span>
+        <span class="rojo">🔴 Exclusión (evitar)</span>
+    </div>
+
     <div class="paneles">
         <div class="panel-izquierdo">
             <h2 style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px;">📋 TODAS LAS EMPRESAS <span style="font-size: 0.6rem; font-weight: normal; color: #a8c4d8;">% ganancias desde última entrada</span></h2>     
             <div class="tabla-empresas-wrapper">
                 <table class="tabla-empresas" id="tablaEmpresas">
                     <thead>
-                        <tr><th>Empresa</th><th>Precio</th><th>Fecha</th><th>Últ. patrón</th><th>Precio patrón</th><th>Subida</th><th>PW</th></tr>
+                        <tr><th>Empresa</th><th>Precio</th><th>Fecha</th><th>Últ. patrón</th><th>Precio patrón</th><th>Rentabilidad</th><th>PW</th></tr>
                     </thead>
                     <tbody id="empresasBody"><tr><td colspan="7" class="loading">Cargando datos......</td></tr>
                     </tbody>
@@ -485,10 +557,17 @@
             <h2 id="tituloEmpresa">📊 Selecciona una empresa</h2>
             <div class="historial-wrapper">
                 <table class="tabla-historial" id="tablaHistorial">
-                    <thead><tr><th>Fecha</th><th>Precio</th><th>Patrón</th><th>PW 4h</th><th>PW diario</th><th>Pendiente PW</th><th>Soportes</th><th>Resistencias</th></tr></thead>
+                    <thead><tr><th>Fecha</th><th>Precio</th><th>Patrón</th><th>PW 4h</th><th>PW diario</th><th>Pendiente</th><th>Soportes</th><th>Resistencias</th></tr></thead>
                     <tbody id="historialBody"><tr><td colspan="8" class="sin-datos">Selecciona una empresa del panel izquierdo</td></tr>
                     </tbody>
                 </table>
+            </div>
+            <!-- Mini guía paso a paso (aparece cuando se selecciona empresa) -->
+            <div id="miniGuia" class="mini-guia" style="display: none;">
+                <strong>📌 CÓMO USAR</strong>
+                <span>1️⃣ Haz clic en un <strong>precio</strong> → punto de entrada</span>
+                <span>2️⃣ Haz clic en otro <strong>precio más reciente</strong> → punto de salida</span>
+                <span>3️⃣ Ajusta el capital y pulsa <strong>Calcular</strong></span>
             </div>
             <div class="simulador" id="simuladorPanel" style="display: none;">
                 <div class="simulador-info">
@@ -501,7 +580,7 @@
                     <input type="number" id="capitalInput" value="10000" step="1000">
                     <span style="font-size:0.7rem;">€</span>
                 </div>
-                <button class="btn-calcular" id="btnCalcular">📈 Calcular resultado hipotético</button>
+                <button class="btn-calcular" id="btnCalcular">📈 Calcular resultado</button>
                 <div class="resultado-sim" id="resultadoSimulacion"></div>
             </div>
         </div>
@@ -510,19 +589,19 @@
     <!-- Panel Explicativo Ocultable -->
     <div class="panel-explicativo">
         <div class="explicativo-header" id="toggleExplicativo">
-            <h4>📘 GUÍA DEL SISTEMA DE ANÁLISIS</h4>
+            <h4>📘 GUÍA COMPLETA DEL SISTEMA</h4>
             <span class="toggle-icon" id="toggleIcon">▼</span>
         </div>
         <div class="explicativo-contenido" id="explicativoContenido">
             <p>
                 <strong>Panel izquierdo:</strong> Vista general de todas las empresas. Las filas con <span style="background:#d4edda; padding:2px 6px; border-radius:4px;">fondo verde</span> indican que actualmente se ha detectado un patrón de interés (tipos 1,2,3,6,7). 
                 La columna <strong>"Últ. patrón"</strong> muestra la fecha del último patrón detectado y el <strong>"Precio patrón"</strong> es el precio más bajo alcanzado durante ese ciclo. 
-                La <strong>"Subida"</strong> calcula la evolución desde ese precio hasta el actual.
+                La <strong>"Rentabilidad"</strong> calcula la evolución desde ese precio hasta el actual.
             </p>
             <p>
                 <strong>Panel derecho:</strong> Al hacer clic en cualquier empresa, se muestra su historial completo ordenado de más reciente a más antiguo. 
                 Las filas se colorean según el tipo de patrón. Para simular una operación hipotética, <strong>haz clic en un precio</strong> (columna Precio) para marcar el punto de entrada, y luego en otro precio más reciente para marcar el punto de salida. 
-                Ajusta el capital simulado (por defecto 10.000€) y pulsa <strong>"Calcular resultado hipotético"</strong> para ver el resultado neto (incluye simulación de comisiones: 11€ + 0,4% por operación).
+                Ajusta el capital simulado (por defecto 10.000€) y pulsa <strong>"Calcular resultado"</strong> para ver el resultado neto (incluye simulación de comisiones: 11€ + 0,4% por operación).
             </p>
             <div class="grid-explicativo">
                 <div class="item-explicativo">
@@ -545,12 +624,9 @@
         </div>
     </div>
 
-    <!-- DISCLAIMER LEGAL -->
+    <!-- DISCLAIMER LEGAL (VERSIÓN MÁS AMIGABLE) -->
     <div class="disclaimer">
-        ⚠️ <strong>NOTA INFORMATIVA:</strong> Esta herramienta muestra análisis técnico y patrones estadísticos con fines estrictamente educativos y de backtesting. 
-        Nada de lo aquí contenido constituye una recomendación de inversión, asesoramiento financiero, ni invitación a comprar o vender activos. 
-        Los resultados pasados no garantizan rentabilidades futuras. Cualquier decisión de inversión es responsabilidad exclusiva del usuario. 
-        Consulte siempre con un asesor financiero autorizado antes de realizar cualquier operación en los mercados.
+        ⚠️ <strong>Herramienta educativa</strong> · Los patrones mostrados son análisis estadístico, no recomendaciones de inversión. Los resultados pasados no garantizan rentabilidades futuras.
     </div>
 </div>
 
@@ -570,12 +646,10 @@
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtsd2NsZXRwcXFzYWJ0ZGFubGR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4MDg2NTEsImV4cCI6MjA5MjM4NDY1MX0.nbs0tYbFOL-I8qIkgB7Ub_jcOwHTdzg0EcAp1DS6sCU";
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // Patrones de interés (antes "casos de compra")
     const PATRONES_INTERES = [1, 2, 3, 6, 7];
     const PATRONES_ANTICIPADOS = [2, 7];
     const PATRONES_RIESGO = [3, 5];
 
-    // Condición de exclusión: PW diario > 50 y pendiente negativa
     const CONDICION_EXCLUSION = (pwDiario, pendiente) => {
         return pwDiario !== null && pendiente !== null && pwDiario > 50 && pendiente < 0;
     };
@@ -764,7 +838,7 @@
                 <td>${precioUltPatron}</td>
                 <td class="${subidaClass}">${subidaText}</td>
                 <td>${pwText}</td>
-              </tr>`;
+            </td>`;
         }
         tbody.innerHTML = html;
     }
@@ -796,6 +870,10 @@
         document.getElementById('resultadoSimulacion').innerHTML = '';
         document.getElementById('accionesInfo').innerHTML = '---';
         document.getElementById('simuladorPanel').style.display = 'flex';
+        
+        // Mostrar mini guía
+        const miniGuia = document.getElementById('miniGuia');
+        if (miniGuia) miniGuia.style.display = 'flex';
     }
 
     function actualizarAccionesInfo() {
