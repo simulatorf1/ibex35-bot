@@ -323,50 +323,46 @@
     // ============================================
     const SUPABASE_URL = "https://klwcletpqqsabtdanldx.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtsd2NsZXRwcXFzYWJ0ZGFubGR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4MDg2NTEsImV4cCI6MjA5MjM4NDY1MX0.nbs0tYbFOL-I8qIkgB7Ub_jcOwHTdzg0EcAp1DS6sCU";
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    
     // Casos de compra real
     const CASOS_COMPRA = [1, 6];
     const CASOS_ESPERA = [2, 7];
     const CASOS_RIESGO = [3, 5];
-
+    
     // Variables globales
-    let todasLasEmpresas = [];          // Array con todas las empresas (último registro + metadatos)
-    let historialActual = [];            // Historial de la empresa seleccionada
+    let todasLasEmpresas = [];
+    let historialActual = [];
     let tickerSeleccionado = null;
-    let compraSeleccionada = null;       // { idx, precio, fecha }
-    let ventaSeleccionada = null;        // { idx, precio, fecha }
+    let compraSeleccionada = null;
+    let ventaSeleccionada = null;
     let filaCompraIndex = -1;
     let filaVentaIndex = -1;
-
+    
     // ============================================
     // 1. CARGAR TODAS LAS EMPRESAS (panel izquierdo)
     // ============================================
     async function cargarEmpresas() {
         try {
-            // Obtener todos los registros ordenados por fecha ASC para poder procesar ciclos
-            const { data, error } = await supabase
+            const { data, error } = await supabaseClient
                 .from('recomendaciones_ibex')
                 .select('*')
                 .order('fecha', { ascending: true });
-
+    
             if (error) throw error;
             if (!data || data.length === 0) {
                 document.getElementById('empresasBody').innerHTML = '<tr><td colspan="8" class="sin-datos">No hay datos</td></tr>';
                 return;
             }
-
-            // Agrupar por ticker
+    
             const porTicker = new Map();
             for (const reg of data) {
                 if (!porTicker.has(reg.ticker)) porTicker.set(reg.ticker, []);
                 porTicker.get(reg.ticker).push(reg);
             }
-
-            // Procesar cada empresa
+    
             const empresas = [];
             for (let [ticker, registros] of porTicker.entries()) {
-                // Ordenar por fecha ASC (más antiguo a más reciente)
                 registros.sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
                 
                 const ultimo = registros[registros.length - 1];
@@ -375,11 +371,8 @@
                 const fechaActual = ultimo.fecha;
                 const smiDiarioActual = ultimo.smi_diario;
                 const pendiente = ultimo.pendiente_diaria;
-                
-                // Determinar si está en compra ahora
                 const estaEnCompra = CASOS_COMPRA.includes(ultimo.caso_numero);
                 
-                // Calcular última compra (ciclo completo o actual)
                 let ultimaCompraInfo = calcularUltimaCompra(registros, estaEnCompra);
                 
                 let subida = null;
@@ -387,7 +380,6 @@
                     subida = ((precioActual - ultimaCompraInfo.precioCompra) / ultimaCompraInfo.precioCompra) * 100;
                 }
                 
-                // Tendencia
                 let tendencia = 'Espera';
                 let tendenciaClase = 'tendencia-espera';
                 if (pendiente !== null && pendiente !== undefined) {
@@ -415,7 +407,6 @@
                 });
             }
             
-            // Ordenar alfabéticamente por nombre
             empresas.sort((a,b) => a.nombre.localeCompare(b.nombre));
             todasLasEmpresas = empresas;
             renderizarPanelIzquierdo(empresas);
@@ -425,36 +416,28 @@
             document.getElementById('empresasBody').innerHTML = '<tr><td colspan="8" class="sin-datos">Error al cargar</td></tr>';
         }
     }
-
-    // Calcular la última compra (ciclo completo o actual)
+    
     function calcularUltimaCompra(registros, estaEnCompraActual) {
-        // Buscar de atrás hacia adelante el último ciclo de compra
         let cicloCompra = null;
         let enCiclo = false;
         let precioMinimoCiclo = null;
         let fechaInicioCiclo = null;
         
-        // Recorremos de atrás hacia adelante (del más reciente al más antiguo)
         for (let i = registros.length - 1; i >= 0; i--) {
             const reg = registros[i];
             const esCompra = CASOS_COMPRA.includes(reg.caso_numero);
             
             if (!enCiclo && esCompra) {
-                // Inicio de un ciclo de compra (desde atrás)
                 enCiclo = true;
                 precioMinimoCiclo = reg.precio_cierre;
                 fechaInicioCiclo = reg.fecha;
             } else if (enCiclo && !esCompra) {
-                // Terminó el ciclo de compra (encontramos una fila sin compra)
-                // Si estamos en compra actual, el ciclo aún no ha terminado
                 if (estaEnCompraActual && i === registros.length - 1) {
-                    // Sigue abierto
                     break;
                 }
                 enCiclo = false;
                 break;
             } else if (enCiclo && esCompra) {
-                // Actualizar mínimo precio dentro del ciclo
                 if (reg.precio_cierre < precioMinimoCiclo) {
                     precioMinimoCiclo = reg.precio_cierre;
                     fechaInicioCiclo = reg.fecha;
@@ -470,10 +453,8 @@
             };
         }
         
-        // Si no encontramos ciclo, buscar la última compra histórica (ciclo cerrado)
         for (let i = registros.length - 1; i >= 0; i--) {
             if (CASOS_COMPRA.includes(registros[i].caso_numero)) {
-                // Encontrar el mínimo de ese ciclo hacia atrás
                 let minPrecio = registros[i].precio_cierre;
                 let fechaMin = registros[i].fecha;
                 let j = i;
@@ -494,7 +475,7 @@
         
         return null;
     }
-
+    
     function renderizarPanelIzquierdo(empresas) {
         const tbody = document.getElementById('empresasBody');
         if (!empresas.length) {
@@ -528,14 +509,10 @@
         }
         tbody.innerHTML = html;
     }
-
-    // ============================================
-    // 2. SELECCIONAR EMPRESA (cargar historial)
-    // ============================================
+    
     async function seleccionarEmpresa(ticker) {
         tickerSeleccionado = ticker;
         
-        // Actualizar estilo de selección en la tabla izquierda
         document.querySelectorAll('#empresasBody tr').forEach(row => {
             row.classList.remove('seleccionada');
             if (row.getAttribute('data-ticker') === ticker) {
@@ -543,20 +520,16 @@
             }
         });
         
-        // Buscar la empresa en todasLasEmpresas
         const empresa = todasLasEmpresas.find(e => e.ticker === ticker);
         if (!empresa) return;
         
         document.getElementById('tituloEmpresa').innerHTML = `📊 ${empresa.nombre} (${ticker})`;
         
-        // Cargar historial
         historialActual = [...empresa.registros];
-        // Ordenar: más reciente ARRIBA
         historialActual.sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
         
         renderizarPanelDerecho(historialActual);
         
-        // Resetear selecciones de compra/venta
         compraSeleccionada = null;
         ventaSeleccionada = null;
         filaCompraIndex = -1;
@@ -590,7 +563,6 @@
             const smiDiario = reg.smi_diario !== null ? reg.smi_diario.toFixed(1) : '---';
             const pendiente = reg.pendiente_diaria !== null ? reg.pendiente_diaria.toFixed(1) : '---';
             
-            // Soporte y resistencia (tomar primer nivel o mostrar texto)
             let soporteText = '---';
             let resistenciaText = '---';
             if (reg.soportes) {
@@ -620,7 +592,6 @@
         }
         tbody.innerHTML = html;
         
-        // Añadir event listeners a las celdas de precio
         document.querySelectorAll('#tablaHistorial td.precio-clickeable').forEach(cell => {
             cell.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -633,9 +604,7 @@
     }
     
     function seleccionarPrecio(idx, precio, fecha) {
-        // Si no hay compra seleccionada, o si ya hay compra y venta, reiniciamos
         if (compraSeleccionada === null) {
-            // Primera selección: COMPRA
             compraSeleccionada = { idx, precio, fecha };
             filaCompraIndex = idx;
             document.getElementById('compraSeleccionada').innerHTML = `${new Date(fecha).toLocaleString('es-ES')} · ${precio.toFixed(2)}€`;
@@ -644,7 +613,6 @@
             filaVentaIndex = -1;
             document.getElementById('resultadoSimulacion').innerHTML = '';
         } else if (ventaSeleccionada === null) {
-            // Segunda selección: VENTA (debe ser una fila más RECIENTE que la compra, es decir, índice menor porque está ordenado descendente)
             if (idx >= filaCompraIndex) {
                 alert('❌ La venta debe seleccionarse en una fila MÁS RECIENTE (por encima de la compra)');
                 return;
@@ -653,7 +621,6 @@
             filaVentaIndex = idx;
             document.getElementById('ventaSeleccionada').innerHTML = `${new Date(fecha).toLocaleString('es-ES')} · ${precio.toFixed(2)}€`;
         } else {
-            // Ya hay compra y venta, reiniciamos y empezamos de nuevo
             compraSeleccionada = { idx, precio, fecha };
             filaCompraIndex = idx;
             ventaSeleccionada = null;
@@ -663,13 +630,9 @@
             document.getElementById('resultadoSimulacion').innerHTML = '';
         }
         
-        // Re-renderizar para mostrar los estilos de selección
         renderizarPanelDerecho(historialActual);
     }
     
-    // ============================================
-    // 3. CALCULAR RESULTADO
-    // ============================================
     function calcularResultado() {
         if (!compraSeleccionada || !ventaSeleccionada) {
             alert('❌ Debes seleccionar una COMPRA y una VENTA');
@@ -678,10 +641,9 @@
         
         const precioCompra = compraSeleccionada.precio;
         const precioVenta = ventaSeleccionada.precio;
-        const acciones = Math.floor(10000 / precioCompra); // Simulamos con 10.000€ fijos
+        const acciones = Math.floor(10000 / precioCompra);
         const dineroInvertido = acciones * precioCompra;
         
-        // Comisiones: 11€ + 0.4% por operación
         const comisionCompra = 11 + (dineroInvertido * 0.004);
         const comisionVenta = 11 + (precioVenta * acciones * 0.004);
         const comisionesTotales = comisionCompra + comisionVenta;
@@ -695,12 +657,8 @@
         resultadoDiv.innerHTML = `<span class="${resultadoClass}">${resultadoNeto >= 0 ? '+' : ''}${resultadoNeto.toFixed(2)}€ (${rentabilidadPorcentaje >= 0 ? '+' : ''}${rentabilidadPorcentaje.toFixed(2)}%)</span>`;
     }
     
-    // ============================================
-    // 4. INICIALIZAR
-    // ============================================
     document.getElementById('btnCalcular').addEventListener('click', calcularResultado);
     
-    // Hacer funciones globales para el onclick del HTML
     window.seleccionarEmpresa = seleccionarEmpresa;
     
     cargarEmpresas();
