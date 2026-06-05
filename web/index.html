@@ -91,8 +91,14 @@
             border-left: 3px solid #2c7da0;
         }
 
+        /* Compra - fondo verde */
         .tabla-empresas tr.en-compra {
             background-color: #d4edda;
+        }
+
+        /* Venta / Exclusión - fondo rojo */
+        .tabla-empresas tr.en-venta {
+            background-color: #f8d7da;
         }
 
         .positivo {
@@ -151,6 +157,7 @@
             border-bottom: 1px solid #e9ecef;
         }
 
+        /* Colores para casos de compra */
         .caso-1, .caso-6 {
             background-color: #d4edda;
         }
@@ -159,6 +166,10 @@
         }
         .caso-3, .caso-5 {
             background-color: #ffe2d6;
+        }
+        /* Color para señal de venta (exclusión) */
+        .caso-venta {
+            background-color: #f8d7da;
         }
 
         .precio-clickeable {
@@ -436,7 +447,7 @@
                     <thead>
                         <tr><th>Empresa</th><th>Precio</th><th>Fecha</th><th>Últ. compra</th><th>Precio compra</th><th>Subida</th><th>PW</th></tr>
                     </thead>
-                    <tbody id="empresasBody"><tr><td colspan="8" class="loading">Cargando empresas......</td></tr>
+                    <tbody id="empresasBody"><tr><td colspan="7" class="loading">Cargando empresas...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -492,7 +503,11 @@
                 </div>
                 <div class="item-explicativo">
                     <strong>🟢 Casos de compra</strong>
-                    <span>🔴 Caso 1+6: Compra inmediata | 🟡 Caso 2+7: Compra anticipada/pre-compra | ⚫ Caso 3: Rebote corto plazo | 🔴 Caso 5: Agotamiento (riesgo). Pasa el ratón sobre cualquier número de caso para ver la descripción completa.</span>
+                    <span>🔴 Caso 1+6: Compra inmediata | 🟡 Caso 2+7: Compra anticipada/pre-compra | ⚫ Caso 3: Rebote | 🔴 Caso 5: Riesgo. Pasa el ratón sobre cualquier número de caso para ver la descripción completa.</span>
+                </div>
+                <div class="item-explicativo">
+                    <strong>🔴 Señal de exclusión (VENTA)</strong>
+                    <span>Cuando el PW supera +50 y la pendiente es negativa, la acción se colorea en rojo. Mantenerse alejado de esta acción hasta que los indicadores se relajen.</span>
                 </div>
                 <div class="item-explicativo">
                     <strong>📊 Simulación manual</strong>
@@ -523,6 +538,11 @@
     const CASOS_ESPERA = [2, 7];
     const CASOS_RIESGO = [3, 5];
 
+    // Condición de venta (exclusión): PW diario > 50 y pendiente negativa
+    const CONDICION_VENTA = (pwDiario, pendiente) => {
+        return pwDiario !== null && pendiente !== null && pwDiario > 50 && pendiente < 0;
+    };
+
     let todasLasEmpresas = [];
     let historialActual = [];
     let tickerSeleccionado = null;
@@ -534,8 +554,8 @@
     function getNombreCaso(caso) {
         const nombres = {
             1: "🔴 COMPRA INMEDIATA",
-            2: "🟡 COMPRA ANTICIPADA (con riesgo)",
-            3: "⚫ REBOTE CORTO PLAZO (riesgo)",
+            2: "🟡 COMPRA RIESGO",
+            3: "⚫ REBOTE",
             4: "⚪ COMPRA YA CONSOLIDADA",
             5: "🔴 AGOTAMIENTO (última subida)",
             6: "🟢 COMPRA INMEDIATA (señal directa)",
@@ -580,7 +600,7 @@
             const data = await traerTodosLosRegistros();
             
             if (!data || data.length === 0) {
-                document.getElementById('empresasBody').innerHTML = '<td><td colspan="8" class="sin-datos">No hay datos</td></tr>';
+                document.getElementById('empresasBody').innerHTML = '<tr><td colspan="7" class="sin-datos">No hay datos</td></tr>';
                 return;
             }
 
@@ -623,7 +643,7 @@
                 
                 empresas.push({
                     ticker, nombre, precioActual, fechaActual, estaEnCompra,
-                    ultimaCompraInfo, subida, pwDiarioActual, tendencia, tendenciaClase, registros,
+                    ultimaCompraInfo, subida, pwDiarioActual, pendiente, tendencia, tendenciaClase, registros,
                     ultimoCaso: ultimo.caso_numero
                 });
             }
@@ -634,7 +654,7 @@
             
         } catch (err) {
             console.error(err);
-            document.getElementById('empresasBody').innerHTML = '<tr><td colspan="8" class="sin-datos">Error al cargar</td></tr>';
+            document.getElementById('empresasBody').innerHTML = '<tr><td colspan="7" class="sin-datos">Error al cargar</td></tr>';
         }
     }
 
@@ -688,7 +708,7 @@
     function renderizarPanelIzquierdo(empresas) {
         const tbody = document.getElementById('empresasBody');
         if (!empresas.length) {
-            tbody.innerHTML = '<tr><td colspan="8" class="sin-datos">No hay empresas</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="sin-datos">No hay empresas</td></tr>';
             return;
         }
         
@@ -703,7 +723,12 @@
             const fechaText = emp.fechaActual ? new Date(emp.fechaActual).toLocaleString('es-ES') : '---';
             
             const tieneAlgunaSeñal = emp.ultimoCaso && CASOS_COMPRA.includes(emp.ultimoCaso);
-            const filaClass = tieneAlgunaSeñal ? 'en-compra' : '';
+            const esVenta = CONDICION_VENTA(emp.pwDiarioActual, emp.pendiente);
+            
+            let filaClass = '';
+            if (esVenta) filaClass = 'en-venta';
+            else if (tieneAlgunaSeñal) filaClass = 'en-compra';
+            
             const seleccionadaClass = tickerSeleccionado === emp.ticker ? 'seleccionada' : '';
             
             html += `<tr class="${filaClass} ${seleccionadaClass}" data-ticker="${emp.ticker}" onclick="seleccionarEmpresa('${emp.ticker}')">
@@ -714,8 +739,7 @@
                 <td>${precioUltCompra}</td>
                 <td class="${subidaClass}">${subidaText}</td>
                 <td>${pwText}</td>
-                
-            </tr>`;
+             </tr>`;
         }
         tbody.innerHTML = html;
     }
@@ -783,6 +807,10 @@
             if (CASOS_COMPRA.includes(reg.caso_numero)) casoClass = 'caso-1';
             else if (CASOS_ESPERA.includes(reg.caso_numero)) casoClass = 'caso-2';
             else if (CASOS_RIESGO.includes(reg.caso_numero)) casoClass = 'caso-3';
+            
+            // Condición de venta (sobrecompra + pendiente negativa)
+            const esVenta = CONDICION_VENTA(reg.smi_diario, reg.pendiente_diaria);
+            if (esVenta) casoClass = 'caso-venta';
             
             const pw4h = reg.smi_4h !== null ? reg.smi_4h.toFixed(1) : '---';
             const pwDiario = reg.smi_diario !== null ? reg.smi_diario.toFixed(1) : '---';
