@@ -434,7 +434,7 @@
             <div class="tabla-empresas-wrapper">
                 <table class="tabla-empresas" id="tablaEmpresas">
                     <thead>
-                        <tr><th>Empresa</th><th>Precio</th><th>Fecha</th><th>Últ. compra</th><th>Precio compra</th><th>Subida</th><th>PW</th><th>Tend.</th></tr>
+                        <tr><th>Empresa</th><th>Precio</th><th>Fecha</th><th>Últ. compra</th><th>Precio compra</th><th>Subida</th><th>PW</th></tr>
                     </thead>
                     <tbody id="empresasBody"><tr><td colspan="8" class="loading">Cargando empresas......</td></tr>
                     </tbody>
@@ -714,7 +714,7 @@
                 <td>${precioUltCompra}</td>
                 <td class="${subidaClass}">${subidaText}</td>
                 <td>${pwText}</td>
-                <td><span class="badge-tendencia ${emp.tendenciaClase}">${emp.tendencia}</span></td>
+                
             </tr>`;
         }
         tbody.innerHTML = html;
