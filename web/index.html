@@ -327,32 +327,61 @@
             opacity: 1;
         }
 
+        /* Panel explicativo ocultable */
         .panel-explicativo {
             background: white;
             border-radius: 16px;
-            padding: 16px 24px;
-            margin-top: 0;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             border: 1px solid #e9ecef;
+            overflow: hidden;
         }
 
-        .panel-explicativo h4 {
+        .explicativo-header {
+            padding: 12px 20px;
+            background: #f8f9fa;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+            transition: background 0.2s;
+        }
+
+        .explicativo-header:hover {
+            background: #eef2fa;
+        }
+
+        .explicativo-header h4 {
             color: #1e4668;
-            font-size: 0.85rem;
-            margin-bottom: 12px;
+            font-size: 0.8rem;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .panel-explicativo p {
+        .explicativo-header .toggle-icon {
+            font-size: 0.7rem;
+            color: #8ba0bc;
+            transition: transform 0.2s;
+        }
+
+        .explicativo-contenido {
+            padding: 0 20px 20px 20px;
+            display: none;
+        }
+
+        .explicativo-contenido.abierto {
+            display: block;
+        }
+
+        .explicativo-contenido p {
             font-size: 0.7rem;
             color: #4a627a;
             line-height: 1.5;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
 
-        .panel-explicativo .grid-explicativo {
+        .explicativo-contenido .grid-explicativo {
             display: flex;
             flex-wrap: wrap;
             gap: 20px;
@@ -361,19 +390,19 @@
             padding-top: 12px;
         }
 
-        .panel-explicativo .item-explicativo {
+        .explicativo-contenido .item-explicativo {
             flex: 1;
             min-width: 150px;
         }
 
-        .panel-explicativo .item-explicativo strong {
+        .explicativo-contenido .item-explicativo strong {
             font-size: 0.7rem;
             color: #1e4668;
             display: block;
             margin-bottom: 4px;
         }
 
-        .panel-explicativo .item-explicativo span {
+        .explicativo-contenido .item-explicativo span {
             font-size: 0.65rem;
             color: #6c86a3;
         }
@@ -407,7 +436,7 @@
                     <thead>
                         <tr><th>Empresa</th><th>Precio</th><th>Fecha</th><th>Últ. compra</th><th>Precio compra</th><th>Subida</th><th>PW</th><th>Tend.</th></tr>
                     </thead>
-                    <tbody id="empresasBody"><tr><td colspan="8" class="loading">Cargando empresas...</td></tr>
+                    <tbody id="empresasBody"><tr><td colspan="8" class="loading">Cargando empresas......</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -418,7 +447,7 @@
             <div class="historial-wrapper">
                 <table class="tabla-historial" id="tablaHistorial">
                     <thead><tr><th>Fecha</th><th>Precio</th><th>Caso</th><th>PW 4h</th><th>PW diario</th><th>Pendiente PW</th><th>Soportes</th><th>Resistencias</th></tr></thead>
-                    <tbody id="historialBody"><td><td colspan="8" class="sin-datos">Selecciona una empresa del panel izquierdo</td></tr>
+                    <tbody id="historialBody"><tr><td colspan="8" class="sin-datos">Selecciona una empresa del panel izquierdo</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -439,31 +468,36 @@
         </div>
     </div>
 
-    <!-- Panel Explicativo -->
+    <!-- Panel Explicativo Ocultable -->
     <div class="panel-explicativo">
-        <h4>📘 GUÍA RÁPIDA DEL PANEL</h4>
-        <p>
-            <strong>Panel izquierdo:</strong> Vista general de todas las empresas. Las filas con <span style="background:#d4edda; padding:2px 6px; border-radius:4px;">fondo verde</span> indican que actualmente hay una señal de compra activa (casos 1,2,3,6,7). 
-            La columna <strong>"Últ. compra"</strong> muestra la fecha del último ciclo de compra y el <strong>"Precio compra"</strong> es el precio más bajo alcanzado durante ese ciclo. 
-            La <strong>"Subida"</strong> calcula la rentabilidad desde ese precio hasta el actual.
-        </p>
-        <p>
-            <strong>Panel derecho:</strong> Al hacer clic en cualquier empresa, se muestra su historial completo ordenado de más reciente a más antiguo. 
-            Las filas se colorean según el tipo de señal. Para simular una operación, <strong>haz clic en un precio</strong> (columna Precio) para marcar la COMPRA, y luego en otro precio más reciente para marcar la VENTA. 
-            Ajusta el capital a invertir (por defecto 10.000€) y pulsa <strong>"Calcular resultado"</strong> para ver la ganancia/pérdida neta (comisiones incluidas: 11€ + 0,4% por operación).
-        </p>
-        <div class="grid-explicativo">
-            <div class="item-explicativo">
-                <strong>🎯 ¿Qué es el PW?</strong>
-                <span>El PW (Price Wave) es un indicador patentado que oscila entre -100 y +100. Valores por debajo de -40 indican sobreventa (potencial rebote), valores por encima de +40 indican sobrecompra (posible agotamiento). La pendiente del PW nos indica la dirección: positiva → impulso alcista, negativa → impulso bajista.</span>
-            </div>
-            <div class="item-explicativo">
-                <strong>🟢 Casos de compra</strong>
-                <span>🔴 Caso 1+6: Compra inmediata | 🟡 Caso 2+7: Compra anticipada/pre-compra | ⚫ Caso 3: Rebote corto plazo | 🔴 Caso 5: Agotamiento (riesgo). Pasa el ratón sobre cualquier número de caso para ver la descripción completa.</span>
-            </div>
-            <div class="item-explicativo">
-                <strong>📊 Simulación manual</strong>
-                <span>Selecciona cualquier par compra/venta para backtestear tu estrategia. El cálculo incluye comisiones realistas. No se guardan datos, es solo para análisis personal.</span>
+        <div class="explicativo-header" id="toggleExplicativo">
+            <h4>📘 GUÍA RÁPIDA DEL PANEL</h4>
+            <span class="toggle-icon" id="toggleIcon">▼</span>
+        </div>
+        <div class="explicativo-contenido" id="explicativoContenido">
+            <p>
+                <strong>Panel izquierdo:</strong> Vista general de todas las empresas. Las filas con <span style="background:#d4edda; padding:2px 6px; border-radius:4px;">fondo verde</span> indican que actualmente hay una señal de compra activa (casos 1,2,3,6,7). 
+                La columna <strong>"Últ. compra"</strong> muestra la fecha del último ciclo de compra y el <strong>"Precio compra"</strong> es el precio más bajo alcanzado durante ese ciclo. 
+                La <strong>"Subida"</strong> calcula la rentabilidad desde ese precio hasta el actual.
+            </p>
+            <p>
+                <strong>Panel derecho:</strong> Al hacer clic en cualquier empresa, se muestra su historial completo ordenado de más reciente a más antiguo. 
+                Las filas se colorean según el tipo de señal. Para simular una operación, <strong>haz clic en un precio</strong> (columna Precio) para marcar la COMPRA, y luego en otro precio más reciente para marcar la VENTA. 
+                Ajusta el capital a invertir (por defecto 10.000€) y pulsa <strong>"Calcular resultado"</strong> para ver la ganancia/pérdida neta (comisiones incluidas: 11€ + 0,4% por operación).
+            </p>
+            <div class="grid-explicativo">
+                <div class="item-explicativo">
+                    <strong>🎯 ¿Qué es el PW?</strong>
+                    <span>El PW (Price Wave) es un indicador patentado que oscila entre -100 y +100. Valores por debajo de -40 indican sobreventa (potencial rebote), valores por encima de +40 indican sobrecompra (posible agotamiento). La pendiente del PW nos indica la dirección: positiva → impulso alcista, negativa → impulso bajista.</span>
+                </div>
+                <div class="item-explicativo">
+                    <strong>🟢 Casos de compra</strong>
+                    <span>🔴 Caso 1+6: Compra inmediata | 🟡 Caso 2+7: Compra anticipada/pre-compra | ⚫ Caso 3: Rebote corto plazo | 🔴 Caso 5: Agotamiento (riesgo). Pasa el ratón sobre cualquier número de caso para ver la descripción completa.</span>
+                </div>
+                <div class="item-explicativo">
+                    <strong>📊 Simulación manual</strong>
+                    <span>Selecciona cualquier par compra/venta para backtestear tu estrategia. El cálculo incluye comisiones realistas. No se guardan datos, es solo para análisis personal.</span>
+                </div>
             </div>
         </div>
     </div>
@@ -471,6 +505,16 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+    // Toggle para la guía explicativa
+    const toggleBtn = document.getElementById('toggleExplicativo');
+    const contenido = document.getElementById('explicativoContenido');
+    const icon = document.getElementById('toggleIcon');
+
+    toggleBtn.addEventListener('click', () => {
+        contenido.classList.toggle('abierto');
+        icon.textContent = contenido.classList.contains('abierto') ? '▲' : '▼';
+    });
+
     const SUPABASE_URL = "https://klwcletpqqsabtdanldx.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtsd2NsZXRwcXFzYWJ0ZGFubGR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4MDg2NTEsImV4cCI6MjA5MjM4NDY1MX0.nbs0tYbFOL-I8qIkgB7Ub_jcOwHTdzg0EcAp1DS6sCU";
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -536,7 +580,7 @@
             const data = await traerTodosLosRegistros();
             
             if (!data || data.length === 0) {
-                document.getElementById('empresasBody').innerHTML = '<tr><td colspan="8" class="sin-datos">No hay datos</td></tr>';
+                document.getElementById('empresasBody').innerHTML = '<td><td colspan="8" class="sin-datos">No hay datos</td></tr>';
                 return;
             }
 
@@ -644,7 +688,7 @@
     function renderizarPanelIzquierdo(empresas) {
         const tbody = document.getElementById('empresasBody');
         if (!empresas.length) {
-            tbody.innerHTML = '<td><td colspan="8" class="sin-datos">No hay empresas</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" class="sin-datos">No hay empresas</td></tr>';
             return;
         }
         
@@ -671,7 +715,7 @@
                 <td class="${subidaClass}">${subidaText}</td>
                 <td>${pwText}</td>
                 <td><span class="badge-tendencia ${emp.tendenciaClase}">${emp.tendencia}</span></td>
-             </tr>`;
+            </tr>`;
         }
         tbody.innerHTML = html;
     }
@@ -769,7 +813,7 @@
                 <td>${pendiente}</td>
                 <td style="font-size:0.65rem; max-width:120px;">${soporteText}</td>
                 <td style="font-size:0.65rem; max-width:120px;">${resistenciaText}</td>
-             </tr>`;
+            </tr>`;
         }
         tbody.innerHTML = html;
         
