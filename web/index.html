@@ -380,7 +380,8 @@
                 
                 empresas.push({
                     ticker, nombre, precioActual, fechaActual, estaEnCompra,
-                    ultimaCompraInfo, subida, smiDiarioActual, tendencia, tendenciaClase, registros
+                    ultimaCompraInfo, subida, smiDiarioActual, tendencia, tendenciaClase, registros,
+                    ultimoCaso: ultimo.caso_numero
                 });
             }
             
@@ -458,7 +459,8 @@
             const precioText = emp.precioActual ? emp.precioActual.toFixed(2) + '€' : '---';
             const fechaText = emp.fechaActual ? new Date(emp.fechaActual).toLocaleString('es-ES') : '---';
             
-            const filaClass = emp.estaEnCompra ? 'en-compra' : '';
+            const tieneAlgunaSeñal = emp.ultimoCaso && emp.ultimoCaso !== 4 && emp.ultimoCaso !== null;
+            const filaClass = tieneAlgunaSeñal ? 'en-compra' : '';
             const seleccionadaClass = tickerSeleccionado === emp.ticker ? 'seleccionada' : '';
             
             html += `<tr class="${filaClass} ${seleccionadaClass}" data-ticker="${emp.ticker}" onclick="seleccionarEmpresa('${emp.ticker}')">
