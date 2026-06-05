@@ -27,7 +27,6 @@
             gap: 20px;
         }
 
-        /* Panel izquierdo */
         .panel-izquierdo {
             width: 38%;
             background: white;
@@ -84,7 +83,6 @@
             border-left: 3px solid #2c7da0;
         }
 
-        /* Colores de fila según estado */
         .tabla-empresas tr.en-compra {
             background-color: #e8f5e9;
         }
@@ -99,7 +97,6 @@
             font-weight: 600;
         }
 
-        /* Panel derecho */
         .panel-derecho {
             width: 62%;
             background: white;
@@ -146,7 +143,6 @@
             border-bottom: 1px solid #e9ecef;
         }
 
-        /* Colores por caso */
         .caso-1, .caso-6 {
             background-color: #d4edda;
         }
@@ -259,57 +255,28 @@
 </head>
 <body>
 <div class="container">
-    <!-- PANEL IZQUIERDO: todas las empresas -->
     <div class="panel-izquierdo">
         <h2>📋 TODAS LAS EMPRESAS</h2>
         <div class="tabla-empresas-wrapper">
             <table class="tabla-empresas" id="tablaEmpresas">
                 <thead>
-                    <tr>
-                        <th>Empresa</th>
-                        <th>Precio</th>
-                        <th>Fecha</th>
-                        <th>Últ. compra</th>
-                        <th>Precio compra</th>
-                        <th>Subida</th>
-                        <th>SMI d</th>
-                        <th>Tend.</th>
-                    </tr>
+                    <tr><th>Empresa</th><th>Precio</th><th>Fecha</th><th>Últ. compra</th><th>Precio compra</th><th>Subida</th><th>SMI d</th><th>Tend.</th></tr>
                 </thead>
-                <tbody id="empresasBody">
-                    <tr><td colspan="8" class="loading">Cargando empresas...</td></tr>
-                </tbody>
+                <tbody id="empresasBody"><tr><td colspan="8" class="loading">Cargando empresas...</td></tr></tbody>
             </table>
         </div>
     </div>
 
-    <!-- PANEL DERECHO: historial de la empresa seleccionada -->
     <div class="panel-derecho">
         <h2 id="tituloEmpresa">📊 Selecciona una empresa</h2>
         <div class="historial-wrapper">
             <table class="tabla-historial" id="tablaHistorial">
-                <thead>
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Precio</th>
-                        <th>Caso</th>
-                        <th>SMI 4h</th>
-                        <th>SMI diario</th>
-                        <th>Pendiente</th>
-                        <th>Soportes</th>
-                        <th>Resistencias</th>
-                    </tr>
-                </thead>
-                <tbody id="historialBody">
-                    <tr><td colspan="8" class="sin-datos">Selecciona una empresa del panel izquierdo</td></tr>
-                </tbody>
+                <thead><tr><th>Fecha</th><th>Precio</th><th>Caso</th><th>SMI 4h</th><th>SMI diario</th><th>Pendiente</th><th>Soportes</th><th>Resistencias</th></tr></thead>
+                <tbody id="historialBody"><tr><td colspan="8" class="sin-datos">Selecciona una empresa del panel izquierdo</td></tr></tbody>
             </table>
         </div>
         <div class="simulador" id="simuladorPanel" style="display: none;">
-            <div class="simulador-info">
-                📌 Compra: <span id="compraSeleccionada">---</span><br>
-                📌 Venta: <span id="ventaSeleccionada">---</span>
-            </div>
+            <div class="simulador-info">📌 Compra: <span id="compraSeleccionada">---</span><br>📌 Venta: <span id="ventaSeleccionada">---</span></div>
             <button class="btn-calcular" id="btnCalcular">💰 Calcular resultado</button>
             <div class="resultado-sim" id="resultadoSimulacion"></div>
         </div>
@@ -318,19 +285,14 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-    // ============================================
-    // CONFIGURACIÓN SUPABASE
-    // ============================================
     const SUPABASE_URL = "https://klwcletpqqsabtdanldx.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtsd2NsZXRwcXFzYWJ0ZGFubGR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4MDg2NTEsImV4cCI6MjA5MjM4NDY1MX0.nbs0tYbFOL-I8qIkgB7Ub_jcOwHTdzg0EcAp1DS6sCU";
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    
-    // Casos de compra real
+
     const CASOS_COMPRA = [1, 6];
     const CASOS_ESPERA = [2, 7];
     const CASOS_RIESGO = [3, 5];
-    
-    // Variables globales
+
     let todasLasEmpresas = [];
     let historialActual = [];
     let tickerSeleccionado = null;
@@ -338,29 +300,53 @@
     let ventaSeleccionada = null;
     let filaCompraIndex = -1;
     let filaVentaIndex = -1;
-    
-    // ============================================
-    // 1. CARGAR TODAS LAS EMPRESAS (panel izquierdo)
-    // ============================================
-    async function cargarEmpresas() {
-        try {
+
+    async function traerTodosLosRegistros() {
+        let allData = [];
+        let page = 0;
+        let hasMore = true;
+        
+        while (hasMore) {
+            const from = page * 1000;
+            const to = from + 999;
             const { data, error } = await supabaseClient
                 .from('recomendaciones_ibex')
                 .select('*')
-                .order('fecha', { ascending: true });
-    
-            if (error) throw error;
+                .order('fecha', { ascending: true })
+                .range(from, to);
+            
+            if (error) {
+                console.error('Error:', error);
+                break;
+            }
+            
+            if (data && data.length > 0) {
+                allData = allData.concat(data);
+                page++;
+            }
+            
+            if (!data || data.length < 1000) hasMore = false;
+        }
+        
+        console.log('Total registros cargados:', allData.length);
+        return allData;
+    }
+
+    async function cargarEmpresas() {
+        try {
+            const data = await traerTodosLosRegistros();
+            
             if (!data || data.length === 0) {
                 document.getElementById('empresasBody').innerHTML = '<tr><td colspan="8" class="sin-datos">No hay datos</td></tr>';
                 return;
             }
-    
+
             const porTicker = new Map();
             for (const reg of data) {
                 if (!porTicker.has(reg.ticker)) porTicker.set(reg.ticker, []);
                 porTicker.get(reg.ticker).push(reg);
             }
-    
+
             const empresas = [];
             for (let [ticker, registros] of porTicker.entries()) {
                 registros.sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
@@ -393,17 +379,8 @@
                 }
                 
                 empresas.push({
-                    ticker,
-                    nombre,
-                    precioActual,
-                    fechaActual,
-                    estaEnCompra,
-                    ultimaCompraInfo,
-                    subida: subida !== null ? subida : null,
-                    smiDiarioActual,
-                    tendencia,
-                    tendenciaClase,
-                    registros
+                    ticker, nombre, precioActual, fechaActual, estaEnCompra,
+                    ultimaCompraInfo, subida, smiDiarioActual, tendencia, tendenciaClase, registros
                 });
             }
             
@@ -416,9 +393,8 @@
             document.getElementById('empresasBody').innerHTML = '<tr><td colspan="8" class="sin-datos">Error al cargar</td></tr>';
         }
     }
-    
+
     function calcularUltimaCompra(registros, estaEnCompraActual) {
-        let cicloCompra = null;
         let enCiclo = false;
         let precioMinimoCiclo = null;
         let fechaInicioCiclo = null;
@@ -432,9 +408,7 @@
                 precioMinimoCiclo = reg.precio_cierre;
                 fechaInicioCiclo = reg.fecha;
             } else if (enCiclo && !esCompra) {
-                if (estaEnCompraActual && i === registros.length - 1) {
-                    break;
-                }
+                if (estaEnCompraActual && i === registros.length - 1) break;
                 enCiclo = false;
                 break;
             } else if (enCiclo && esCompra) {
@@ -446,11 +420,7 @@
         }
         
         if (enCiclo && precioMinimoCiclo !== null) {
-            return {
-                fecha: fechaInicioCiclo,
-                precioCompra: precioMinimoCiclo,
-                esActual: estaEnCompraActual
-            };
+            return { fecha: fechaInicioCiclo, precioCompra: precioMinimoCiclo, esActual: estaEnCompraActual };
         }
         
         for (let i = registros.length - 1; i >= 0; i--) {
@@ -465,17 +435,12 @@
                     }
                     j--;
                 }
-                return {
-                    fecha: fechaMin,
-                    precioCompra: minPrecio,
-                    esActual: false
-                };
+                return { fecha: fechaMin, precioCompra: minPrecio, esActual: false };
             }
         }
-        
         return null;
     }
-    
+
     function renderizarPanelIzquierdo(empresas) {
         const tbody = document.getElementById('empresasBody');
         if (!empresas.length) {
@@ -509,15 +474,13 @@
         }
         tbody.innerHTML = html;
     }
-    
-    async function seleccionarEmpresa(ticker) {
+
+    window.seleccionarEmpresa = async function(ticker) {
         tickerSeleccionado = ticker;
         
         document.querySelectorAll('#empresasBody tr').forEach(row => {
             row.classList.remove('seleccionada');
-            if (row.getAttribute('data-ticker') === ticker) {
-                row.classList.add('seleccionada');
-            }
+            if (row.getAttribute('data-ticker') === ticker) row.classList.add('seleccionada');
         });
         
         const empresa = todasLasEmpresas.find(e => e.ticker === ticker);
@@ -539,7 +502,7 @@
         document.getElementById('resultadoSimulacion').innerHTML = '';
         document.getElementById('simuladorPanel').style.display = 'flex';
     }
-    
+
     function renderizarPanelDerecho(historial) {
         const tbody = document.getElementById('historialBody');
         if (!historial.length) {
@@ -602,7 +565,7 @@
             });
         });
     }
-    
+
     function seleccionarPrecio(idx, precio, fecha) {
         if (compraSeleccionada === null) {
             compraSeleccionada = { idx, precio, fecha };
@@ -629,10 +592,9 @@
             document.getElementById('ventaSeleccionada').innerHTML = '---';
             document.getElementById('resultadoSimulacion').innerHTML = '';
         }
-        
         renderizarPanelDerecho(historialActual);
     }
-    
+
     function calcularResultado() {
         if (!compraSeleccionada || !ventaSeleccionada) {
             alert('❌ Debes seleccionar una COMPRA y una VENTA');
@@ -656,10 +618,8 @@
         const resultadoClass = resultadoNeto >= 0 ? 'positivo' : 'negativo';
         resultadoDiv.innerHTML = `<span class="${resultadoClass}">${resultadoNeto >= 0 ? '+' : ''}${resultadoNeto.toFixed(2)}€ (${rentabilidadPorcentaje >= 0 ? '+' : ''}${rentabilidadPorcentaje.toFixed(2)}%)</span>`;
     }
-    
+
     document.getElementById('btnCalcular').addEventListener('click', calcularResultado);
-    
-    window.seleccionarEmpresa = seleccionarEmpresa;
     
     cargarEmpresas();
 </script>
