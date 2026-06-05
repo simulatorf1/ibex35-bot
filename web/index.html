@@ -188,13 +188,39 @@
         }
 
         .simulador-info {
-            flex: 1;
+            flex: 2;
             font-size: 0.8rem;
         }
 
         .simulador-info span {
             font-weight: 700;
             color: #1e4668;
+        }
+
+        .simulador-capital {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            padding: 6px 12px;
+            border-radius: 40px;
+            border: 1px solid #cfdfed;
+        }
+
+        .simulador-capital label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #1e4668;
+        }
+
+        .simulador-capital input {
+            width: 100px;
+            padding: 6px 8px;
+            border: 1px solid #cfdfed;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            text-align: right;
+            font-weight: 600;
         }
 
         .btn-calcular {
@@ -215,6 +241,14 @@
         .resultado-sim {
             font-size: 0.85rem;
             font-weight: 700;
+            min-width: 180px;
+            text-align: right;
+        }
+
+        .acciones-info {
+            font-size: 0.65rem;
+            color: #6c86a3;
+            margin-top: 4px;
         }
 
         .loading {
@@ -293,7 +327,6 @@
             opacity: 1;
         }
 
-        /* Panel explicativo */
         .panel-explicativo {
             background: white;
             border-radius: 16px;
@@ -345,15 +378,6 @@
             color: #6c86a3;
         }
 
-        .badge-ejemplo {
-            display: inline-block;
-            width: 14px;
-            height: 14px;
-            border-radius: 3px;
-            margin-right: 6px;
-            vertical-align: middle;
-        }
-
         @media (max-width: 900px) {
             .paneles {
                 flex-direction: column;
@@ -362,6 +386,13 @@
             .panel-izquierdo, .panel-derecho {
                 width: 100%;
                 min-height: 400px;
+            }
+            .simulador {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .resultado-sim {
+                text-align: left;
             }
         }
     </style>
@@ -387,13 +418,22 @@
             <div class="historial-wrapper">
                 <table class="tabla-historial" id="tablaHistorial">
                     <thead><tr><th>Fecha</th><th>Precio</th><th>Caso</th><th>PW 4h</th><th>PW diario</th><th>Pendiente PW</th><th>Soportes</th><th>Resistencias</th></tr></thead>
-                    <tbody id="historialBody"><tr><td colspan="8" class="sin-datos">Selecciona una empresa del panel izquierdo</td></tr>
+                    <tbody id="historialBody"><td><td colspan="8" class="sin-datos">Selecciona una empresa del panel izquierdo</td></tr>
                     </tbody>
                 </table>
             </div>
             <div class="simulador" id="simuladorPanel" style="display: none;">
-                <div class="simulador-info">📌 Compra: <span id="compraSeleccionada">---</span><br>📌 Venta: <span id="ventaSeleccionada">---</span></div>
-                <button class="btn-calcular" id="btnCalcular">💰 Calcular resultado</button>
+                <div class="simulador-info">
+                    <div>📌 Compra: <span id="compraSeleccionada">---</span></div>
+                    <div>📌 Venta: <span id="ventaSeleccionada">---</span></div>
+                    <div class="acciones-info" id="accionesInfo">---</div>
+                </div>
+                <div class="simulador-capital">
+                    <label>💰 Capital</label>
+                    <input type="number" id="capitalInput" value="10000" step="1000">
+                    <span style="font-size:0.7rem;">€</span>
+                </div>
+                <button class="btn-calcular" id="btnCalcular">📈 Calcular resultado</button>
                 <div class="resultado-sim" id="resultadoSimulacion"></div>
             </div>
         </div>
@@ -410,7 +450,7 @@
         <p>
             <strong>Panel derecho:</strong> Al hacer clic en cualquier empresa, se muestra su historial completo ordenado de más reciente a más antiguo. 
             Las filas se colorean según el tipo de señal. Para simular una operación, <strong>haz clic en un precio</strong> (columna Precio) para marcar la COMPRA, y luego en otro precio más reciente para marcar la VENTA. 
-            Pulsa <strong>"Calcular resultado"</strong> para ver la ganancia/pérdida neta (comisiones incluidas: 11€ + 0,4% por operación).
+            Ajusta el capital a invertir (por defecto 10.000€) y pulsa <strong>"Calcular resultado"</strong> para ver la ganancia/pérdida neta (comisiones incluidas: 11€ + 0,4% por operación).
         </p>
         <div class="grid-explicativo">
             <div class="item-explicativo">
@@ -604,7 +644,7 @@
     function renderizarPanelIzquierdo(empresas) {
         const tbody = document.getElementById('empresasBody');
         if (!empresas.length) {
-            tbody.innerHTML = '<tr><td colspan="8" class="sin-datos">No hay empresas</td></tr>';
+            tbody.innerHTML = '<td><td colspan="8" class="sin-datos">No hay empresas</td></tr>';
             return;
         }
         
@@ -631,7 +671,7 @@
                 <td class="${subidaClass}">${subidaText}</td>
                 <td>${pwText}</td>
                 <td><span class="badge-tendencia ${emp.tendenciaClase}">${emp.tendencia}</span></td>
-            </tr>`;
+             </tr>`;
         }
         tbody.innerHTML = html;
     }
@@ -661,7 +701,24 @@
         document.getElementById('compraSeleccionada').innerHTML = '---';
         document.getElementById('ventaSeleccionada').innerHTML = '---';
         document.getElementById('resultadoSimulacion').innerHTML = '';
+        document.getElementById('accionesInfo').innerHTML = '---';
         document.getElementById('simuladorPanel').style.display = 'flex';
+    }
+
+    function actualizarAccionesInfo() {
+        if (!compraSeleccionada) {
+            document.getElementById('accionesInfo').innerHTML = 'Selecciona primero una COMPRA';
+            return;
+        }
+        const capital = parseFloat(document.getElementById('capitalInput').value);
+        if (isNaN(capital) || capital <= 0) {
+            document.getElementById('accionesInfo').innerHTML = '⚠️ Capital inválido';
+            return;
+        }
+        const precioCompra = compraSeleccionada.precio;
+        const acciones = Math.floor(capital / precioCompra);
+        const inversionReal = acciones * precioCompra;
+        document.getElementById('accionesInfo').innerHTML = `📊 ${acciones} acciones · Inversión: ${inversionReal.toFixed(2)}€ (comisión compra: ${(11 + inversionReal * 0.004).toFixed(2)}€)`;
     }
 
     function renderizarPanelDerecho(historial) {
@@ -712,7 +769,7 @@
                 <td>${pendiente}</td>
                 <td style="font-size:0.65rem; max-width:120px;">${soporteText}</td>
                 <td style="font-size:0.65rem; max-width:120px;">${resistenciaText}</td>
-            </tr>`;
+             </tr>`;
         }
         tbody.innerHTML = html;
         
@@ -736,6 +793,7 @@
             ventaSeleccionada = null;
             filaVentaIndex = -1;
             document.getElementById('resultadoSimulacion').innerHTML = '';
+            actualizarAccionesInfo();
         } else if (ventaSeleccionada === null) {
             if (idx >= filaCompraIndex) {
                 alert('❌ La venta debe seleccionarse en una fila MÁS RECIENTE (por encima de la compra)');
@@ -752,6 +810,7 @@
             document.getElementById('compraSeleccionada').innerHTML = `${new Date(fecha).toLocaleString('es-ES')} · ${precio.toFixed(2)}€`;
             document.getElementById('ventaSeleccionada').innerHTML = '---';
             document.getElementById('resultadoSimulacion').innerHTML = '';
+            actualizarAccionesInfo();
         }
         renderizarPanelDerecho(historialActual);
     }
@@ -762,9 +821,15 @@
             return;
         }
         
+        const capital = parseFloat(document.getElementById('capitalInput').value);
+        if (isNaN(capital) || capital <= 0) {
+            alert('❌ Introduce un capital válido');
+            return;
+        }
+        
         const precioCompra = compraSeleccionada.precio;
         const precioVenta = ventaSeleccionada.precio;
-        const acciones = Math.floor(10000 / precioCompra);
+        const acciones = Math.floor(capital / precioCompra);
         const dineroInvertido = acciones * precioCompra;
         
         const comisionCompra = 11 + (dineroInvertido * 0.004);
@@ -781,6 +846,7 @@
     }
 
     document.getElementById('btnCalcular').addEventListener('click', calcularResultado);
+    document.getElementById('capitalInput').addEventListener('input', actualizarAccionesInfo);
     
     cargarEmpresas();
 </script>
