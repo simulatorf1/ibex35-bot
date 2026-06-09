@@ -212,9 +212,31 @@
             margin: 0;
         }
 
+        /* Contenedor flexible para tabla (50%) y gráfico (50%) */
+        .derecho-contenido {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
         .historial-wrapper {
             flex: 1;
+            min-height: 0;
             overflow-y: auto;
+        }
+
+        .grafico-wrapper {
+            height: 40%;
+            min-height: 200px;
+            border-top: 1px solid #e9ecef;
+            background: white;
+            padding: 12px;
+        }
+
+        #graficaContainer {
+            width: 100%;
+            height: 100%;
         }
 
         .tabla-historial {
@@ -553,6 +575,9 @@
                 font-size: 0.55rem;
                 gap: 8px;
             }
+            .grafico-wrapper {
+                height: 200px;
+            }
         }
     </style>
 <!-- Google tag (gtag.js) -->
@@ -563,7 +588,8 @@
   gtag('js', new Date());
   gtag('config', 'G-LVV061GCPF');
 </script>
-
+<!-- Librería de gráficos -->
+<script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
 </head>
 <body>
 <div class="container">
@@ -576,22 +602,25 @@
                     <thead>
                         <tr><th>Empresa</th><th>Precio</th><th>Fecha</th><th>Últ. patrón</th><th>Precio patrón</th><th>Rentabilidad</th><th>PW</th></tr>
                     </thead>
-                    <tbody id="empresasBody"><tr><td colspan="7" class="loading">Cargando datos......</td></tr>
-                    </tbody>
+                    <tbody id="empresasBody"><tr><td colspan="7" class="loading">Cargando datos......</td></tr></tbody>
                 </table>
             </div>
         </div>
 
         <div class="panel-derecho">
             <h2 id="tituloEmpresa">📊 Selecciona una empresa</h2>
-            <div class="historial-wrapper">
-                <table class="tabla-historial" id="tablaHistorial">
-                    <thead><tr><th>Fecha</th><th>Precio</th><th>Patrón</th><th>PW 4h</th><th>PW diario</th><th>Pendiente</th><th>Soportes</th><th>Resistencias</th></tr></thead>
-                    <tbody id="historialBody"><tr><td colspan="8" class="sin-datos">Selecciona una empresa del panel izquierdo</td></tr>
-                    </tbody>
-                </table>
+            <div class="derecho-contenido">
+                <div class="historial-wrapper">
+                    <table class="tabla-historial" id="tablaHistorial">
+                        <thead><tr><th>Fecha</th><th>Precio</th><th>Patrón</th><th>PW 4h</th><th>PW diario</th><th>Pendiente</th><th>Soportes</th><th>Resistencias</th></tr></thead>
+                        <tbody id="historialBody"><tr><td colspan="8" class="sin-datos">Selecciona una empresa del panel izquierdo</td></tr></tbody>
+                    </table>
+                </div>
+                <div class="grafico-wrapper">
+                    <div id="graficaContainer" style="width: 100%; height: 100%;"></div>
+                </div>
             </div>
-            <!-- Mini guía paso a paso (aparece cuando se selecciona empresa) -->
+            <!-- Mini guía paso a paso -->
             <div id="miniGuia" class="mini-guia" style="display: none;">
                 <strong>📌 CÓMO USAR</strong>
                 <span>1️⃣ Haz clic en un <strong>precio</strong> → punto de entrada</span>
@@ -688,6 +717,10 @@
     let salidaSeleccionada = null;
     let filaEntradaIndex = -1;
     let filaSalidaIndex = -1;
+    
+    // Variables para el gráfico
+    let chart = null;
+    let lineSeries = null;
 
     function getDescripcionPatron(patron) {
         const descripciones = {
@@ -700,6 +733,19 @@
             7: "🔷 Patrón tipo 7: Pre-señal (vigilar evolución)"
         };
         return descripciones[patron] || "Sin patrón detectado";
+    }
+    
+    function getColorForPatron(patron) {
+        const colores = {
+            1: '#fff9c4',
+            2: '#fff3cd',
+            3: '#b9f6ca',
+            4: '#fff3cd',
+            5: '#ffe2d6',
+            6: '#f4ff81',
+            7: '#00ff88'
+        };
+        return colores[patron] || '#ffffff';
     }
 
     async function traerTodosLosRegistros() {
@@ -883,6 +929,165 @@
         }
         tbody.innerHTML = html;
     }
+    
+    // Función para renderizar el gráfico
+    function renderizarGrafico(historial) {
+        if (!historial || historial.length === 0) return;
+        
+        const container = document.getElementById('graficaContainer');
+        if (!container) return;
+        
+        // Ordenar de más antiguo a más reciente para el gráfico
+        const datosOrdenados = [...historial].sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
+        
+        // Preparar datos de la línea de precio
+        const lineData = [];
+        const markers = [];
+        
+        for (let i = 0; i < datosOrdenados.length; i++) {
+            const reg = datosOrdenados[i];
+            const time = Math.floor(new Date(reg.fecha).getTime() / 1000);
+            const precio = reg.precio_cierre;
+            
+            lineData.push({ time, value: precio });
+            
+            // Añadir marcador si hay patrón
+            if (reg.caso_numero && PATRONES_INTERES.includes(reg.caso_numero)) {
+                markers.push({
+                    time: time,
+                    position: 'aboveBar',
+                    color: getColorForPatron(reg.caso_numero),
+                    shape: 'circle',
+                    text: `P${reg.caso_numero}`,
+                    size: 1
+                });
+            }
+        }
+        
+        if (lineData.length === 0) return;
+        
+        // Destruir gráfico anterior si existe
+        if (chart) {
+            chart.remove();
+            chart = null;
+            lineSeries = null;
+        }
+        
+        // Crear nuevo gráfico
+        chart = LightweightCharts.createChart(container, {
+            width: container.clientWidth,
+            height: container.clientHeight,
+            layout: {
+                background: { color: '#ffffff' },
+                textColor: '#333'
+            },
+            grid: {
+                vertLines: { color: '#f0f0f0' },
+                horzLines: { color: '#f0f0f0' }
+            },
+            crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+            rightPriceScale: { borderColor: '#d1d4dc' },
+            timeScale: { 
+                borderColor: '#d1d4dc', 
+                timeVisible: true, 
+                secondsVisible: false,
+                rightOffset: 12,
+                barSpacing: 8
+            },
+            handleScroll: true,
+            handleScale: true
+        });
+        
+        // Línea de precio
+        lineSeries = chart.addLineSeries({
+            color: '#2c7da0',
+            lineWidth: 2,
+            crosshairMarkerVisible: true,
+            crosshairMarkerRadius: 4,
+            priceLineVisible: true,
+            lastValueVisible: true
+        });
+        lineSeries.setData(lineData);
+        
+        // Añadir marcadores
+        if (markers.length > 0) {
+            lineSeries.setMarkers(markers);
+        }
+        
+        // Extraer soportes y resistencias del último registro
+        const ultimo = datosOrdenados[datosOrdenados.length - 1];
+        if (ultimo && (ultimo.soportes || ultimo.resistencias)) {
+            try {
+                // Procesar soportes
+                if (ultimo.soportes) {
+                    const soportes = ultimo.soportes.split('\n');
+                    for (const sop of soportes) {
+                        const match = sop.match(/(\d+\.?\d*)/);
+                        if (match) {
+                            const nivel = parseFloat(match[1]);
+                            if (!isNaN(nivel) && nivel > 0) {
+                                const soporteLine = chart.addLineSeries({
+                                    color: '#1e7e34',
+                                    lineWidth: 1,
+                                    lineStyle: LightweightCharts.LineStyle.Dashed,
+                                    priceLineVisible: false,
+                                    lastValueVisible: false,
+                                    crosshairMarkerVisible: false
+                                });
+                                const timeStart = lineData[0].time;
+                                const timeEnd = lineData[lineData.length - 1].time;
+                                soporteLine.setData([
+                                    { time: timeStart, value: nivel },
+                                    { time: timeEnd, value: nivel }
+                                ]);
+                                break; // Solo el soporte más cercano
+                            }
+                        }
+                    }
+                }
+                
+                // Procesar resistencias
+                if (ultimo.resistencias) {
+                    const resistencias = ultimo.resistencias.split('\n');
+                    for (const res of resistencias) {
+                        const match = res.match(/(\d+\.?\d*)/);
+                        if (match) {
+                            const nivel = parseFloat(match[1]);
+                            if (!isNaN(nivel) && nivel > 0) {
+                                const resistenciaLine = chart.addLineSeries({
+                                    color: '#dc3545',
+                                    lineWidth: 1,
+                                    lineStyle: LightweightCharts.LineStyle.Dashed,
+                                    priceLineVisible: false,
+                                    lastValueVisible: false,
+                                    crosshairMarkerVisible: false
+                                });
+                                const timeStart = lineData[0].time;
+                                const timeEnd = lineData[lineData.length - 1].time;
+                                resistenciaLine.setData([
+                                    { time: timeStart, value: nivel },
+                                    { time: timeEnd, value: nivel }
+                                ]);
+                                break; // Solo la resistencia más cercana
+                            }
+                        }
+                    }
+                }
+            } catch(e) { console.warn('Error al procesar niveles:', e); }
+        }
+        
+        // Ajustar escala para mostrar todo el rango
+        chart.timeScale().fitContent();
+        
+        // Manejar resize
+        const resizeObserver = new ResizeObserver(() => {
+            if (chart) {
+                chart.applyOptions({ width: container.clientWidth, height: container.clientHeight });
+                chart.timeScale().fitContent();
+            }
+        });
+        resizeObserver.observe(container);
+    }
 
     window.seleccionarEmpresa = async function(ticker) {
         tickerSeleccionado = ticker;
@@ -901,6 +1106,7 @@
         historialActual.sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
         
         renderizarPanelDerecho(historialActual);
+        renderizarGrafico(historialActual);
         
         entradaSeleccionada = null;
         salidaSeleccionada = null;
@@ -912,7 +1118,6 @@
         document.getElementById('accionesInfo').innerHTML = '---';
         document.getElementById('simuladorPanel').style.display = 'flex';
         
-        // Mostrar mini guía
         const miniGuia = document.getElementById('miniGuia');
         if (miniGuia) miniGuia.style.display = 'flex';
     }
@@ -936,7 +1141,7 @@
     function renderizarPanelDerecho(historial) {
         const tbody = document.getElementById('historialBody');
         if (!historial.length) {
-            tbody.innerHTML = '<tr><td colspan="8" class="sin-datos">No hay historial</td></tr>';
+            tbody.innerHTML = '<table><td colspan="8" class="sin-datos">No hay historial</td></tr>';
             return;
         }
         
