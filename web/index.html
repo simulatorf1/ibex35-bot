@@ -758,10 +758,10 @@
     function renderizarGrafico(historial) {
         if (!historial || historial.length === 0 || !document.getElementById('graficaCanvas')) return;
         const datosOrdenados = [...historial].sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
-        // Preparar datos: cada punto individual (todos los ticks)
+        // Preparar datos: cada punto individual (todos los ticks) - FECHA CORTA (solo día/mes)
         const labels = datosOrdenados.map(reg => {
             const fecha = new Date(reg.fecha);
-            return fecha.toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+            return fecha.toLocaleString('es-ES', { day:'2-digit', month:'2-digit' });
         });
         const precios = datosOrdenados.map(reg => reg.precio_cierre);
         // Encontrar mínimos por ciclo para marcadores
@@ -784,9 +784,9 @@
             return minimos;
         }
         const minimos = encontrarMinimosPorCiclo();
-        // Crear dataset de puntos destacados
-        const minimosP7 = minimos.filter(m => m.patron === 7).map(m => ({ x: new Date(m.fecha).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }), y: m.precio }));
-        const minimosP3 = minimos.filter(m => m.patron === 3).map(m => ({ x: new Date(m.fecha).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }), y: m.precio }));
+        // Crear dataset de puntos destacados - CON FECHA CORTA
+        const minimosP7 = minimos.filter(m => m.patron === 7).map(m => ({ x: new Date(m.fecha).toLocaleString('es-ES', { day:'2-digit', month:'2-digit' }), y: m.precio }));
+        const minimosP3 = minimos.filter(m => m.patron === 3).map(m => ({ x: new Date(m.fecha).toLocaleString('es-ES', { day:'2-digit', month:'2-digit' }), y: m.precio }));
         const ctx = document.getElementById('graficaCanvas').getContext('2d');
         if (chartInstance) chartInstance.destroy();
         chartInstance = new Chart(ctx, {
@@ -794,15 +794,15 @@
             data: {
                 labels: labels,
                 datasets: [
-                    { label: 'Precio', data: precios, borderColor: '#2c7da0', backgroundColor: 'transparent', borderWidth: 2, tension: 0.1, pointRadius: 0, pointHoverRadius: 5, fill: false },
-                    { label: 'Mínimo P7', data: minimosP7, borderColor: '#00ff88', backgroundColor: '#00ff88', pointRadius: 6, pointHoverRadius: 8, type: 'scatter', showLine: false, order: 1 },
-                    { label: 'Mínimo P3', data: minimosP3, borderColor: '#b9f6ca', backgroundColor: '#b9f6ca', pointRadius: 6, pointHoverRadius: 8, type: 'scatter', showLine: false, order: 1 }
+                    { label: '', data: precios, borderColor: '#2c7da0', backgroundColor: 'transparent', borderWidth: 2, tension: 0.1, pointRadius: 0, pointHoverRadius: 5, fill: false },
+                    { label: '', data: minimosP7, borderColor: '#00ff88', backgroundColor: '#00ff88', pointRadius: 6, pointHoverRadius: 8, type: 'scatter', showLine: false, order: 1 },
+                    { label: '', data: minimosP3, borderColor: '#b9f6ca', backgroundColor: '#b9f6ca', pointRadius: 6, pointHoverRadius: 8, type: 'scatter', showLine: false, order: 1 }
                 ]
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
-                scales: { x: { ticks: { maxRotation: 45, minRotation: 45, autoSkip: true, maxTicksLimit: 10 }, title: { display: true, text: 'Fecha y hora' } }, y: { title: { display: true, text: 'Precio (€)' }, beginAtZero: false } },
-                plugins: { tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y}€` } }, legend: { position: 'top' } },
+                scales: { x: { ticks: { maxRotation: 45, minRotation: 45, autoSkip: true, maxTicksLimit: 10 }, title: { display: true, text: 'Fecha' } }, y: { title: { display: true, text: 'Precio (€)' }, beginAtZero: false } },
+                plugins: { tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label === '' ? (ctx.datasetIndex === 0 ? 'Precio' : (ctx.raw.patron === 7 ? 'Mínimo P7' : 'Mínimo P3')) : ctx.dataset.label}: ${ctx.parsed.y}€` } }, legend: { display: false } },
                 interaction: { mode: 'index', intersect: false }
             }
         });
