@@ -28,7 +28,6 @@
             gap: 16px;
         }
 
-        /* Título principal */
         .titulo-principal {
             text-align: center;
             margin-bottom: 8px;
@@ -44,7 +43,6 @@
             margin-top: 4px;
         }
 
-        /* Leyenda de colores */
         .leyenda-colores {
             display: flex;
             flex-wrap: wrap;
@@ -70,7 +68,6 @@
         .leyenda-colores .naranja { background: #ffe2d6; padding: 2px 10px; border-radius: 20px; }
         .leyenda-colores .rojo { background: #f8d7da; padding: 2px 10px; border-radius: 20px; }
 
-        /* Mini guía paso a paso */
         .mini-guia {
             background: #eef2fa;
             border-radius: 12px;
@@ -157,7 +154,6 @@
         .tabla-empresas tr.exclusion {
             background-color: #f8d7da;
         }
-        /* Colores para el panel izquierdo - solo P7 y P3 */
         .tabla-empresas tr.interes-alcista-7 {
             background-color: #1e7e34;
         }
@@ -193,7 +189,6 @@
             margin: 0;
         }
 
-        /* Contenedor flexible para tabla y gráfico */
         .derecho-contenido {
             flex: 1;
             display: flex;
@@ -212,12 +207,18 @@
             min-height: 200px;
             border-top: 1px solid #e9ecef;
             background: white;
-            padding: 0;
+            padding: 10px;
         }
 
         #graficaContainer {
             width: 100%;
             height: 100%;
+            position: relative;
+        }
+
+        canvas {
+            max-width: 100%;
+            height: auto;
         }
 
         .tabla-historial {
@@ -243,38 +244,14 @@
             border-bottom: 1px solid #e9ecef;
         }
 
-        /* Patrón 7 - MEJOR (verde más intenso) */
-        .patron-7 {
-            background-color: #00ff88;
-        }
-        /* Patrón 3 - SEGUNDO MEJOR (verde medio) */
-        .patron-3 {
-            background-color: #b9f6ca;
-        }
-        /* Patrón 6 - TERCERO (verde claro) */
-        .patron-6 {
-            background-color: #f4ff81;
-        }
-        /* Patrón 1 - Verde muy claro */
-        .patron-1 {
-            background-color: #fff9c4;
-        }
-        /* Patrón 2 - Amarillo */
-        .patron-2 {
-            background-color: #fff3cd;
-        }
-        /* Patrón 4 - Amarillo */
-        .patron-4 {
-            background-color: #fff3cd;
-        }
-        /* Patrón 5 - Naranja */
-        .patron-5 {
-            background-color: #ffe2d6;
-        }
-        /* Exclusión - Rojo */
-        .patron-exclusion {
-            background-color: #f8d7da;
-        }
+        .patron-7 { background-color: #00ff88; }
+        .patron-3 { background-color: #b9f6ca; }
+        .patron-6 { background-color: #f4ff81; }
+        .patron-1 { background-color: #fff9c4; }
+        .patron-2 { background-color: #fff3cd; }
+        .patron-4 { background-color: #fff3cd; }
+        .patron-5 { background-color: #ffe2d6; }
+        .patron-exclusion { background-color: #f8d7da; }
 
         .precio-clickeable {
             cursor: pointer;
@@ -366,36 +343,10 @@
             margin-top: 4px;
         }
 
-        .loading {
+        .loading, .sin-datos {
             text-align: center;
             padding: 40px;
             color: #8ba0bc;
-        }
-
-        .sin-datos {
-            text-align: center;
-            padding: 40px;
-            color: #8ba0bc;
-        }
-
-        .badge-tendencia {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 20px;
-            font-size: 0.65rem;
-            font-weight: 600;
-        }
-        .tendencia-positiva {
-            background: #e8f5e9;
-            color: #1e7e34;
-        }
-        .tendencia-negativa {
-            background: #ffe2e2;
-            color: #dc3545;
-        }
-        .tendencia-espera {
-            background: #e9ecef;
-            color: #6c757d;
         }
 
         .patron-tooltip {
@@ -531,12 +482,6 @@
             line-height: 1.4;
         }
 
-        .disclaimer a {
-            color: #2c7da0;
-            text-decoration: none;
-        }
-
-        /* Responsive móvil */
         @media (max-width: 900px) {
             .paneles {
                 flex-direction: column;
@@ -579,24 +524,21 @@
             }
         }
     </style>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-LVV061GCPF"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-LVV061GCPF');
-</script>
-<!-- Librería de gráficos -->
-<script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LVV061GCPF"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-LVV061GCPF');
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <div class="container">
-
     <div class="paneles">
         <div class="panel-izquierdo">
             <h2 style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px;">📋 TODAS LAS EMPRESAS <span style="font-size: 0.6rem; font-weight: normal; color: #a8c4d8;">Los datos se actualizan varias veces al día. % ganancias desde última entrada</span></h2>
-            <!-- Filtros móvil -->
             <div style="padding: 12px; display: flex; gap: 8px; flex-wrap: wrap; background: white; border-bottom: 1px solid #e9ecef;">
                 <input type="text" id="filtroEmpresa" placeholder="🔍 Buscar empresa..." style="flex: 1; padding: 6px 12px; border-radius: 20px; border: 1px solid #cfdfed; font-size: 0.7rem;">
                 <select id="filtroOportunidad" style="padding: 6px 12px; border-radius: 20px; border: 1px solid #cfdfed; font-size: 0.7rem; background: white;">
@@ -611,11 +553,8 @@
             </div>    
             <div class="tabla-empresas-wrapper">
                 <table class="tabla-empresas" id="tablaEmpresas">
-                    <thead>
-                        <tr><th>Empresa</th><th>Precio</th><th>Fecha</th><th>Últ. patrón</th><th>Precio patrón</th><th>Rentabilidad</th><th>PW</th></tr>
-                    </thead>
-                    <tbody id="empresasBody"><tr><td colspan="7" class="loading">Cargando datos......</span></span></tr>
-                    </tbody>
+                    <thead><tr><th>Empresa</th><th>Precio</th><th>Fecha</th><th>Últ. patrón</th><th>Precio patrón</th><th>Rentabilidad</th><th>PW</th></tr></thead>
+                    <tbody id="empresasBody"><tr><td colspan="7" class="loading">Cargando datos...</td></tr></tbody>
                 </table>
             </div>
         </div>
@@ -626,15 +565,15 @@
                 <div class="historial-wrapper">
                     <table class="tabla-historial" id="tablaHistorial">
                         <thead><tr><th>Fecha</th><th>Precio</th><th>Patrón</th><th>PW 4h</th><th>PW diario</th><th>Pendiente</th><th>Soportes</th><th>Resistencias</th></tr></thead>
-                        <tbody id="historialBody"><tr><td colspan="8" class="sin-datos">Selecciona una empresa del panel izquierdo</span></span></table>
-                        </tbody>
+                        <tbody id="historialBody"><tr><td colspan="8" class="sin-datos">Selecciona una empresa del panel izquierdo</td></tr></tbody>
                     </table>
                 </div>
                 <div class="grafico-wrapper">
-                    <div id="graficaContainer" style="width: 100%; height: 100%;"></div>
+                    <div id="graficaContainer">
+                        <canvas id="graficaCanvas" style="width:100%; height:100%;"></canvas>
+                    </div>
                 </div>
             </div>
-            <!-- Mini guía paso a paso -->
             <div id="miniGuia" class="mini-guia" style="display: none;">
                 <strong>📌 CÓMO USAR</strong>
                 <span>1️⃣ Haz clic en un <strong>precio</strong> → punto de entrada</span>
@@ -658,7 +597,6 @@
         </div>
     </div>
 
-    <!-- Panel Explicativo Ocultable -->
     <div class="panel-explicativo">
         <div class="explicativo-header" id="toggleExplicativo">
             <h4 style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 12px; flex-wrap: wrap;">
@@ -668,45 +606,23 @@
             <span class="toggle-icon" id="toggleIcon">▼</span>
         </div>
         <div class="explicativo-contenido" id="explicativoContenido">
-            <p>
-                <strong>Panel izquierdo:</strong> Vista general de todas las empresas. Las filas con <span style="background:#d4edda; padding:2px 6px; border-radius:4px;">fondo verde</span> indican que actualmente se ha detectado un patrón de interés (tipos 1,2,3,6,7). 
-                La columna <strong>"Últ. patrón"</strong> muestra la fecha del último patrón detectado y el <strong>"Precio patrón"</strong> es el precio más bajo alcanzado durante ese ciclo. 
-                La <strong>"Rentabilidad"</strong> calcula la evolución desde ese precio hasta el actual.
-            </p>
-            <p>
-                <strong>Panel derecho:</strong> Al hacer clic en cualquier empresa, se muestra su historial completo ordenado de más reciente a más antiguo. 
-                Las filas se colorean según el tipo de patrón. Para simular una operación hipotética, <strong>haz clic en un precio</strong> (columna Precio) para marcar el punto de entrada, y luego en otro precio más reciente para marcar el punto de salida. 
-                Ajusta el capital simulado (por defecto 10.000€) y pulsa <strong>"Calcular resultado"</strong> para ver el resultado neto (incluye simulación de comisiones: 11€ + 0,4% por operación).
-            </p>
+            <p><strong>Panel izquierdo:</strong> Vista general de todas las empresas. Las filas con <span style="background:#d4edda; padding:2px 6px; border-radius:4px;">fondo verde</span> indican que actualmente se ha detectado un patrón de interés (tipos 1,2,3,6,7). La columna <strong>"Últ. patrón"</strong> muestra la fecha del último patrón detectado y el <strong>"Precio patrón"</strong> es el precio más bajo alcanzado durante ese ciclo. La <strong>"Rentabilidad"</strong> calcula la evolución desde ese precio hasta el actual.</p>
+            <p><strong>Panel derecho:</strong> Al hacer clic en cualquier empresa, se muestra su historial completo ordenado de más reciente a más antiguo. Las filas se colorean según el tipo de patrón. Para simular una operación hipotética, <strong>haz clic en un precio</strong> (columna Precio) para marcar el punto de entrada, y luego en otro precio más reciente para marcar el punto de salida. Ajusta el capital simulado (por defecto 10.000€) y pulsa <strong>"Calcular resultado"</strong> para ver el resultado neto (incluye simulación de comisiones: 11€ + 0,4% por operación).</p>
             <div class="grid-explicativo">
-                <div class="item-explicativo">
-                    <strong>🎯 ¿Qué es el PW?</strong>
-                    <span>El PW (Price Wave) es un indicador técnico que oscila entre -100 y +100. Valores por debajo de -40 indican zona de sobreventa, valores por encima de +40 indican zona de sobrecompra. La pendiente del PW indica la dirección: positiva → impulso alcista, negativa → impulso bajista.</span>
-                </div>
-                <div class="item-explicativo">
-                    <strong>🟢 Tipos de patrón ordenados por fuerza</strong>
-                    <span>Tipo 7: Señal fuerte de anticipación | Tipo 3: Rebote | Tipo 6: Cambio de tendencia | Tipo 4: Consolidación| Tipo 5: Posible Agotamiento. Pasa el ratón sobre cualquier número de patrón para ver la descripción completa.</span>
-                </div>
-                <div class="item-explicativo">
-                    <strong>🔴 Filtro de exclusión</strong>
-                    <span>Cuando el PW supera +50 y la pendiente es negativa, la acción se colorea en rojo. Esto indica condiciones de sobrecompra con giro bajista.</span>
-                </div>
-                <div class="item-explicativo">
-                    <strong>📊 Simulación de escenarios</strong>
-                    <span>Selecciona cualquier par entrada/salida para analizar escenarios históricos. El cálculo es puramente académico.</span>
-                </div>
+                <div class="item-explicativo"><strong>🎯 ¿Qué es el PW?</strong><span>El PW (Price Wave) es un indicador técnico que oscila entre -100 y +100. Valores por debajo de -40 indican zona de sobreventa, valores por encima de +40 indican zona de sobrecompra.</span></div>
+                <div class="item-explicativo"><strong>🟢 Tipos de patrón ordenados por fuerza</strong><span>Tipo 7: Señal fuerte de anticipación | Tipo 3: Rebote | Tipo 6: Cambio de tendencia | Tipo 4: Consolidación| Tipo 5: Posible Agotamiento.</span></div>
+                <div class="item-explicativo"><strong>🔴 Filtro de exclusión</strong><span>Cuando el PW supera +50 y la pendiente es negativa, la acción se colorea en rojo.</span></div>
+                <div class="item-explicativo"><strong>📊 Simulación de escenarios</strong><span>Selecciona cualquier par entrada/salida para analizar escenarios históricos.</span></div>
             </div>
         </div>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-    // Toggle para la guía explicativa
+    // Toggle guía
     const toggleBtn = document.getElementById('toggleExplicativo');
     const contenido = document.getElementById('explicativoContenido');
     const icon = document.getElementById('toggleIcon');
-
     toggleBtn.addEventListener('click', () => {
         contenido.classList.toggle('abierto');
         icon.textContent = contenido.classList.contains('abierto') ? '▲' : '▼';
@@ -717,12 +633,7 @@
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const PATRONES_INTERES = [1, 2, 3, 6, 7];
-    const PATRONES_ANTICIPADOS = [2, 7];
-    const PATRONES_RIESGO = [3, 5];
-
-    const CONDICION_EXCLUSION = (pwDiario, pendiente) => {
-        return pwDiario !== null && pendiente !== null && pwDiario > 50 && pendiente < 0;
-    };
+    const CONDICION_EXCLUSION = (pwDiario, pendiente) => pwDiario !== null && pendiente !== null && pwDiario > 50 && pendiente < 0;
 
     let todasLasEmpresas = [];
     let historialActual = [];
@@ -731,163 +642,37 @@
     let salidaSeleccionada = null;
     let filaEntradaIndex = -1;
     let filaSalidaIndex = -1;
-    
-    // Variables para el gráfico
-    let chart = null;
-    let lineSeries = null;
+    let chartInstance = null;
 
     function getDescripcionPatron(patron) {
-        const descripciones = {
-            1: "🔴 Patrón tipo 1: Señal de interés con impulso alcista",
-            2: "🟡 Patrón tipo 2: Señal anticipada (seguimiento)",
-            3: "⚫ Patrón tipo 3: Rebote corto plazo (alta volatilidad)",
-            4: "⚪ Patrón tipo 4: Fase de consolidación",
-            5: "🔴 Patrón tipo 5: Agotamiento alcista (riesgo de giro)",
-            6: "🟢 Patrón tipo 6: Señal de interés directa",
-            7: "🔷 Patrón tipo 7: Pre-señal (vigilar evolución)"
-        };
+        const descripciones = { 1: "🔴 Señal de interés con impulso alcista", 2: "🟡 Señal anticipada", 3: "⚫ Rebote corto plazo", 4: "⚪ Fase de consolidación", 5: "🔴 Agotamiento alcista", 6: "🟢 Señal de interés directa", 7: "🔷 Pre-señal" };
         return descripciones[patron] || "Sin patrón detectado";
-    }
-    
-    // Función para detectar ciclos y encontrar el precio mínimo de P7 y P3 en cada ciclo
-    function encontrarMinimosPorCiclo(historial) {
-        if (!historial || historial.length === 0) return [];
-        
-        // Ordenar de más antiguo a más reciente
-        const datosOrdenados = [...historial].sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
-        
-        let ciclos = [];
-        let cicloActual = [];
-        let ultimaFecha = null;
-        
-        for (let i = 0; i < datosOrdenados.length; i++) {
-            const reg = datosOrdenados[i];
-            const fechaActual = new Date(reg.fecha);
-            
-            // Si hay un salto de más de 1 día sin patrón, es un nuevo ciclo
-            if (ultimaFecha && (fechaActual - ultimaFecha) > 24 * 60 * 60 * 1000) {
-                if (cicloActual.length > 0) {
-                    ciclos.push([...cicloActual]);
-                    cicloActual = [];
-                }
-            }
-            
-            // Si el patrón es 7 o 3, lo añadimos al ciclo actual
-            if (reg.caso_numero === 7 || reg.caso_numero === 3) {
-                cicloActual.push(reg);
-            }
-            
-            ultimaFecha = fechaActual;
-        }
-        
-        // Añadir el último ciclo
-        if (cicloActual.length > 0) {
-            ciclos.push([...cicloActual]);
-        }
-        
-        // Para cada ciclo, encontrar el precio mínimo
-        const minimos = [];
-        for (const ciclo of ciclos) {
-            if (ciclo.length === 0) continue;
-            
-            let minPrecio = Infinity;
-            let minRegistro = null;
-            
-            for (const reg of ciclo) {
-                if (reg.precio_cierre < minPrecio) {
-                    minPrecio = reg.precio_cierre;
-                    minRegistro = reg;
-                }
-            }
-            
-            if (minRegistro) {
-                minimos.push({
-                    fecha: minRegistro.fecha,
-                    precio: minRegistro.precio_cierre,
-                    patron: minRegistro.caso_numero
-                });
-            }
-        }
-        
-        return minimos;
-    }
-
-    // Función para agrupar datos por día (para el gráfico)
-    function agruparPorDia(datos) {
-        const mapaPorDia = new Map();
-        for (const reg of datos) {
-            const fechaKey = new Date(reg.fecha).toISOString().split('T')[0];
-            if (!mapaPorDia.has(fechaKey)) {
-                mapaPorDia.set(fechaKey, []);
-            }
-            mapaPorDia.get(fechaKey).push(reg);
-        }
-        // Ordenar días
-        const diasOrdenados = Array.from(mapaPorDia.keys()).sort();
-        const resultado = [];
-        for (const dia of diasOrdenados) {
-            const registrosDia = mapaPorDia.get(dia);
-            // Último precio del día (para la línea)
-            const ultimoRegistro = registrosDia[registrosDia.length - 1];
-            resultado.push({
-                time: Math.floor(new Date(dia).getTime() / 1000),
-                value: ultimoRegistro.precio_cierre,
-                registros: registrosDia
-            });
-        }
-        return resultado;
     }
 
     async function traerTodosLosRegistros() {
         let allData = [];
         let page = 0;
         let hasMore = true;
-        
         while (hasMore) {
             const from = page * 1000;
             const to = from + 999;
-            const { data, error } = await supabaseClient
-                .from('recomendaciones_ibex')
-                .select('*')
-                .order('fecha', { ascending: true })
-                .range(from, to);
-            
-            if (error) {
-                console.error('Error:', error);
-                break;
-            }
-            
-            if (data && data.length > 0) {
-                allData = allData.concat(data);
-                page++;
-            }
-            
+            const { data, error } = await supabaseClient.from('recomendaciones_ibex').select('*').order('fecha', { ascending: true }).range(from, to);
+            if (error) break;
+            if (data && data.length > 0) { allData = allData.concat(data); page++; }
             if (!data || data.length < 1000) hasMore = false;
         }
-        
-        console.log('Total registros cargados:', allData.length);
         return allData;
     }
 
     async function cargarEmpresas() {
         try {
             const data = await traerTodosLosRegistros();
-            
-            if (!data || data.length === 0) {
-                document.getElementById('empresasBody').innerHTML = '<tr><td colspan="7" class="sin-datos">No hay datos</span></span></td>';
-                return;
-            }
-
+            if (!data || data.length === 0) { document.getElementById('empresasBody').innerHTML = '<tr><td colspan="7" class="sin-datos">No hay datos</td></tr>'; return; }
             const porTicker = new Map();
-            for (const reg of data) {
-                if (!porTicker.has(reg.ticker)) porTicker.set(reg.ticker, []);
-                porTicker.get(reg.ticker).push(reg);
-            }
-
+            for (const reg of data) { if (!porTicker.has(reg.ticker)) porTicker.set(reg.ticker, []); porTicker.get(reg.ticker).push(reg); }
             const empresas = [];
             for (let [ticker, registros] of porTicker.entries()) {
                 registros.sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
-                
                 const ultimo = registros[registros.length - 1];
                 const nombre = ultimo.nombre_empresa || ticker;
                 const precioActual = ultimo.precio_cierre;
@@ -895,90 +680,37 @@
                 const pwDiarioActual = ultimo.smi_diario;
                 const pendiente = ultimo.pendiente_diaria;
                 const tieneInteres = PATRONES_INTERES.includes(ultimo.caso_numero);
-                
                 let ultimoPatronInfo = calcularUltimoPatron(registros, tieneInteres);
-                
                 let subida = null;
-                if (ultimoPatronInfo && ultimoPatronInfo.precioPatron && precioActual) {
-                    subida = ((precioActual - ultimoPatronInfo.precioPatron) / ultimoPatronInfo.precioPatron) * 100;
-                }
-                
-                empresas.push({
-                    ticker, nombre, precioActual, fechaActual, tieneInteres,
-                    ultimoPatronInfo, subida, pwDiarioActual, pendiente, registros,
-                    ultimoPatron: ultimo.caso_numero
-                });
+                if (ultimoPatronInfo && ultimoPatronInfo.precioPatron && precioActual) subida = ((precioActual - ultimoPatronInfo.precioPatron) / ultimoPatronInfo.precioPatron) * 100;
+                empresas.push({ ticker, nombre, precioActual, fechaActual, tieneInteres, ultimoPatronInfo, subida, pwDiarioActual, pendiente, registros, ultimoPatron: ultimo.caso_numero });
             }
-            
             empresas.sort((a,b) => a.nombre.localeCompare(b.nombre));
             todasLasEmpresas = empresas;
             renderizarPanelIzquierdo(empresas);
-            
-            // Llenar selector de empresas
             const selector = document.getElementById('selectorEmpresaDirecto');
             if (selector) {
                 selector.innerHTML = '<option value="">📌 Ir a empresa...</option>';
-                todasLasEmpresas.forEach(emp => {
-                    const option = document.createElement('option');
-                    option.value = emp.ticker;
-                    option.textContent = `${emp.nombre} (${emp.ticker})`;
-                    selector.appendChild(option);
-                });
-                selector.onchange = (e) => {
-                    if (e.target.value) {
-                        seleccionarEmpresa(e.target.value);
-                        selector.value = '';
-                    }
-                };
+                todasLasEmpresas.forEach(emp => { const option = document.createElement('option'); option.value = emp.ticker; option.textContent = `${emp.nombre} (${emp.ticker})`; selector.appendChild(option); });
+                selector.onchange = (e) => { if (e.target.value) { seleccionarEmpresa(e.target.value); selector.value = ''; } };
             }
-            
-        } catch (err) {
-            console.error(err);
-            document.getElementById('empresasBody').innerHTML = '<table><td colspan="7" class="sin-datos">Error al cargar</span></span></tr>';
-        }
+        } catch (err) { console.error(err); document.getElementById('empresasBody').innerHTML = '<tr><td colspan="7" class="sin-datos">Error al cargar</td></tr>'; }
     }
 
     function calcularUltimoPatron(registros, tieneInteresActual) {
-        let enCiclo = false;
-        let precioMinimoCiclo = null;
-        let fechaInicioCiclo = null;
-        
+        let enCiclo = false, precioMinimoCiclo = null, fechaInicioCiclo = null;
         for (let i = registros.length - 1; i >= 0; i--) {
             const reg = registros[i];
             const esInteres = PATRONES_INTERES.includes(reg.caso_numero);
-            
-            if (!enCiclo && esInteres) {
-                enCiclo = true;
-                precioMinimoCiclo = reg.precio_cierre;
-                fechaInicioCiclo = reg.fecha;
-            } else if (enCiclo && !esInteres) {
-                if (tieneInteresActual && i === registros.length - 1) break;
-                enCiclo = false;
-                break;
-            } else if (enCiclo && esInteres) {
-                if (reg.precio_cierre < precioMinimoCiclo) {
-                    precioMinimoCiclo = reg.precio_cierre;
-                    fechaInicioCiclo = reg.fecha;
-                }
-            }
+            if (!enCiclo && esInteres) { enCiclo = true; precioMinimoCiclo = reg.precio_cierre; fechaInicioCiclo = reg.fecha; }
+            else if (enCiclo && !esInteres) { if (tieneInteresActual && i === registros.length - 1) break; enCiclo = false; break; }
+            else if (enCiclo && esInteres && reg.precio_cierre < precioMinimoCiclo) { precioMinimoCiclo = reg.precio_cierre; fechaInicioCiclo = reg.fecha; }
         }
-        
-        if (enCiclo && precioMinimoCiclo !== null) {
-            return { fecha: fechaInicioCiclo, precioPatron: precioMinimoCiclo, esActual: tieneInteresActual };
-        }
-        
+        if (enCiclo && precioMinimoCiclo !== null) return { fecha: fechaInicioCiclo, precioPatron: precioMinimoCiclo, esActual: tieneInteresActual };
         for (let i = registros.length - 1; i >= 0; i--) {
             if (PATRONES_INTERES.includes(registros[i].caso_numero)) {
-                let minPrecio = registros[i].precio_cierre;
-                let fechaMin = registros[i].fecha;
-                let j = i;
-                while (j >= 0 && PATRONES_INTERES.includes(registros[j].caso_numero)) {
-                    if (registros[j].precio_cierre < minPrecio) {
-                        minPrecio = registros[j].precio_cierre;
-                        fechaMin = registros[j].fecha;
-                    }
-                    j--;
-                }
+                let minPrecio = registros[i].precio_cierre, fechaMin = registros[i].fecha, j = i;
+                while (j >= 0 && PATRONES_INTERES.includes(registros[j].caso_numero)) { if (registros[j].precio_cierre < minPrecio) { minPrecio = registros[j].precio_cierre; fechaMin = registros[j].fecha; } j--; }
                 return { fecha: fechaMin, precioPatron: minPrecio, esActual: false };
             }
         }
@@ -992,25 +724,16 @@
         rows.forEach(row => {
             const nombre = row.cells[0]?.innerText.toLowerCase() || '';
             let patronMatch = true;
-            if (oportunidad === '7') {
-                patronMatch = row.classList.contains('interes-alcista-7');
-            } else if (oportunidad === '3') {
-                patronMatch = row.classList.contains('interes-alcista-3');
-            } else if (oportunidad === '7,3') {
-                patronMatch = row.classList.contains('interes-alcista-7') || row.classList.contains('interes-alcista-3');
-            }
-            const textoMatch = nombre.includes(texto);
-            row.style.display = (patronMatch && textoMatch) ? '' : 'none';
+            if (oportunidad === '7') patronMatch = row.classList.contains('interes-alcista-7');
+            else if (oportunidad === '3') patronMatch = row.classList.contains('interes-alcista-3');
+            else if (oportunidad === '7,3') patronMatch = row.classList.contains('interes-alcista-7') || row.classList.contains('interes-alcista-3');
+            row.style.display = (patronMatch && nombre.includes(texto)) ? '' : 'none';
         });
     }
 
     function renderizarPanelIzquierdo(empresas) {
         const tbody = document.getElementById('empresasBody');
-        if (!empresas.length) {
-            tbody.innerHTML = '<tr><td colspan="7" class="sin-datos">No hay empresas</span></span></tr>';
-            return;
-        }
-        
+        if (!empresas.length) { tbody.innerHTML = '<tr><td colspan="7" class="sin-datos">No hay empresas</td></tr>'; return; }
         let html = '';
         for (const emp of empresas) {
             const fechaUltPatron = emp.ultimoPatronInfo ? new Date(emp.ultimoPatronInfo.fecha).toLocaleDateString('es-ES') : '---';
@@ -1020,197 +743,92 @@
             const pwText = emp.pwDiarioActual !== null ? emp.pwDiarioActual.toFixed(1) : '---';
             const precioText = emp.precioActual ? emp.precioActual.toFixed(2) + '€' : '---';
             const fechaText = emp.fechaActual ? new Date(emp.fechaActual).toLocaleString('es-ES') : '---';
-            
             const esExclusion = CONDICION_EXCLUSION(emp.pwDiarioActual, emp.pendiente);
-            
             let filaClass = '';
-            if (esExclusion) {
-                filaClass = 'exclusion';
-            } else if (emp.ultimoPatron === 7) {
-                filaClass = 'interes-alcista-7';
-            } else if (emp.ultimoPatron === 3) {
-                filaClass = 'interes-alcista-3';
-            }
-            
+            if (esExclusion) filaClass = 'exclusion';
+            else if (emp.ultimoPatron === 7) filaClass = 'interes-alcista-7';
+            else if (emp.ultimoPatron === 3) filaClass = 'interes-alcista-3';
             const seleccionadaClass = tickerSeleccionado === emp.ticker ? 'seleccionada' : '';
-            
-            html += `<tr class="${filaClass} ${seleccionadaClass}" data-ticker="${emp.ticker}" onclick="seleccionarEmpresa('${emp.ticker}')">
-                <td><strong>${emp.nombre}</strong><br><span style="font-size:0.6rem;color:#8ba0bc;">${emp.ticker}</span></td>
-                <td>${precioText}</td>
-                <td style="font-size:0.7rem;">${fechaText}</td>
-                <td style="font-size:0.7rem;">${fechaUltPatron}</td>
-                <td>${precioUltPatron}</td>
-                <td class="${subidaClass}">${subidaText}</td>
-                <td>${pwText}</td>
-            </tr>`;
+            html += `<tr class="${filaClass} ${seleccionadaClass}" data-ticker="${emp.ticker}" onclick="seleccionarEmpresa('${emp.ticker}')"><td><strong>${emp.nombre}</strong><br><span style="font-size:0.6rem;color:#8ba0bc;">${emp.ticker}</span></span></span></td><td>${precioText}</td><td style="font-size:0.7rem;">${fechaText}</td><td style="font-size:0.7rem;">${fechaUltPatron}</td><td>${precioUltPatron}</td><td class="${subidaClass}">${subidaText}</td><td>${pwText}</td></tr>`;
         }
         tbody.innerHTML = html;
-        
-        // Aplicar filtros después de renderizar
         aplicarFiltros();
     }
-    
-    // Función para renderizar el gráfico (con eje X por días)
+
     function renderizarGrafico(historial) {
-        if (!historial || historial.length === 0) return;
-        
-        const container = document.getElementById('graficaContainer');
-        if (!container) return;
-        
-        // Ordenar de más antiguo a más reciente para el gráfico
+        if (!historial || historial.length === 0 || !document.getElementById('graficaCanvas')) return;
         const datosOrdenados = [...historial].sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
-        
-        // Agrupar por día para la línea de precio
-        const datosPorDia = agruparPorDia(datosOrdenados);
-        const lineData = datosPorDia.map(dia => ({ time: dia.time, value: dia.value }));
-        
-        if (lineData.length === 0) return;
-        
-        // Encontrar los mínimos por ciclo para patrones 7 y 3
-        const minimosPorCiclo = encontrarMinimosPorCiclo(historial);
-        
-        // Destruir gráfico anterior si existe
-        if (chart) {
-            chart.remove();
-            chart = null;
-            lineSeries = null;
-        }
-        
-        // Calcular min y max para ajustar escala sin margen
-        let minPrecio = Math.min(...lineData.map(d => d.value));
-        let maxPrecio = Math.max(...lineData.map(d => d.value));
-        
-        // Crear nuevo gráfico
-        chart = LightweightCharts.createChart(container, {
-            width: container.clientWidth,
-            height: container.clientHeight,
-            layout: {
-                background: { color: '#ffffff' },
-                textColor: '#333'
-            },
-            grid: {
-                vertLines: { color: '#f0f0f0' },
-                horzLines: { color: '#f0f0f0' }
-            },
-            crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
-            rightPriceScale: { 
-                borderColor: '#d1d4dc',
-                scaleMargins: { top: 0, bottom: 0 }
-            },
-            timeScale: { 
-                borderColor: '#d1d4dc', 
-                timeVisible: true, 
-                secondsVisible: false,
-                tickMarkFormatter: (time) => {
-                    const date = new Date(time * 1000);
-                    return date.toLocaleDateString('es-ES');
-                },
-                fixLeftEdge: true,
-                fixRightEdge: true
-            },
-            handleScroll: true,
-            handleScale: true
+        // Preparar datos: cada punto individual (todos los ticks)
+        const labels = datosOrdenados.map(reg => {
+            const fecha = new Date(reg.fecha);
+            return fecha.toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
         });
-        
-        // Línea de precio
-        lineSeries = chart.addLineSeries({
-            color: '#2c7da0',
-            lineWidth: 2,
-            crosshairMarkerVisible: true,
-            crosshairMarkerRadius: 4,
-            priceLineVisible: true,
-            lastValueVisible: true
-        });
-        lineSeries.setData(lineData);
-        
-        // Añadir marcadores para los mínimos de cada ciclo (solo P7 y P3)
-        const markers = [];
-        for (const minimo of minimosPorCiclo) {
-            const time = Math.floor(new Date(minimo.fecha).getTime() / 1000);
-            const color = minimo.patron === 7 ? '#00ff88' : '#b9f6ca';
-            markers.push({
-                time: time,
-                position: 'aboveBar',
-                color: color,
-                shape: 'arrowUp',
-                text: `Mín ${minimo.patron === 7 ? 'P7' : 'P3'}`,
-                size: 3
-            });
+        const precios = datosOrdenados.map(reg => reg.precio_cierre);
+        // Encontrar mínimos por ciclo para marcadores
+        function encontrarMinimosPorCiclo() {
+            let ciclos = [], cicloActual = [], ultimaFecha = null;
+            for (const reg of datosOrdenados) {
+                const fechaActual = new Date(reg.fecha);
+                if (ultimaFecha && (fechaActual - ultimaFecha) > 24*60*60*1000) { if (cicloActual.length) { ciclos.push([...cicloActual]); cicloActual = []; } }
+                if (reg.caso_numero === 7 || reg.caso_numero === 3) cicloActual.push(reg);
+                ultimaFecha = fechaActual;
+            }
+            if (cicloActual.length) ciclos.push([...cicloActual]);
+            const minimos = [];
+            for (const ciclo of ciclos) {
+                if (!ciclo.length) continue;
+                let minPrecio = Infinity, minRegistro = null;
+                for (const reg of ciclo) if (reg.precio_cierre < minPrecio) { minPrecio = reg.precio_cierre; minRegistro = reg; }
+                if (minRegistro) minimos.push({ fecha: minRegistro.fecha, precio: minRegistro.precio_cierre, patron: minRegistro.caso_numero });
+            }
+            return minimos;
         }
-        
-        if (markers.length > 0) {
-            lineSeries.setMarkers(markers);
-        }
-        
-        // Ajustar escala exactamente a min y max (sin margen)
-        chart.timeScale().fitContent();
-        
-        // Forzar escala de precios sin márgenes
-        if (minPrecio !== Infinity && maxPrecio !== -Infinity) {
-            const range = maxPrecio - minPrecio;
-            const padding = Math.max(range * 0.01, 0.01);
-            chart.priceScale().applyOptions({
-                autoScale: false
-            });
-            chart.priceScale().setVisibleRange({
-                from: minPrecio - padding,
-                to: maxPrecio + padding
-            });
-        }
-        
-        // Manejar resize
-        const resizeObserver = new ResizeObserver(() => {
-            if (chart) {
-                chart.applyOptions({ width: container.clientWidth, height: container.clientHeight });
-                chart.timeScale().fitContent();
+        const minimos = encontrarMinimosPorCiclo();
+        // Crear dataset de puntos destacados
+        const minimosP7 = minimos.filter(m => m.patron === 7).map(m => ({ x: new Date(m.fecha).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }), y: m.precio }));
+        const minimosP3 = minimos.filter(m => m.patron === 3).map(m => ({ x: new Date(m.fecha).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }), y: m.precio }));
+        const ctx = document.getElementById('graficaCanvas').getContext('2d');
+        if (chartInstance) chartInstance.destroy();
+        chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    { label: 'Precio', data: precios, borderColor: '#2c7da0', backgroundColor: 'transparent', borderWidth: 2, tension: 0.1, pointRadius: 0, pointHoverRadius: 5, fill: false },
+                    { label: 'Mínimo P7', data: minimosP7, borderColor: '#00ff88', backgroundColor: '#00ff88', pointRadius: 6, pointHoverRadius: 8, type: 'scatter', showLine: false, order: 1 },
+                    { label: 'Mínimo P3', data: minimosP3, borderColor: '#b9f6ca', backgroundColor: '#b9f6ca', pointRadius: 6, pointHoverRadius: 8, type: 'scatter', showLine: false, order: 1 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                scales: { x: { ticks: { maxRotation: 45, minRotation: 45, autoSkip: true, maxTicksLimit: 10 }, title: { display: true, text: 'Fecha y hora' } }, y: { title: { display: true, text: 'Precio (€)' }, beginAtZero: false } },
+                plugins: { tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y}€` } }, legend: { position: 'top' } },
+                interaction: { mode: 'index', intersect: false }
             }
         });
-        resizeObserver.observe(container);
     }
 
     window.seleccionarEmpresa = async function(ticker) {
         tickerSeleccionado = ticker;
-        
-        document.querySelectorAll('#empresasBody tr').forEach(row => {
-            row.classList.remove('seleccionada');
-            if (row.getAttribute('data-ticker') === ticker) row.classList.add('seleccionada');
-        });
-        
+        document.querySelectorAll('#empresasBody tr').forEach(row => { row.classList.remove('seleccionada'); if (row.getAttribute('data-ticker') === ticker) row.classList.add('seleccionada'); });
         const empresa = todasLasEmpresas.find(e => e.ticker === ticker);
         if (!empresa) return;
-        
         document.getElementById('tituloEmpresa').innerHTML = `📊 ${empresa.nombre} (${ticker})`;
-        
         historialActual = [...empresa.registros];
         historialActual.sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
-        
         renderizarPanelDerecho(historialActual);
-        renderizarGrafico(historialActual);
-        
-        entradaSeleccionada = null;
-        salidaSeleccionada = null;
-        filaEntradaIndex = -1;
-        filaSalidaIndex = -1;
-        document.getElementById('compraSeleccionada').innerHTML = '---';
-        document.getElementById('ventaSeleccionada').innerHTML = '---';
-        document.getElementById('resultadoSimulacion').innerHTML = '';
-        document.getElementById('accionesInfo').innerHTML = '---';
+        renderizarGrafico(empresa.registros);
+        entradaSeleccionada = null; salidaSeleccionada = null; filaEntradaIndex = -1; filaSalidaIndex = -1;
+        document.getElementById('compraSeleccionada').innerHTML = '---'; document.getElementById('ventaSeleccionada').innerHTML = '---';
+        document.getElementById('resultadoSimulacion').innerHTML = ''; document.getElementById('accionesInfo').innerHTML = '---';
         document.getElementById('simuladorPanel').style.display = 'flex';
-        
-        const miniGuia = document.getElementById('miniGuia');
-        if (miniGuia) miniGuia.style.display = 'flex';
-    }
+        const miniGuia = document.getElementById('miniGuia'); if (miniGuia) miniGuia.style.display = 'flex';
+    };
 
     function actualizarAccionesInfo() {
-        if (!entradaSeleccionada) {
-            document.getElementById('accionesInfo').innerHTML = 'Selecciona primero un punto de entrada';
-            return;
-        }
+        if (!entradaSeleccionada) { document.getElementById('accionesInfo').innerHTML = 'Selecciona primero un punto de entrada'; return; }
         const capital = parseFloat(document.getElementById('capitalInput').value);
-        if (isNaN(capital) || capital <= 0) {
-            document.getElementById('accionesInfo').innerHTML = '⚠️ Capital simulado inválido';
-            return;
-        }
+        if (isNaN(capital) || capital <= 0) { document.getElementById('accionesInfo').innerHTML = '⚠️ Capital simulado inválido'; return; }
         const precioEntrada = entradaSeleccionada.precio;
         const acciones = Math.floor(capital / precioEntrada);
         const inversionReal = acciones * precioEntrada;
@@ -1219,18 +837,13 @@
 
     function renderizarPanelDerecho(historial) {
         const tbody = document.getElementById('historialBody');
-        if (!historial.length) {
-            tbody.innerHTML = '<tr><td colspan="8" class="sin-datos">No hay historial</span></span></table>';
-            return;
-        }
-        
+        if (!historial.length) { tbody.innerHTML = '<tr><td colspan="8" class="sin-datos">No hay historial</span></span></td>'; return; }
         let html = '';
         for (let i = 0; i < historial.length; i++) {
             const reg = historial[i];
             const fecha = new Date(reg.fecha).toLocaleString('es-ES');
             const precio = reg.precio_cierre ? reg.precio_cierre.toFixed(2) + '€' : '---';
             const patron = reg.caso_numero !== null ? reg.caso_numero : '---';
-            
             let patronClass = '';
             if (reg.caso_numero === 7) patronClass = 'patron-7';
             else if (reg.caso_numero === 3) patronClass = 'patron-3';
@@ -1239,51 +852,21 @@
             else if (reg.caso_numero === 2) patronClass = 'patron-2';
             else if (reg.caso_numero === 4) patronClass = 'patron-4';
             else if (reg.caso_numero === 5) patronClass = 'patron-5';
-            
             const esExclusion = CONDICION_EXCLUSION(reg.smi_diario, reg.pendiente_diaria);
             if (esExclusion) patronClass = 'patron-exclusion';
-            
             const pw4h = reg.smi_4h !== null ? reg.smi_4h.toFixed(1) : '---';
             const pwDiario = reg.smi_diario !== null ? reg.smi_diario.toFixed(1) : '---';
             const pendiente = reg.pendiente_diaria !== null ? reg.pendiente_diaria.toFixed(1) : '---';
-            
-            let soporteText = '---';
-            let resistenciaText = '---';
-            if (reg.soportes) {
-                const soportes = reg.soportes.split('\n');
-                if (soportes.length > 0) soporteText = soportes[0].substring(0, 30);
-            }
-            if (reg.resistencias) {
-                const resistencias = reg.resistencias.split('\n');
-                if (resistencias.length > 0) resistenciaText = resistencias[0].substring(0, 30);
-            }
-            
+            let soporteText = '---', resistenciaText = '---';
+            if (reg.soportes) { const soportes = reg.soportes.split('\n'); if (soportes.length > 0) soporteText = soportes[0].substring(0,30); }
+            if (reg.resistencias) { const resistencias = reg.resistencias.split('\n'); if (resistencias.length > 0) resistenciaText = resistencias[0].substring(0,30); }
             const isEntradaSeleccionada = (entradaSeleccionada && entradaSeleccionada.idx === i);
             const isSalidaSeleccionada = (salidaSeleccionada && salidaSeleccionada.idx === i);
-            
-            html += `<tr class="${patronClass}" data-idx="${i}">
-                <td style="font-size:0.7rem;">${fecha}</td>
-                <td class="precio-clickeable" data-idx="${i}" data-precio="${reg.precio_cierre}" data-fecha="${reg.fecha}">
-                    ${isEntradaSeleccionada ? '<span class="precio-seleccionado">🔵 ' + precio + '</span>' : (isSalidaSeleccionada ? '<span class="precio-seleccionado">🟠 ' + precio + '</span>' : precio)}
-                </span></span></td>
-                <td class="patron-tooltip">${patron}<span class="tooltip-text">${getDescripcionPatron(reg.caso_numero)}</span></span></td>
-                <td>${pw4h}</td>
-                <td>${pwDiario}</td>
-                <td>${pendiente}</td>
-                <td style="font-size:0.65rem; max-width:120px;">${soporteText}</td>
-                <td style="font-size:0.65rem; max-width:120px;">${resistenciaText}</td>
-            </tr>`;
+            html += `<tr class="${patronClass}" data-idx="${i}"><td style="font-size:0.7rem;">${fecha}</td><td class="precio-clickeable" data-idx="${i}" data-precio="${reg.precio_cierre}" data-fecha="${reg.fecha}">${isEntradaSeleccionada ? '<span class="precio-seleccionado">🔵 ' + precio + '</span>' : (isSalidaSeleccionada ? '<span class="precio-seleccionado">🟠 ' + precio + '</span>' : precio)}</td><td class="patron-tooltip">${patron}<span class="tooltip-text">${getDescripcionPatron(reg.caso_numero)}</span></span></td><td>${pw4h}</td><td>${pwDiario}</td><td>${pendiente}</td><td style="font-size:0.65rem; max-width:120px;">${soporteText}</td><td style="font-size:0.65rem; max-width:120px;">${resistenciaText}</td></tr>`;
         }
         tbody.innerHTML = html;
-        
         document.querySelectorAll('#tablaHistorial td.precio-clickeable').forEach(cell => {
-            cell.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const idx = parseInt(cell.getAttribute('data-idx'));
-                const precio = parseFloat(cell.getAttribute('data-precio'));
-                const fecha = cell.getAttribute('data-fecha');
-                seleccionarPrecio(idx, precio, fecha);
-            });
+            cell.addEventListener('click', (e) => { e.stopPropagation(); const idx = parseInt(cell.getAttribute('data-idx')); const precio = parseFloat(cell.getAttribute('data-precio')); const fecha = cell.getAttribute('data-fecha'); seleccionarPrecio(idx, precio, fecha); });
         });
     }
 
@@ -1293,23 +876,18 @@
             filaEntradaIndex = idx;
             document.getElementById('compraSeleccionada').innerHTML = `${new Date(fecha).toLocaleString('es-ES')} · ${precio.toFixed(2)}€`;
             document.getElementById('ventaSeleccionada').innerHTML = '---';
-            salidaSeleccionada = null;
-            filaSalidaIndex = -1;
+            salidaSeleccionada = null; filaSalidaIndex = -1;
             document.getElementById('resultadoSimulacion').innerHTML = '';
             actualizarAccionesInfo();
         } else if (salidaSeleccionada === null) {
-            if (idx >= filaEntradaIndex) {
-                alert('❌ El punto de salida debe seleccionarse en una fila MÁS RECIENTE (por encima del punto de entrada)');
-                return;
-            }
+            if (idx >= filaEntradaIndex) { alert('❌ El punto de salida debe seleccionarse en una fila MÁS RECIENTE (por encima del punto de entrada)'); return; }
             salidaSeleccionada = { idx, precio, fecha };
             filaSalidaIndex = idx;
             document.getElementById('ventaSeleccionada').innerHTML = `${new Date(fecha).toLocaleString('es-ES')} · ${precio.toFixed(2)}€`;
         } else {
             entradaSeleccionada = { idx, precio, fecha };
             filaEntradaIndex = idx;
-            salidaSeleccionada = null;
-            filaSalidaIndex = -1;
+            salidaSeleccionada = null; filaSalidaIndex = -1;
             document.getElementById('compraSeleccionada').innerHTML = `${new Date(fecha).toLocaleString('es-ES')} · ${precio.toFixed(2)}€`;
             document.getElementById('ventaSeleccionada').innerHTML = '---';
             document.getElementById('resultadoSimulacion').innerHTML = '';
@@ -1319,44 +897,26 @@
     }
 
     function calcularResultado() {
-        if (!entradaSeleccionada || !salidaSeleccionada) {
-            alert('❌ Debes seleccionar un punto de entrada y uno de salida');
-            return;
-        }
-        
+        if (!entradaSeleccionada || !salidaSeleccionada) { alert('❌ Debes seleccionar un punto de entrada y uno de salida'); return; }
         const capital = parseFloat(document.getElementById('capitalInput').value);
-        if (isNaN(capital) || capital <= 0) {
-            alert('❌ Introduce un capital simulado válido');
-            return;
-        }
-        
-        const precioEntrada = entradaSeleccionada.precio;
-        const precioSalida = salidaSeleccionada.precio;
+        if (isNaN(capital) || capital <= 0) { alert('❌ Introduce un capital simulado válido'); return; }
+        const precioEntrada = entradaSeleccionada.precio, precioSalida = salidaSeleccionada.precio;
         const acciones = Math.floor(capital / precioEntrada);
         const dineroInvertido = acciones * precioEntrada;
-        
-        const comisionEntrada = 11 + (dineroInvertido * 0.004);
-        const comisionSalida = 11 + (precioSalida * acciones * 0.004);
-        const comisionesTotales = comisionEntrada + comisionSalida;
-        
-        const resultadoBruto = (precioSalida - precioEntrada) * acciones;
-        const resultadoNeto = resultadoBruto - comisionesTotales;
+        const comisionEntrada = 11 + (dineroInvertido * 0.004), comisionSalida = 11 + (precioSalida * acciones * 0.004);
+        const resultadoNeto = (precioSalida - precioEntrada) * acciones - (comisionEntrada + comisionSalida);
         const rentabilidadPorcentaje = ((precioSalida - precioEntrada) / precioEntrada) * 100;
-        
         const resultadoDiv = document.getElementById('resultadoSimulacion');
         const resultadoClass = resultadoNeto >= 0 ? 'positivo' : 'negativo';
         resultadoDiv.innerHTML = `<span class="${resultadoClass}">${resultadoNeto >= 0 ? '+' : ''}${resultadoNeto.toFixed(2)}€ (${rentabilidadPorcentaje >= 0 ? '+' : ''}${rentabilidadPorcentaje.toFixed(2)}%)</span>`;
     }
 
-    // Event listeners para filtros
+    document.getElementById('btnCalcular').addEventListener('click', calcularResultado);
+    document.getElementById('capitalInput').addEventListener('input', actualizarAccionesInfo);
     if (document.getElementById('filtroEmpresa')) {
         document.getElementById('filtroEmpresa').addEventListener('input', aplicarFiltros);
         document.getElementById('filtroOportunidad').addEventListener('change', aplicarFiltros);
     }
-
-    document.getElementById('btnCalcular').addEventListener('click', calcularResultado);
-    document.getElementById('capitalInput').addEventListener('input', actualizarAccionesInfo);
-    
     cargarEmpresas();
 </script>
 </body>
