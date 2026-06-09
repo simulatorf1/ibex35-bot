@@ -733,11 +733,67 @@
         return descripciones[patron] || "Sin patrón detectado";
     }
     
-    // Solo coloreamos patrones 7 y 3 en el gráfico
-    function getColorForPatron(patron) {
-        if (patron === 7) return '#00ff88';  // Verde eléctrico
-        if (patron === 3) return '#b9f6ca';  // Verde clarito
-        return null;  // Los demás no se colorean
+    // Función para detectar ciclos y encontrar el precio mínimo de P7 y P3 en cada ciclo
+    function encontrarMinimosPorCiclo(historial) {
+        if (!historial || historial.length === 0) return [];
+        
+        // Ordenar de más antiguo a más reciente
+        const datosOrdenados = [...historial].sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
+        
+        let ciclos = [];
+        let cicloActual = [];
+        let ultimaFecha = null;
+        
+        for (let i = 0; i < datosOrdenados.length; i++) {
+            const reg = datosOrdenados[i];
+            const fechaActual = new Date(reg.fecha);
+            
+            // Si hay un salto de más de 1 día sin patrón, es un nuevo ciclo
+            if (ultimaFecha && (fechaActual - ultimaFecha) > 24 * 60 * 60 * 1000) {
+                if (cicloActual.length > 0) {
+                    ciclos.push([...cicloActual]);
+                    cicloActual = [];
+                }
+            }
+            
+            // Si el patrón es 7 o 3, lo añadimos al ciclo actual
+            if (reg.caso_numero === 7 || reg.caso_numero === 3) {
+                cicloActual.push(reg);
+            }
+            
+            ultimaFecha = fechaActual;
+        }
+        
+        // Añadir el último ciclo
+        if (cicloActual.length > 0) {
+            ciclos.push([...cicloActual]);
+        }
+        
+        // Para cada ciclo, encontrar el precio mínimo
+        const minimos = [];
+        for (const ciclo of ciclos) {
+            if (ciclo.length === 0) continue;
+            
+            let minPrecio = Infinity;
+            let minRegistro = null;
+            
+            for (const reg of ciclo) {
+                if (reg.precio_cierre < minPrecio) {
+                    minPrecio = reg.precio_cierre;
+                    minRegistro = reg;
+                }
+            }
+            
+            if (minRegistro) {
+                minimos.push({
+                    fecha: minRegistro.fecha,
+                    precio: minRegistro.precio_cierre,
+                    patron: minRegistro.caso_numero
+                });
+            }
+        }
+        
+        return minimos;
     }
 
     async function traerTodosLosRegistros() {
@@ -872,7 +928,7 @@
     function renderizarPanelIzquierdo(empresas) {
         const tbody = document.getElementById('empresasBody');
         if (!empresas.length) {
-            tbody.innerHTML = '<td><td colspan="7" class="sin-datos">No hay empresas</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="sin-datos">No hay empresas</td></tr>';
             return;
         }
         
@@ -922,7 +978,7 @@
         tbody.innerHTML = html;
     }
     
-    // Función para renderizar el gráfico (sin soportes/resistencias, solo patrones 7 y 3)
+    // Función para renderizar el gráfico (solo mínimos de P7 y P3 por ciclo)
     function renderizarGrafico(historial) {
         if (!historial || historial.length === 0) return;
         
@@ -932,9 +988,8 @@
         // Ordenar de más antiguo a más reciente para el gráfico
         const datosOrdenados = [...historial].sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
         
-        // Preparar datos de la línea de precio
+        // Preparar datos de la línea de precio (todos los puntos)
         const lineData = [];
-        const markers = [];
         
         // Calcular min y max para ajustar escala sin margen
         let minPrecio = Infinity;
@@ -949,21 +1004,12 @@
             
             const time = Math.floor(new Date(reg.fecha).getTime() / 1000);
             lineData.push({ time, value: precio });
-            
-            // Solo añadir marcador para patrón 7 o 3
-            if (reg.caso_numero === 7 || reg.caso_numero === 3) {
-                markers.push({
-                    time: time,
-                    position: 'aboveBar',
-                    color: getColorForPatron(reg.caso_numero),
-                    shape: 'circle',
-                    text: `P${reg.caso_numero}`,
-                    size: 1
-                });
-            }
         }
         
         if (lineData.length === 0) return;
+        
+        // Encontrar los mínimos por ciclo para patrones 7 y 3
+        const minimosPorCiclo = encontrarMinimosPorCiclo(historial);
         
         // Destruir gráfico anterior si existe
         if (chart) {
@@ -1016,7 +1062,21 @@
         });
         lineSeries.setData(lineData);
         
-        // Añadir marcadores (solo P7 y P3)
+        // Añadir marcadores para los mínimos de cada ciclo (solo P7 y P3)
+        const markers = [];
+        for (const minimo of minimosPorCiclo) {
+            const time = Math.floor(new Date(minimo.fecha).getTime() / 1000);
+            const color = minimo.patron === 7 ? '#00ff88' : '#b9f6ca';
+            markers.push({
+                time: time,
+                position: 'aboveBar',
+                color: color,
+                shape: 'circle',
+                text: `Mín ${minimo.patron === 7 ? 'P7' : 'P3'}`,
+                size: 2  // Marcador más grande
+            });
+        }
+        
         if (markers.length > 0) {
             lineSeries.setMarkers(markers);
         }
@@ -1100,7 +1160,7 @@
     function renderizarPanelDerecho(historial) {
         const tbody = document.getElementById('historialBody');
         if (!historial.length) {
-            tbody.innerHTML = '<tr><td colspan="8" class="sin-datos">No hay historial</td></table>';
+            tbody.innerHTML = '<tr><td colspan="8" class="sin-datos">No hay historial</td></tr>';
             return;
         }
         
@@ -1145,7 +1205,7 @@
                 <td style="font-size:0.7rem;">${fecha}</td>
                 <td class="precio-clickeable" data-idx="${i}" data-precio="${reg.precio_cierre}" data-fecha="${reg.fecha}">
                     ${isEntradaSeleccionada ? '<span class="precio-seleccionado">🔵 ' + precio + '</span>' : (isSalidaSeleccionada ? '<span class="precio-seleccionado">🟠 ' + precio + '</span>' : precio)}
-                </td>
+                </span></span></td>
                 <td class="patron-tooltip">${patron}<span class="tooltip-text">${getDescripcionPatron(reg.caso_numero)}</span></span></td>
                 <td>${pw4h}</td>
                 <td>${pwDiario}</td>
