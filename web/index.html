@@ -200,11 +200,12 @@
             flex: 1;
             min-height: 0;
             overflow-y: auto;
+            max-height: 200px; /* Limitar altura de la tabla para dar más espacio al gráfico */
         }
 
         .grafico-wrapper {
-            height: 40%;
-            min-height: 200px;
+            flex: 2;
+            min-height: 300px;
             border-top: 1px solid #e9ecef;
             background: white;
             padding: 10px;
@@ -503,7 +504,7 @@
                 gap: 8px;
             }
             .grafico-wrapper {
-                height: 200px;
+                min-height: 250px;
             }
             .tabla-empresas, .tabla-historial {
                 font-size: 0.6rem;
@@ -515,7 +516,7 @@
                 padding: 6px 4px;
             }
             .historial-wrapper {
-                max-height: 300px;
+                max-height: 150px;
                 overflow-y: auto;
             }
             .tabla-empresas-wrapper {
@@ -749,7 +750,7 @@
             else if (emp.ultimoPatron === 7) filaClass = 'interes-alcista-7';
             else if (emp.ultimoPatron === 3) filaClass = 'interes-alcista-3';
             const seleccionadaClass = tickerSeleccionado === emp.ticker ? 'seleccionada' : '';
-            html += `<tr class="${filaClass} ${seleccionadaClass}" data-ticker="${emp.ticker}" onclick="seleccionarEmpresa('${emp.ticker}')"><td><strong>${emp.nombre}</strong><br><span style="font-size:0.6rem;color:#8ba0bc;">${emp.ticker}</span></span></span></td><td>${precioText}</td><td style="font-size:0.7rem;">${fechaText}</td><td style="font-size:0.7rem;">${fechaUltPatron}</td><td>${precioUltPatron}</td><td class="${subidaClass}">${subidaText}</td><td>${pwText}</td></tr>`;
+            html += `<tr class="${filaClass} ${seleccionadaClass}" data-ticker="${emp.ticker}" onclick="seleccionarEmpresa('${emp.ticker}')"><td><strong>${emp.nombre}</strong><br><span style="font-size:0.6rem;color:#8ba0bc;">${emp.ticker}</span></td><td>${precioText}</td><td style="font-size:0.7rem;">${fechaText}</td><td style="font-size:0.7rem;">${fechaUltPatron}</span></span></td><td>${precioUltPatron}</span></span></td><td class="${subidaClass}">${subidaText}</span></span></td><td>${pwText}</span></span></tr>`;
         }
         tbody.innerHTML = html;
         aplicarFiltros();
@@ -758,12 +759,15 @@
     function renderizarGrafico(historial) {
         if (!historial || historial.length === 0 || !document.getElementById('graficaCanvas')) return;
         const datosOrdenados = [...historial].sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
-        // Preparar datos: cada punto individual (todos los ticks)
+        
+        // Etiquetas: solo día del mes (sin mes, sin año, sin hora)
         const labels = datosOrdenados.map(reg => {
             const fecha = new Date(reg.fecha);
-            return fecha.toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+            return fecha.getDate().toString(); // Solo el número del día
         });
+        
         const precios = datosOrdenados.map(reg => reg.precio_cierre);
+        
         // Encontrar mínimos por ciclo para marcadores
         function encontrarMinimosPorCiclo() {
             let ciclos = [], cicloActual = [], ultimaFecha = null;
@@ -779,30 +783,99 @@
                 if (!ciclo.length) continue;
                 let minPrecio = Infinity, minRegistro = null;
                 for (const reg of ciclo) if (reg.precio_cierre < minPrecio) { minPrecio = reg.precio_cierre; minRegistro = reg; }
-                if (minRegistro) minimos.push({ fecha: minRegistro.fecha, precio: minRegistro.precio_cierre, patron: minRegistro.caso_numero });
+                if (minRegistro) minimos.push({ 
+                    indice: datosOrdenados.findIndex(r => r.fecha === minRegistro.fecha && r.precio_cierre === minRegistro.precio_cierre),
+                    precio: minRegistro.precio_cierre, 
+                    patron: minRegistro.caso_numero 
+                });
             }
             return minimos;
         }
+        
         const minimos = encontrarMinimosPorCiclo();
-        // Crear dataset de puntos destacados
-        const minimosP7 = minimos.filter(m => m.patron === 7).map(m => ({ x: new Date(m.fecha).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }), y: m.precio }));
-        const minimosP3 = minimos.filter(m => m.patron === 3).map(m => ({ x: new Date(m.fecha).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }), y: m.precio }));
+        
+        // Preparar datasets para flechas (scatter con símbolo personalizado)
+        const minimosP7 = minimos.filter(m => m.patron === 7).map(m => ({ x: m.indice, y: m.precio }));
+        const minimosP3 = minimos.filter(m => m.patron === 3).map(m => ({ x: m.indice, y: m.precio }));
+        
         const ctx = document.getElementById('graficaCanvas').getContext('2d');
         if (chartInstance) chartInstance.destroy();
+        
         chartInstance = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: labels,
                 datasets: [
-                    { label: 'Precio', data: precios, borderColor: '#2c7da0', backgroundColor: 'transparent', borderWidth: 2, tension: 0.1, pointRadius: 0, pointHoverRadius: 5, fill: false },
-                    { label: 'Mínimo P7', data: minimosP7, borderColor: '#00ff88', backgroundColor: '#00ff88', pointRadius: 6, pointHoverRadius: 8, type: 'scatter', showLine: false, order: 1 },
-                    { label: 'Mínimo P3', data: minimosP3, borderColor: '#b9f6ca', backgroundColor: '#b9f6ca', pointRadius: 6, pointHoverRadius: 8, type: 'scatter', showLine: false, order: 1 }
+                    { 
+                        label: '',  // Sin leyenda
+                        data: precios, 
+                        borderColor: '#2c7da0', 
+                        backgroundColor: 'transparent', 
+                        borderWidth: 2, 
+                        tension: 0.1, 
+                        pointRadius: 0, 
+                        pointHoverRadius: 5, 
+                        fill: false 
+                    },
+                    { 
+                        label: '',  // Sin leyenda
+                        data: minimosP7, 
+                        borderColor: '#00ff88', 
+                        backgroundColor: '#00ff88', 
+                        pointRadius: 8, 
+                        pointHoverRadius: 10, 
+                        type: 'scatter', 
+                        showLine: false,
+                        pointStyle: 'arrow',
+                        rotation: 0,
+                        order: 1
+                    },
+                    { 
+                        label: '',  // Sin leyenda
+                        data: minimosP3, 
+                        borderColor: '#b9f6ca', 
+                        backgroundColor: '#b9f6ca', 
+                        pointRadius: 8, 
+                        pointHoverRadius: 10, 
+                        type: 'scatter', 
+                        showLine: false,
+                        pointStyle: 'arrow',
+                        rotation: 0,
+                        order: 1
+                    }
                 ]
             },
             options: {
-                responsive: true, maintainAspectRatio: false,
-                scales: { x: { ticks: { maxRotation: 45, minRotation: 45, autoSkip: true, maxTicksLimit: 10 }, title: { display: true, text: 'Fecha y hora' } }, y: { title: { display: true, text: 'Precio (€)' }, beginAtZero: false } },
-                plugins: { tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.parsed.y}€` } }, legend: { position: 'top' } },
+                responsive: true, 
+                maintainAspectRatio: false,
+                scales: { 
+                    x: { 
+                        ticks: { 
+                            maxRotation: 0, 
+                            autoSkip: true, 
+                            maxTicksLimit: 15,
+                            callback: function(val, index) {
+                                return labels[index];
+                            }
+                        }, 
+                        title: { display: false }
+                    }, 
+                    y: { 
+                        title: { display: false }, 
+                        beginAtZero: false 
+                    } 
+                },
+                plugins: { 
+                    tooltip: { 
+                        callbacks: { 
+                            label: (ctx) => {
+                                if (ctx.datasetIndex === 0) return `Precio: ${ctx.parsed.y}€`;
+                                return `Mínimo P${ctx.raw.patron === 7 ? '7' : '3'}: ${ctx.parsed.y}€`;
+                            }
+                        } 
+                    }, 
+                    legend: { display: false }  // Leyenda del gráfico oculta
+                },
                 interaction: { mode: 'index', intersect: false }
             }
         });
@@ -837,10 +910,13 @@
 
     function renderizarPanelDerecho(historial) {
         const tbody = document.getElementById('historialBody');
-        if (!historial.length) { tbody.innerHTML = '<tr><td colspan="8" class="sin-datos">No hay historial</span></span></td>'; return; }
+        if (!historial.length) { tbody.innerHTML = '<tr><td colspan="8" class="sin-datos">No hay historial</span></span></tr>'; return; }
         let html = '';
-        for (let i = 0; i < historial.length; i++) {
-            const reg = historial[i];
+        // Limitar a 15 filas visibles inicialmente, pero con scroll para ver el resto
+        const filasAMostrar = historial.slice(0, 15);
+        for (let i = 0; i < filasAMostrar.length; i++) {
+            const reg = filasAMostrar[i];
+            const idx = historial.findIndex(r => r.fecha === reg.fecha && r.precio_cierre === reg.precio_cierre);
             const fecha = new Date(reg.fecha).toLocaleString('es-ES');
             const precio = reg.precio_cierre ? reg.precio_cierre.toFixed(2) + '€' : '---';
             const patron = reg.caso_numero !== null ? reg.caso_numero : '---';
@@ -860,9 +936,13 @@
             let soporteText = '---', resistenciaText = '---';
             if (reg.soportes) { const soportes = reg.soportes.split('\n'); if (soportes.length > 0) soporteText = soportes[0].substring(0,30); }
             if (reg.resistencias) { const resistencias = reg.resistencias.split('\n'); if (resistencias.length > 0) resistenciaText = resistencias[0].substring(0,30); }
-            const isEntradaSeleccionada = (entradaSeleccionada && entradaSeleccionada.idx === i);
-            const isSalidaSeleccionada = (salidaSeleccionada && salidaSeleccionada.idx === i);
-            html += `<tr class="${patronClass}" data-idx="${i}"><td style="font-size:0.7rem;">${fecha}</td><td class="precio-clickeable" data-idx="${i}" data-precio="${reg.precio_cierre}" data-fecha="${reg.fecha}">${isEntradaSeleccionada ? '<span class="precio-seleccionado">🔵 ' + precio + '</span>' : (isSalidaSeleccionada ? '<span class="precio-seleccionado">🟠 ' + precio + '</span>' : precio)}</td><td class="patron-tooltip">${patron}<span class="tooltip-text">${getDescripcionPatron(reg.caso_numero)}</span></span></td><td>${pw4h}</td><td>${pwDiario}</td><td>${pendiente}</td><td style="font-size:0.65rem; max-width:120px;">${soporteText}</td><td style="font-size:0.65rem; max-width:120px;">${resistenciaText}</td></tr>`;
+            const isEntradaSeleccionada = (entradaSeleccionada && entradaSeleccionada.idx === idx);
+            const isSalidaSeleccionada = (salidaSeleccionada && salidaSeleccionada.idx === idx);
+            html += `<tr class="${patronClass}" data-idx="${idx}"><td style="font-size:0.7rem;">${fecha}</td><td class="precio-clickeable" data-idx="${idx}" data-precio="${reg.precio_cierre}" data-fecha="${reg.fecha}">${isEntradaSeleccionada ? '<span class="precio-seleccionado">🔵 ' + precio + '</span>' : (isSalidaSeleccionada ? '<span class="precio-seleccionado">🟠 ' + precio + '</span>' : precio)}</td><td class="patron-tooltip">${patron}<span class="tooltip-text">${getDescripcionPatron(reg.caso_numero)}</span></span></span></span></span></span></td><td>${pw4h}</td><td>${pwDiario}</td><td>${pendiente}</td><td style="font-size:0.65rem; max-width:120px;">${soporteText}</td><td style="font-size:0.65rem; max-width:120px;">${resistenciaText}</td></tr>`;
+        }
+        // Si hay más de 15 filas, añadir indicador de scroll
+        if (historial.length > 15) {
+            html += `<tr><td colspan="8" style="text-align:center; font-size:0.6rem; color:#8ba0bc;">📜 +${historial.length - 15} registros más (desplaza hacia abajo)</td></tr>`;
         }
         tbody.innerHTML = html;
         document.querySelectorAll('#tablaHistorial td.precio-clickeable').forEach(cell => {
