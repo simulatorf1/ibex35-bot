@@ -83,6 +83,15 @@ EMPRESAS = [
     ("NVG.MC", "Natra"),
     ("PRIM.MC", "Prim"),
     ("R4.MC", "Renta 4"),
+    ("EDR.MC", "Edreams"),
+    ("HOME.MC", "Neinor Homes"),
+    ("ORY.MC", "Oryzon"),
+    ("VANA.MC", "Vanadi cofee"),
+    ("OLE.MC", "Deoleo"),
+    ("BKY.MC", "Berkeley"),
+    ("AMP.MC", "Amper"),
+    ("IDR.MC", "Indra"),
+
 
 
     
