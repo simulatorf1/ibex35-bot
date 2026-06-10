@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analizador IBEX | Herramienta de backtesting</title>
+    <title>Analizador| Herramienta de backtesting</title>
     <style>
         * {
             margin: 0;
@@ -24,7 +24,6 @@
             padding: 40px 20px;
         }
 
-        /* Header */
         .header {
             text-align: center;
             margin-bottom: 60px;
@@ -47,7 +46,6 @@
             margin: 0 auto;
         }
 
-        /* Features */
         .features {
             display: flex;
             flex-wrap: wrap;
@@ -81,7 +79,6 @@
             color: #c8dce8;
         }
 
-        /* Panel login/registro */
         .auth-panel {
             background: white;
             border-radius: 24px;
@@ -149,7 +146,6 @@
             margin-top: 12px;
         }
 
-        /* Botón acceso */
         .access-btn {
             display: block;
             width: fit-content;
@@ -186,8 +182,8 @@
 <body>
 <div class="container">
     <div class="header">
-        <h1>📊Backtesting</h1>
-        <p>Herramienta profesional de estrategias</p>
+        <h1>📊 IBEX Backtesting</h1>
+        <p>Herramienta profesional de análisis técnico y simulación de estrategias</p>
     </div>
 
     <div class="features">
@@ -219,10 +215,6 @@
         <div id="authMessage" class="error-msg"></div>
     </div>
 
-    <div id="accessSection" style="display: none; text-align: center;">
-        <a href="index.html" class="access-btn">🚀 Acceder a la herramienta</a>
-    </div>
-
     <div class="disclaimer">
         ⚠️ Herramienta educativa · No constituye recomendación de inversión
     </div>
@@ -238,8 +230,7 @@
     async function checkSession() {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
-            document.getElementById('authPanel').style.display = 'none';
-            document.getElementById('accessSection').style.display = 'block';
+            window.location.href = '/index.html';
         }
     }
 
@@ -258,11 +249,8 @@
             if (error) {
                 messageDiv.textContent = error.message;
             } else {
-                messageDiv.textContent = '✅ Sesión iniciada';
-                setTimeout(() => {
-                    document.getElementById('authPanel').style.display = 'none';
-                    document.getElementById('accessSection').style.display = 'block';
-                }, 1000);
+                messageDiv.textContent = '✅ Sesión iniciada, redirigiendo...';
+                setTimeout(() => { window.location.href = '/index.html'; }, 1000);
             }
         } else {
             const { error } = await supabase.auth.signUp({ email, password });
