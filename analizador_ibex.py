@@ -23,10 +23,9 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 # ============================================
 # CONFIGURACIÓN DE RESEND (EMAILS GRATIS)
 # ============================================
-# Regístrate en https://resend.com y obtén tu API key
-# Luego configura esta variable de entorno: RESEND_API_KEY
 RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
 RESEND_FROM_EMAIL = os.environ.get("RESEND_FROM_EMAIL", "alertas@ibex35-bot.vercel.app")
+SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")
 
 # ============================================
 # LISTA DE EMPRESAS DEL IBEX35
@@ -123,23 +122,22 @@ def enviar_alertas_email(ticker, nombre_empresa, patron, precio):
         
         print(f"   {len(response.data)} usuarios tienen alerta activa")
         
-        # 2. Obtener emails de esos usuarios
-        user_ids = [u['user_id'] for u in response.data]
-        
-        # Consultar auth.users (necesita privilegios de admin)
-        # En Supabase, necesitas usar service_role key para esto
-        SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")
+        # 2. Obtener emails de esos usuarios usando service_role
         if not SUPABASE_SERVICE_KEY:
-            print("   ⚠️ No hay SERVICE_KEY, no se pueden obtener emails")
+            print("   ⚠️ No hay SUPABASE_SERVICE_KEY, no se pueden obtener emails")
             return
         
         admin_supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
-        users_response = admin_supabase.table('users').select('id, email').execute()
+        
+        # Obtener todos los usuarios (necesita service_role)
+        users_response = admin_supabase.auth.admin.list_users()
         
         emails = []
-        for user in users_response.data:
-            if user['id'] in user_ids:
-                emails.append(user['email'])
+        user_ids = [u['user_id'] for u in response.data]
+        
+        for user in users_response:
+            if user.id in user_ids:
+                emails.append(user.email)
         
         if not emails:
             print("   No se encontraron emails para los usuarios")
@@ -205,7 +203,7 @@ def enviar_alertas_email(ticker, nombre_empresa, patron, precio):
                 if response.status_code == 200:
                     print(f"   ✅ Email enviado a {email}")
                     # Actualizar último_envio
-                    supabase.table('alertas').update({'ultimo_envio': datetime.now(pytz.timezone('Europe/Madrid')).isoformat()}).eq('ticker', ticker).eq('user_id', user_ids[0]).execute()
+                    supabase.table('alertas').update({'ultimo_envio': datetime.now(pytz.timezone('Europe/Madrid')).isoformat()}).eq('ticker', ticker).eq('activa', True).execute()
                 else:
                     print(f"   ❌ Error enviando a {email}: {response.text}")
                     
