@@ -539,6 +539,23 @@
     <div class="paneles">
         <div class="panel-izquierdo">
             <h2 style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px;">📋 TODAS LAS EMPRESAS <span style="font-size: 0.6rem; font-weight: normal; color: #a8c4d8;">Los datos se actualizan varias veces al día. % ganancias desde última entrada</span></h2>
+            <!-- Panel de alertas (solo visible si logueado) -->
+            <div id="alertasPanel" style="display: none; background: #eef2fa; border-radius: 16px; margin: 12px; padding: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <strong style="font-size: 0.75rem; color: #1e4668;">🔔 Mis alertas (P3/P7)</strong>
+                    <button id="refreshAlertasBtn" style="background: none; border: none; cursor: pointer; font-size: 0.7rem;">🔄</button>
+                </div>
+                <div id="alertasLista" style="max-height: 150px; overflow-y: auto; font-size: 0.7rem;">
+                    <span style="color: #8ba0bc;">Cargando...</span>
+                </div>
+                <div style="margin-top: 8px;">
+                    <select id="alertaTickerSelect" style="width: 100%; padding: 6px; border-radius: 20px; border: 1px solid #cfdfed; font-size: 0.7rem;">
+                        <option value="">Seleccionar empresa...</option>
+                    </select>
+                    <button id="activarAlertaBtn" style="width: 100%; margin-top: 8px; padding: 6px; background: #1e7e34; color: white; border: none; border-radius: 20px; font-size: 0.65rem; cursor: pointer;">➕ Activar alerta para esta empresa</button>
+                </div>
+            </div>            
+            
             <div style="padding: 12px; display: flex; gap: 8px; flex-wrap: wrap; background: white; border-bottom: 1px solid #e9ecef;">
                 <input type="text" id="filtroEmpresa" placeholder="🔍 Buscar empresa..." style="flex: 1; padding: 6px 12px; border-radius: 20px; border: 1px solid #cfdfed; font-size: 0.7rem;">
                 <select id="filtroOportunidad" style="padding: 6px 12px; border-radius: 20px; border: 1px solid #cfdfed; font-size: 0.7rem; background: white;">
@@ -959,6 +976,105 @@
         document.getElementById('filtroEmpresa').addEventListener('input', aplicarFiltros);
         document.getElementById('filtroOportunidad').addEventListener('change', aplicarFiltros);
     }
+    // ============================================
+    // GESTIÓN DE ALERTAS (solo logueados)
+    // ============================================
+    let currentUser = null;
+    
+    async function verificarSesion() {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session) {
+            currentUser = session.user;
+            document.getElementById('alertasPanel').style.display = 'block';
+            cargarAlertas();
+            cargarTickersEnSelector();
+        } else {
+            document.getElementById('alertasPanel').style.display = 'none';
+        }
+    }
+    
+    async function cargarAlertas() {
+        if (!currentUser) return;
+        const { data, error } = await supabaseClient
+            .from('alertas')
+            .select('*')
+            .eq('user_id', currentUser.id);
+        
+        if (error) { console.error(error); return; }
+        
+        const lista = document.getElementById('alertasLista');
+        if (!data || data.length === 0) {
+            lista.innerHTML = '<span style="color: #8ba0bc;">No tienes alertas activas</span>';
+            return;
+        }
+        
+        let html = '';
+        for (const alerta of data) {
+            const nombreEmpresa = todasLasEmpresas.find(e => e.ticker === alerta.ticker)?.nombre || alerta.ticker;
+            html += `<div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #d4e0e8;">
+                <span>📊 ${nombreEmpresa}</span>
+                <button class="eliminarAlertaBtn" data-id="${alerta.id}" style="background: #dc3545; color: white; border: none; border-radius: 12px; padding: 2px 8px; font-size: 0.6rem; cursor: pointer;">Eliminar</button>
+            </div>`;
+        }
+        lista.innerHTML = html;
+        
+        document.querySelectorAll('.eliminarAlertaBtn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const id = btn.getAttribute('data-id');
+                await supabaseClient.from('alertas').delete().eq('id', id);
+                cargarAlertas();
+            });
+        });
+    }
+    
+    async function cargarTickersEnSelector() {
+        const selector = document.getElementById('alertaTickerSelect');
+        if (!selector) return;
+        selector.innerHTML = '<option value="">Seleccionar empresa...</option>';
+        todasLasEmpresas.forEach(emp => {
+            const option = document.createElement('option');
+            option.value = emp.ticker;
+            option.textContent = `${emp.nombre} (${emp.ticker})`;
+            selector.appendChild(option);
+        });
+    }
+    
+    async function activarAlerta() {
+        const selector = document.getElementById('alertaTickerSelect');
+        const ticker = selector.value;
+        if (!ticker) { alert('Selecciona una empresa'); return; }
+        if (!currentUser) { alert('Debes iniciar sesión'); return; }
+        
+        // Verificar si ya existe
+        const { data: existente } = await supabaseClient
+            .from('alertas')
+            .select('id')
+            .eq('user_id', currentUser.id)
+            .eq('ticker', ticker);
+        
+        if (existente && existente.length > 0) {
+            alert('Ya tienes una alerta activa para esta empresa');
+            return;
+        }
+        
+        const { error } = await supabaseClient.from('alertas').insert({
+            user_id: currentUser.id,
+            ticker: ticker,
+            activa: true
+        });
+        
+        if (error) { alert('Error: ' + error.message); }
+        else { alert('✅ Alerta activada'); cargarAlertas(); }
+    }
+    
+    document.getElementById('activarAlertaBtn')?.addEventListener('click', activarAlerta);
+    document.getElementById('refreshAlertasBtn')?.addEventListener('click', cargarAlertas);
+    
+    // Ejecutar al cargar la página
+    verificarSesion();
+
+
+    
     cargarEmpresas();
 </script>
 </body>
