@@ -16,12 +16,12 @@
       "dest": "/web/index.html"
     },
     {
-      "src": "/web/landing.html",
-      "dest": "/web/landing.html"
+      "src": "/web/dashboard.html",
+      "dest": "/web/dashboard.html"
     },
     {
-      "src": "/",
-      "dest": "/web/landing.html"
+      "src": "/(.*)",
+      "dest": "/web/index.html"
     }
   ]
 }
