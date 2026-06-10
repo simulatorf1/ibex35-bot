@@ -16,8 +16,8 @@
       "dest": "/web/landing.html"
     },
     {
-      "src": "/web/dashboard.html",
-      "dest": "/web/dashboard.html"
+      "src": "/web/index.html",
+      "dest": "/web/index.html"
     },
     {
       "src": "/(.*)",
