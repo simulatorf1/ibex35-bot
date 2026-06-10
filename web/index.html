@@ -554,7 +554,7 @@
             <div class="tabla-empresas-wrapper">
                 <table class="tabla-empresas" id="tablaEmpresas">
                     <thead><tr><th>Empresa</th><th>Precio</th><th>Fecha</th><th>Últ. patrón</th><th>Precio patrón</th><th>Rentabilidad</th><th>PW</th></tr></thead>
-                    <tbody id="empresasBody"><tr><td colspan="7" class="loading">Cargando datos...</td></tr></tbody>
+                    <tbody id="empresasBody"><tr><td colspan="7" class="loading">Cargando datos...</td></tr>
                 </table>
             </div>
         </div>
@@ -564,7 +564,8 @@
             <div class="derecho-contenido">
                 <div class="historial-wrapper">
                     <table class="tabla-historial" id="tablaHistorial">
-                        <thead><tr><th>Fecha</th><th>Precio</th><th>Patrón</th><th>PW 4h</th><th>PW diario</th><th>Pendiente</th><th>Soportes</th><th>Resistencias</th></tr></thead>
+                        <thead>极<th>Fecha</th><th>Precio</th><th>Patrón</th><th>PW 4h</th><th>PW diario</th><th>Pendiente</th><th>Soportes</th><th>Resistencias</th></tr>
+                        </thead>
                         <tbody id="historialBody"><tr><td colspan="8" class="sin-datos">Selecciona una empresa del panel izquierdo</td></tr></tbody>
                     </table>
                 </div>
@@ -749,7 +750,7 @@
             else if (emp.ultimoPatron === 7) filaClass = 'interes-alcista-7';
             else if (emp.ultimoPatron === 3) filaClass = 'interes-alcista-3';
             const seleccionadaClass = tickerSeleccionado === emp.ticker ? 'seleccionada' : '';
-            html += `<tr class="${filaClass} ${seleccionadaClass}" data-ticker="${emp.ticker}" onclick="seleccionarEmpresa('${emp.ticker}')"><td><strong>${emp.nombre}</strong><br><span style="font-size:0.6rem;color:#8ba0bc;">${emp.ticker}</span></span></span></td><td>${precioText}</td><td style="font-size:0.7rem;">${fechaText}</td><td style="font-size:0.7rem;">${fechaUltPatron}</td><td>${precioUltPatron}</td><td class="${subidaClass}">${subidaText}</td><td>${pwText}</td></tr>`;
+            html += `<tr class="${filaClass} ${seleccionadaClass}" data-ticker="${emp.ticker}" onclick="seleccionarEmpresa('${emp.ticker}')"><td><strong>${emp.nombre}</strong><br><span style="font-size:0.6rem;color:#8ba0bc;">${emp.ticker}</span></span></span></span></td><td>${precioText}</td><td style="font-size:0.7rem;">${fechaText}</td><td style="font-size:0.7rem;">${fechaUltPatron}</span></td><td>${precioUltPatron}</td><td class="${subidaClass}">${subidaText}</span></td><td>${pwText}</span></tr>`;
         }
         tbody.innerHTML = html;
         aplicarFiltros();
@@ -767,37 +768,47 @@
         
         const precios = datosOrdenados.map(reg => reg.precio_cierre);
         
-        // Encontrar mínimos por ciclo para marcadores
-        function encontrarMinimosPorCiclo() {
-            let ciclos = [], cicloActual = [], ultimaFecha = null;
+        // Encontrar mínimos por día para P7 (SOLO P7)
+        function encontrarMinimosP7() {
+            // Agrupar por día (fecha sin hora)
+            const minPorDia = new Map(); // key: YYYY-MM-DD, value: { precioMin, fechaCompleta, registro }
             for (const reg of datosOrdenados) {
-                const fechaActual = new Date(reg.fecha);
-                if (ultimaFecha && (fechaActual - ultimaFecha) > 24*60*60*1000) { if (cicloActual.length) { ciclos.push([...cicloActual]); cicloActual = []; } }
-                if (reg.caso_numero === 7 || reg.caso_numero === 3) cicloActual.push(reg);
-                ultimaFecha = fechaActual;
+                if (reg.caso_numero === 7) {
+                    const fechaCompleta = new Date(reg.fecha);
+                    const diaKey = fechaCompleta.toISOString().split('T')[0];
+                    if (!minPorDia.has(diaKey) || reg.precio_cierre < minPorDia.get(diaKey).precio) {
+                        minPorDia.set(diaKey, { precio: reg.precio_cierre, fecha: reg.fecha, patron: reg.caso_numero });
+                    }
+                }
             }
-            if (cicloActual.length) ciclos.push([...cicloActual]);
-            const minimos = [];
-            for (const ciclo of ciclos) {
-                if (!ciclo.length) continue;
-                let minPrecio = Infinity, minRegistro = null;
-                for (const reg of ciclo) if (reg.precio_cierre < minPrecio) { minPrecio = reg.precio_cierre; minRegistro = reg; }
-                if (minRegistro) minimos.push({ fecha: minRegistro.fecha, precio: minRegistro.precio_cierre, patron: minRegistro.caso_numero });
-            }
-            return minimos;
+            return Array.from(minPorDia.values()).map(item => ({
+                x: new Date(item.fecha).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }),
+                y: item.precio,
+                patron: 7
+            }));
         }
         
-        const minimos = encontrarMinimosPorCiclo();
+        // Encontrar máximos por día para SOBRECOMPRA (PW > 40 y pendiente negativa)
+        function encontrarMaximosSobrecompra() {
+            const maxPorDia = new Map(); // key: YYYY-MM-DD, value: { precioMax, fechaCompleta, registro }
+            for (const reg of datosOrdenados) {
+                if (reg.smi_diario !== null && reg.pendiente_diaria !== null && reg.smi_diario > 40 && reg.pendiente_diaria < 0) {
+                    const fechaCompleta = new Date(reg.fecha);
+                    const diaKey = fechaCompleta.toISOString().split('T')[0];
+                    if (!maxPorDia.has(diaKey) || reg.precio_cierre > maxPorDia.get(diaKey).precio) {
+                        maxPorDia.set(diaKey, { precio: reg.precio_cierre, fecha: reg.fecha });
+                    }
+                }
+            }
+            return Array.from(maxPorDia.values()).map(item => ({
+                x: new Date(item.fecha).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }),
+                y: item.precio,
+                patron: 'sobrecompra'
+            }));
+        }
         
-        // Usar las mismas etiquetas completas para los puntos
-        const minimosP7 = minimos.filter(m => m.patron === 7).map(m => ({ 
-            x: new Date(m.fecha).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }), 
-            y: m.precio 
-        }));
-        const minimosP3 = minimos.filter(m => m.patron === 3).map(m => ({ 
-            x: new Date(m.fecha).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }), 
-            y: m.precio 
-        }));
+        const p7Points = encontrarMinimosP7();
+        const sobrecompraPoints = encontrarMaximosSobrecompra();
         
         const ctx = document.getElementById('graficaCanvas').getContext('2d');
         if (chartInstance) chartInstance.destroy();
@@ -808,8 +819,8 @@
                 labels: labelsCompletas,
                 datasets: [
                     { label: '', data: precios, borderColor: '#2c7da0', backgroundColor: 'transparent', borderWidth: 2, tension: 0.1, pointRadius: 0, pointHoverRadius: 5, fill: false },
-                    { label: '', data: minimosP7, borderColor: '#00ff88', backgroundColor: '#007039', pointRadius: 10, pointHoverRadius: 15, pointStyle: 'arrow', type: 'scatter', showLine: false, order: 1 },
-                    { label: '', data: minimosP3, borderColor: '#1E2882', backgroundColor: '#50B7DE', pointRadius: 10, pointHoverRadius: 15, pointStyle: 'arrow', type: 'scatter', showLine: false, order: 1 }
+                    { label: '🔵 P7 (Mínimo)', data: p7Points, borderColor: '#00ff88', backgroundColor: '#007039', pointRadius: 10, pointHoverRadius: 15, pointStyle: 'arrow', type: 'scatter', showLine: false, order: 1 },
+                    { label: '🔴 Sobrecompra (Máximo)', data: sobrecompraPoints, borderColor: '#ff4444', backgroundColor: '#cc0000', pointRadius: 10, pointHoverRadius: 15, pointStyle: 'arrow', type: 'scatter', showLine: false, order: 1 }
                 ]
             },
             options: {
@@ -821,14 +832,11 @@
                             minRotation: 45, 
                             autoSkip: true, 
                             maxTicksLimit: 10,
-                            // Formatear la etiqueta visible: solo día/mes, aunque internamente sea completa
                             callback: function(val, index) {
                                 const label = this.getLabelForValue(val);
-                                // Extraer solo día/mes (ej: "09/06" de "09/06/2025 14:30")
                                 return label.split(' ')[0];
                             }
                         }, 
-                        
                     }, 
                     y: { 
                         title: { display: true, text: 'Precio (€)' }, 
@@ -840,16 +848,19 @@
                         callbacks: { 
                             label: (ctx) => {
                                 if (ctx.datasetIndex === 0) return `Precio: ${ctx.parsed.y}€`;
-                                return `Mínimo P${ctx.raw.patron === 7 ? '7' : '3'}: ${ctx.parsed.y}€`;
+                                if (ctx.dataset.label === '🔵 P7 (Mínimo)') return `Mínimo P7: ${ctx.parsed.y}€`;
+                                if (ctx.dataset.label === '🔴 Sobrecompra (Máximo)') return `Máximo (Sobrecompra): ${ctx.parsed.y}€ (PW>40, Pendiente Neg)`;
+                                return `Punto: ${ctx.parsed.y}€`;
                             }
                         } 
                     }, 
-                    legend: { display: false } 
+                    legend: { display: true, position: 'top' } 
                 },
                 interaction: { mode: 'index', intersect: false }
             }
         });
     }
+    
     window.seleccionarEmpresa = async function(ticker) {
         tickerSeleccionado = ticker;
         document.querySelectorAll('#empresasBody tr').forEach(row => { row.classList.remove('seleccionada'); if (row.getAttribute('data-ticker') === ticker) row.classList.add('seleccionada'); });
@@ -879,7 +890,7 @@
 
     function renderizarPanelDerecho(historial) {
         const tbody = document.getElementById('historialBody');
-        if (!historial.length) { tbody.innerHTML = '<tr><td colspan="8" class="sin-datos">No hay historial</span></span></td>'; return; }
+        if (!historial.length) { tbody.innerHTML = '<tr><td colspan="8" class="sin-datos">No hay historial</span></span></table>'; return; }
         let html = '';
         for (let i = 0; i < historial.length; i++) {
             const reg = historial[i];
@@ -904,7 +915,7 @@
             if (reg.resistencias) { const resistencias = reg.resistencias.split('\n'); if (resistencias.length > 0) resistenciaText = resistencias[0].substring(0,30); }
             const isEntradaSeleccionada = (entradaSeleccionada && entradaSeleccionada.idx === i);
             const isSalidaSeleccionada = (salidaSeleccionada && salidaSeleccionada.idx === i);
-            html += `<tr class="${patronClass}" data-idx="${i}"><td style="font-size:0.7rem;">${fecha}</td><td class="precio-clickeable" data-idx="${i}" data-precio="${reg.precio_cierre}" data-fecha="${reg.fecha}">${isEntradaSeleccionada ? '<span class="precio-seleccionado">🔵 ' + precio + '</span>' : (isSalidaSeleccionada ? '<span class="precio-seleccionado">🟠 ' + precio + '</span>' : precio)}</td><td class="patron-tooltip">${patron}<span class="tooltip-text">${getDescripcionPatron(reg.caso_numero)}</span></span></td><td>${pw4h}</td><td>${pwDiario}</td><td>${pendiente}</td><td style="font-size:0.65rem; max-width:120px;">${soporteText}</td><td style="font-size:0.65rem; max-width:120px;">${resistenciaText}</td></tr>`;
+            html += `<tr class="${patronClass}" data-idx="${i}"><td style="font-size:0.7rem;">${fecha}</span><td class="precio-clickeable" data-idx="${i}" data-precio="${reg.precio_cierre}" data-fecha="${reg.fecha}">${isEntradaSeleccionada ? '<span class="precio-seleccionado">🔵 ' + precio + '</span>' : (isSalidaSeleccionada ? '<span class="precio-seleccionado">🟠 ' + precio + '</span>' : precio)}</span><td class="patron-tooltip">${patron}<span class="tooltip-text">${getDescripcionPatron(reg.caso_numero)}</span></span><td>${pw4h}</span><td>${pwDiario}</span><td>${pendiente}</span><td style="font-size:0.65rem; max-width:120px;">${soporteText}</span><td style="font-size:0.65rem; max-width:120px;">${resistenciaText}</span></tr>`;
         }
         tbody.innerHTML = html;
         document.querySelectorAll('#tablaHistorial td.precio-clickeable').forEach(cell => {
