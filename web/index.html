@@ -554,7 +554,7 @@
             <div class="tabla-empresas-wrapper">
                 <table class="tabla-empresas" id="tablaEmpresas">
                     <thead><tr><th>Empresa</th><th>Precio</th><th>Fecha</th><th>Últ. patrón</th><th>Precio patrón</th><th>Rentabilidad</th><th>PW</th></tr></thead>
-                    <tbody id="empresasBody"><tr><td colspan="7" class="loading">Cargando datos...</td></tr>
+                    <tbody id="empresasBody"><tr><td colspan="7" class="loading">Cargando datos...</span></span></tr></tbody>
                 </table>
             </div>
         </div>
@@ -564,9 +564,9 @@
             <div class="derecho-contenido">
                 <div class="historial-wrapper">
                     <table class="tabla-historial" id="tablaHistorial">
-                        <thead>极<th>Fecha</th><th>Precio</th><th>Patrón</th><th>PW 4h</th><th>PW diario</th><th>Pendiente</th><th>Soportes</th><th>Resistencias</th></tr>
+                        <thead>——<th>Fecha</th><th>Precio</th><th>Patrón</th><th>PW 4h</th><th>PW diario</th><th>Pendiente</th><th>Soportes</th><th>Resistencias</th></tr>
                         </thead>
-                        <tbody id="historialBody"><tr><td colspan="8" class="sin-datos">Selecciona una empresa del panel izquierdo</td></tr></tbody>
+                        <tbody id="historialBody"><tr><td colspan="8" class="sin-datos">Selecciona una empresa del panel izquierdo</span></span></tr></tbody>
                     </table>
                 </div>
                 <div class="grafico-wrapper">
@@ -644,58 +644,133 @@
     let filaEntradaIndex = -1;
     let filaSalidaIndex = -1;
     let chartInstance = null;
+    
+    // Cache para historiales por empresa (carga lazy)
+    const historialCache = new Map();
 
     function getDescripcionPatron(patron) {
         const descripciones = { 1: "🔴 Señal de interés con impulso alcista", 2: "🟡 Señal anticipada", 3: "⚫ Rebote corto plazo", 4: "⚪ Fase de consolidación", 5: "🔴 Agotamiento alcista", 6: "🟢 Señal de interés directa", 7: "🔷 Pre-señal" };
         return descripciones[patron] || "Sin patrón detectado";
     }
 
-    async function traerTodosLosRegistros() {
-        let allData = [];
-        let page = 0;
-        let hasMore = true;
-        while (hasMore) {
-            const from = page * 1000;
-            const to = from + 999;
-            const { data, error } = await supabaseClient.from('recomendaciones_ibex').select('*').order('fecha', { ascending: true }).range(from, to);
-            if (error) break;
-            if (data && data.length > 0) { allData = allData.concat(data); page++; }
-            if (!data || data.length < 1000) hasMore = false;
+    // NUEVO: Carga solo el último registro de cada empresa (rápido)
+    async function cargarUltimosRegistros() {
+        // Obtener todos los tickers distintos primero
+        const { data: tickersData, error: tickersError } = await supabaseClient
+            .from('recomendaciones_ibex')
+            .select('ticker, nombre_empresa')
+            .order('fecha', { ascending: false });
+            
+        if (tickersError) throw tickersError;
+        
+        // Obtener tickers únicos
+        const uniqueTickers = [];
+        const tickerMap = new Map();
+        for (const item of tickersData) {
+            if (!tickerMap.has(item.ticker)) {
+                tickerMap.set(item.ticker, item.nombre_empresa);
+                uniqueTickers.push(item.ticker);
+            }
         }
-        return allData;
+        
+        // Para cada ticker, obtener el último registro
+        const empresas = [];
+        for (const ticker of uniqueTickers) {
+            const { data: lastReg, error } = await supabaseClient
+                .from('recomendaciones_ibex')
+                .select('*')
+                .eq('ticker', ticker)
+                .order('fecha', { ascending: false })
+                .limit(1);
+                
+            if (!error && lastReg && lastReg.length > 0) {
+                const reg = lastReg[0];
+                empresas.push({
+                    ticker: reg.ticker,
+                    nombre: reg.nombre_empresa || ticker,
+                    precioActual: reg.precio_cierre,
+                    fechaActual: reg.fecha,
+                    pwDiarioActual: reg.smi_diario,
+                    pendiente: reg.pendiente_diaria,
+                    ultimoPatron: reg.caso_numero,
+                    tieneInteres: PATRONES_INTERES.includes(reg.caso_numero)
+                });
+            }
+        }
+        
+        return empresas;
+    }
+    
+    // Carga el historial completo de una empresa (solo cuando se selecciona)
+    async function cargarHistorialEmpresa(ticker) {
+        if (historialCache.has(ticker)) {
+            return historialCache.get(ticker);
+        }
+        
+        const { data, error } = await supabaseClient
+            .from('recomendaciones_ibex')
+            .select('*')
+            .eq('ticker', ticker)
+            .order('fecha', { ascending: true });
+            
+        if (error) throw error;
+        historialCache.set(ticker, data || []);
+        return data || [];
     }
 
     async function cargarEmpresas() {
         try {
-            const data = await traerTodosLosRegistros();
-            if (!data || data.length === 0) { document.getElementById('empresasBody').innerHTML = '<tr><td colspan="7" class="sin-datos">No hay datos</td></tr>'; return; }
-            const porTicker = new Map();
-            for (const reg of data) { if (!porTicker.has(reg.ticker)) porTicker.set(reg.ticker, []); porTicker.get(reg.ticker).push(reg); }
-            const empresas = [];
-            for (let [ticker, registros] of porTicker.entries()) {
-                registros.sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
-                const ultimo = registros[registros.length - 1];
-                const nombre = ultimo.nombre_empresa || ticker;
-                const precioActual = ultimo.precio_cierre;
-                const fechaActual = ultimo.fecha;
-                const pwDiarioActual = ultimo.smi_diario;
-                const pendiente = ultimo.pendiente_diaria;
-                const tieneInteres = PATRONES_INTERES.includes(ultimo.caso_numero);
-                let ultimoPatronInfo = calcularUltimoPatron(registros, tieneInteres);
-                let subida = null;
-                if (ultimoPatronInfo && ultimoPatronInfo.precioPatron && precioActual) subida = ((precioActual - ultimoPatronInfo.precioPatron) / ultimoPatronInfo.precioPatron) * 100;
-                empresas.push({ ticker, nombre, precioActual, fechaActual, tieneInteres, ultimoPatronInfo, subida, pwDiarioActual, pendiente, registros, ultimoPatron: ultimo.caso_numero });
+            const empresasList = await cargarUltimosRegistros();
+            if (!empresasList || empresasList.length === 0) { 
+                document.getElementById('empresasBody').innerHTML = '<tr><td colspan="7" class="sin-datos">No hay datos</td></tr>'; 
+                return; 
             }
-            empresas.sort((a,b) => a.nombre.localeCompare(b.nombre));
-            todasLasEmpresas = empresas;
-            renderizarPanelIzquierdo(empresas);
+            
+            // Calcular rentabilidad y último patrón para cada empresa
+            const empresasConRentabilidad = [];
+            for (const emp of empresasList) {
+                // Cargar historial completo para calcular el último patrón y rentabilidad
+                const historial = await cargarHistorialEmpresa(emp.ticker);
+                if (historial.length === 0) continue;
+                
+                const tieneInteresActual = PATRONES_INTERES.includes(historial[historial.length-1].caso_numero);
+                let ultimoPatronInfo = calcularUltimoPatron(historial, tieneInteresActual);
+                let subida = null;
+                if (ultimoPatronInfo && ultimoPatronInfo.precioPatron && emp.precioActual) 
+                    subida = ((emp.precioActual - ultimoPatronInfo.precioPatron) / ultimoPatronInfo.precioPatron) * 100;
+                
+                empresasConRentabilidad.push({
+                    ...emp,
+                    registros: historial,
+                    ultimoPatronInfo,
+                    subida
+                });
+            }
+            
+            empresasConRentabilidad.sort((a,b) => a.nombre.localeCompare(b.nombre));
+            todasLasEmpresas = empresasConRentabilidad;
+            renderizarPanelIzquierdo(empresasConRentabilidad);
+            
             const selector = document.getElementById('selectorEmpresaDirecto');
             if (selector) {
                 selector.innerHTML = '<option value="">📌 Ir a empresa...</option>';
-                todasLasEmpresas.forEach(emp => { const option = document.createElement('option'); option.value = emp.ticker; option.textContent = `${emp.nombre} (${emp.ticker})`; selector.appendChild(option); });
-                selector.onchange = (e) => { if (e.target.value) { seleccionarEmpresa(e.target.value); selector.value = ''; } };
+                todasLasEmpresas.forEach(emp => { 
+                    const option = document.createElement('option'); 
+                    option.value = emp.ticker; 
+                    option.textContent = `${emp.nombre} (${emp.ticker})`; 
+                    selector.appendChild(option); 
+                });
+                selector.onchange = (e) => { 
+                    if (e.target.value) { 
+                        seleccionarEmpresa(e.target.value); 
+                        selector.value = ''; 
+                    } 
+                };
             }
-        } catch (err) { console.error(err); document.getElementById('empresasBody').innerHTML = '<tr><td colspan="7" class="sin-datos">Error al cargar</td></tr>'; }
+        } catch (err) { 
+            console.error(err); 
+            document.getElementById('empresasBody').innerHTML = '<tr><td colspan="7" class="sin-datos">Error al cargar</td></tr>'; 
+        }
     }
 
     function calcularUltimoPatron(registros, tieneInteresActual) {
@@ -734,7 +809,7 @@
 
     function renderizarPanelIzquierdo(empresas) {
         const tbody = document.getElementById('empresasBody');
-        if (!empresas.length) { tbody.innerHTML = '<tr><td colspan="7" class="sin-datos">No hay empresas</td></tr>'; return; }
+        if (!empresas.length) { tbody.innerHTML = '<tr><td colspan="7" class="sin-datos">No hay empresas</span></span></table>'; return; }
         let html = '';
         for (const emp of empresas) {
             const fechaUltPatron = emp.ultimoPatronInfo ? new Date(emp.ultimoPatronInfo.fecha).toLocaleDateString('es-ES') : '---';
@@ -750,7 +825,7 @@
             else if (emp.ultimoPatron === 7) filaClass = 'interes-alcista-7';
             else if (emp.ultimoPatron === 3) filaClass = 'interes-alcista-3';
             const seleccionadaClass = tickerSeleccionado === emp.ticker ? 'seleccionada' : '';
-            html += `<tr class="${filaClass} ${seleccionadaClass}" data-ticker="${emp.ticker}" onclick="seleccionarEmpresa('${emp.ticker}')"><td><strong>${emp.nombre}</strong><br><span style="font-size:0.6rem;color:#8ba0bc;">${emp.ticker}</span></span></span></span></td><td>${precioText}</td><td style="font-size:0.7rem;">${fechaText}</td><td style="font-size:0.7rem;">${fechaUltPatron}</span></td><td>${precioUltPatron}</td><td class="${subidaClass}">${subidaText}</span></td><td>${pwText}</span></tr>`;
+            html += `<tr class="${filaClass} ${seleccionadaClass}" data-ticker="${emp.ticker}" onclick="seleccionarEmpresa('${emp.ticker}')"><tr><strong>${emp.nombre}</strong><br><span style="font-size:0.6rem;color:#8ba0bc;">${emp.ticker}</span></span></span></span></td><td>${precioText}</span><td style="font-size:0.7rem;">${fechaText}</span><td style="font-size:0.7rem;">${fechaUltPatron}</span><td>${precioUltPatron}</span><td class="${subidaClass}">${subidaText}</span><td>${pwText}</span></tr>`;
         }
         tbody.innerHTML = html;
         aplicarFiltros();
@@ -760,7 +835,6 @@
         if (!historial || historial.length === 0 || !document.getElementById('graficaCanvas')) return;
         const datosOrdenados = [...historial].sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
         
-        // Etiquetas completas (con hora) para que los puntos coincidan
         const labelsCompletas = datosOrdenados.map(reg => {
             const fecha = new Date(reg.fecha);
             return fecha.toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
@@ -768,29 +842,25 @@
         
         const precios = datosOrdenados.map(reg => reg.precio_cierre);
         
-        // Encontrar mínimos por día para P7 (SOLO P7)
         function encontrarMinimosP7() {
-            // Agrupar por día (fecha sin hora)
-            const minPorDia = new Map(); // key: YYYY-MM-DD, value: { precioMin, fechaCompleta, registro }
+            const minPorDia = new Map();
             for (const reg of datosOrdenados) {
                 if (reg.caso_numero === 7) {
                     const fechaCompleta = new Date(reg.fecha);
                     const diaKey = fechaCompleta.toISOString().split('T')[0];
                     if (!minPorDia.has(diaKey) || reg.precio_cierre < minPorDia.get(diaKey).precio) {
-                        minPorDia.set(diaKey, { precio: reg.precio_cierre, fecha: reg.fecha, patron: reg.caso_numero });
+                        minPorDia.set(diaKey, { precio: reg.precio_cierre, fecha: reg.fecha });
                     }
                 }
             }
             return Array.from(minPorDia.values()).map(item => ({
                 x: new Date(item.fecha).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }),
-                y: item.precio,
-                patron: 7
+                y: item.precio
             }));
         }
         
-        // Encontrar máximos por día para SOBRECOMPRA (PW > 40 y pendiente negativa)
         function encontrarMaximosSobrecompra() {
-            const maxPorDia = new Map(); // key: YYYY-MM-DD, value: { precioMax, fechaCompleta, registro }
+            const maxPorDia = new Map();
             for (const reg of datosOrdenados) {
                 if (reg.smi_diario !== null && reg.pendiente_diaria !== null && reg.smi_diario > 40 && reg.pendiente_diaria < 0) {
                     const fechaCompleta = new Date(reg.fecha);
@@ -802,8 +872,7 @@
             }
             return Array.from(maxPorDia.values()).map(item => ({
                 x: new Date(item.fecha).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }),
-                y: item.precio,
-                patron: 'sobrecompra'
+                y: item.precio
             }));
         }
         
@@ -819,8 +888,8 @@
                 labels: labelsCompletas,
                 datasets: [
                     { label: '', data: precios, borderColor: '#2c7da0', backgroundColor: 'transparent', borderWidth: 2, tension: 0.1, pointRadius: 0, pointHoverRadius: 5, fill: false },
-                    { label: '🔵 P7 (Mínimo)', data: p7Points, borderColor: '#00ff88', backgroundColor: '#007039', pointRadius: 10, pointHoverRadius: 15, pointStyle: 'arrow', type: 'scatter', showLine: false, order: 1 },
-                    { label: '🔴 Sobrecompra (Máximo)', data: sobrecompraPoints, borderColor: '#ff4444', backgroundColor: '#cc0000', pointRadius: 10, pointHoverRadius: 15, pointStyle: 'arrow', type: 'scatter', showLine: false, order: 1 }
+                    { label: '', data: p7Points, borderColor: '#00ff88', backgroundColor: '#007039', pointRadius: 10, pointHoverRadius: 15, pointStyle: 'arrow', type: 'scatter', showLine: false, order: 1 },
+                    { label: '', data: sobrecompraPoints, borderColor: '#ff4444', backgroundColor: '#cc0000', pointRadius: 10, pointHoverRadius: 15, pointStyle: 'arrow', type: 'scatter', showLine: false, order: 1 }
                 ]
             },
             options: {
@@ -848,13 +917,13 @@
                         callbacks: { 
                             label: (ctx) => {
                                 if (ctx.datasetIndex === 0) return `Precio: ${ctx.parsed.y}€`;
-                                if (ctx.dataset.label === '🔵 P7 (Mínimo)') return `Mínimo P7: ${ctx.parsed.y}€`;
-                                if (ctx.dataset.label === '🔴 Sobrecompra (Máximo)') return `Máximo (Sobrecompra): ${ctx.parsed.y}€ (PW>40, Pendiente Neg)`;
+                                if (ctx.datasetIndex === 1) return `Mínimo P7: ${ctx.parsed.y}€`;
+                                if (ctx.datasetIndex === 2) return `Máximo (Sobrecompra): ${ctx.parsed.y}€`;
                                 return `Punto: ${ctx.parsed.y}€`;
                             }
                         } 
                     }, 
-                    legend: { display: false } 
+                    legend: { display: false }
                 },
                 interaction: { mode: 'index', intersect: false }
             }
@@ -864,13 +933,39 @@
     window.seleccionarEmpresa = async function(ticker) {
         tickerSeleccionado = ticker;
         document.querySelectorAll('#empresasBody tr').forEach(row => { row.classList.remove('seleccionada'); if (row.getAttribute('data-ticker') === ticker) row.classList.add('seleccionada'); });
-        const empresa = todasLasEmpresas.find(e => e.ticker === ticker);
-        if (!empresa) return;
+        
+        // Buscar empresa en el cache o cargar
+        let empresa = todasLasEmpresas.find(e => e.ticker === ticker);
+        if (!empresa) {
+            // Si no está en todasLasEmpresas, cargarla
+            const historial = await cargarHistorialEmpresa(ticker);
+            if (historial.length === 0) return;
+            const ultimo = historial[historial.length-1];
+            empresa = {
+                ticker,
+                nombre: ultimo.nombre_empresa || ticker,
+                precioActual: ultimo.precio_cierre,
+                fechaActual: ultimo.fecha,
+                pwDiarioActual: ultimo.smi_diario,
+                pendiente: ultimo.pendiente_diaria,
+                ultimoPatron: ultimo.caso_numero,
+                registros: historial
+            };
+            todasLasEmpresas.push(empresa);
+        }
+        
+        // Si ya tiene registros, usarlos; si no, cargarlos
+        let registros = empresa.registros;
+        if (!registros) {
+            registros = await cargarHistorialEmpresa(ticker);
+            empresa.registros = registros;
+        }
+        
         document.getElementById('tituloEmpresa').innerHTML = `📊 ${empresa.nombre} (${ticker})`;
-        historialActual = [...empresa.registros];
+        historialActual = [...registros];
         historialActual.sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
         renderizarPanelDerecho(historialActual);
-        renderizarGrafico(empresa.registros);
+        renderizarGrafico(registros);
         entradaSeleccionada = null; salidaSeleccionada = null; filaEntradaIndex = -1; filaSalidaIndex = -1;
         document.getElementById('compraSeleccionada').innerHTML = '---'; document.getElementById('ventaSeleccionada').innerHTML = '---';
         document.getElementById('resultadoSimulacion').innerHTML = ''; document.getElementById('accionesInfo').innerHTML = '---';
@@ -890,7 +985,7 @@
 
     function renderizarPanelDerecho(historial) {
         const tbody = document.getElementById('historialBody');
-        if (!historial.length) { tbody.innerHTML = '<tr><td colspan="8" class="sin-datos">No hay historial</span></span></table>'; return; }
+        if (!historial.length) { tbody.innerHTML = '<tr><td colspan="8" class="sin-datos">No hay historial</span></span></tr>'; return; }
         let html = '';
         for (let i = 0; i < historial.length; i++) {
             const reg = historial[i];
