@@ -539,6 +539,7 @@
     <div class="paneles">
         <div class="panel-izquierdo">
             <h2 style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px;">📋 TODAS LAS EMPRESAS <span style="font-size: 0.6rem; font-weight: normal; color: #a8c4d8;">Los datos se actualizan varias veces al día. % ganancias desde última entrada</span></h2>
+            
             <!-- Panel de alertas (solo visible si logueado) -->
             <div id="alertasPanel" style="display: none; background: #eef2fa; border-radius: 16px; margin: 12px; padding: 12px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
@@ -554,7 +555,7 @@
                     </select>
                     <button id="activarAlertaBtn" style="width: 100%; margin-top: 8px; padding: 6px; background: #1e7e34; color: white; border: none; border-radius: 20px; font-size: 0.65rem; cursor: pointer;">➕ Activar alerta para esta empresa</button>
                 </div>
-            </div>            
+            </div>
             
             <div style="padding: 12px; display: flex; gap: 8px; flex-wrap: wrap; background: white; border-bottom: 1px solid #e9ecef;">
                 <input type="text" id="filtroEmpresa" placeholder="🔍 Buscar empresa..." style="flex: 1; padding: 6px 12px; border-radius: 20px; border: 1px solid #cfdfed; font-size: 0.7rem;">
@@ -571,7 +572,7 @@
             <div class="tabla-empresas-wrapper">
                 <table class="tabla-empresas" id="tablaEmpresas">
                     <thead><tr><th>Empresa</th><th>Precio</th><th>Fecha</th><th>Últ. patrón</th><th>Precio patrón</th><th>Rentabilidad</th><th>PW</th></tr></thead>
-                    <tbody id="empresasBody"><tr><td colspan="7" class="loading">Cargando datos...</td></tr></tbody>
+                    <tbody id="empresasBody"><tr><td colspan="7" class="loading">Cargando datos...</span></span></tr></tbody>
                 </table>
             </div>
         </div>
@@ -582,7 +583,7 @@
                 <div class="historial-wrapper">
                     <table class="tabla-historial" id="tablaHistorial">
                         <thead><tr><th>Fecha</th><th>Precio</th><th>Patrón</th><th>PW 4h</th><th>PW diario</th><th>Pendiente</th><th>Soportes</th><th>Resistencias</th></tr></thead>
-                        <tbody id="historialBody"><tr><td colspan="8" class="sin-datos">Selecciona una empresa del panel izquierdo</td></tr></tbody>
+                        <tbody id="historialBody"><tr><td colspan="8" class="sin-datos">Selecciona una empresa del panel izquierdo</span></span></tr></tbody>
                     </table>
                 </div>
                 <div class="grafico-wrapper">
@@ -660,10 +661,107 @@
     let filaEntradaIndex = -1;
     let filaSalidaIndex = -1;
     let chartInstance = null;
+    let currentUser = null;
 
     function getDescripcionPatron(patron) {
         const descripciones = { 1: "🔴 Señal de interés con impulso alcista", 2: "🟡 Señal anticipada", 3: "⚫ Rebote corto plazo", 4: "⚪ Fase de consolidación", 5: "🔴 Agotamiento alcista", 6: "🟢 Señal de interés directa", 7: "🔷 Pre-señal" };
         return descripciones[patron] || "Sin patrón detectado";
+    }
+
+    // ============================================
+    // CONTROL DE ACCESO Y GESTIÓN DE ALERTAS
+    // ============================================
+    async function verificarAcceso() {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        
+        if (!session) {
+            window.location.href = '/landing.html';
+            return false;
+        }
+        
+        currentUser = session.user;
+        document.getElementById('alertasPanel').style.display = 'block';
+        cargarAlertas();
+        cargarTickersEnSelector();
+        return true;
+    }
+
+    async function cargarAlertas() {
+        if (!currentUser) return;
+        const { data, error } = await supabaseClient
+            .from('alertas')
+            .select('*')
+            .eq('user_id', currentUser.id);
+        
+        if (error) { console.error(error); return; }
+        
+        const lista = document.getElementById('alertasLista');
+        if (!data || data.length === 0) {
+            lista.innerHTML = '<span style="color: #8ba0bc;">No tienes alertas activas</span>';
+            return;
+        }
+        
+        let html = '';
+        for (const alerta of data) {
+            const nombreEmpresa = todasLasEmpresas.find(e => e.ticker === alerta.ticker)?.nombre || alerta.ticker;
+            html += `<div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #d4e0e8;">
+                <span>📊 ${nombreEmpresa}</span>
+                <button class="eliminarAlertaBtn" data-id="${alerta.id}" style="background: #dc3545; color: white; border: none; border-radius: 12px; padding: 2px 8px; font-size: 0.6rem; cursor: pointer;">Eliminar</button>
+            </div>`;
+        }
+        lista.innerHTML = html;
+        
+        document.querySelectorAll('.eliminarAlertaBtn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const id = btn.getAttribute('data-id');
+                await supabaseClient.from('alertas').delete().eq('id', id);
+                cargarAlertas();
+            });
+        });
+    }
+
+    async function cargarTickersEnSelector() {
+        const selector = document.getElementById('alertaTickerSelect');
+        if (!selector) return;
+        selector.innerHTML = '<option value="">Seleccionar empresa...</option>';
+        if (todasLasEmpresas.length > 0) {
+            todasLasEmpresas.forEach(emp => {
+                const option = document.createElement('option');
+                option.value = emp.ticker;
+                option.textContent = `${emp.nombre} (${emp.ticker})`;
+                selector.appendChild(option);
+            });
+        } else {
+            // Esperar a que las empresas estén cargadas
+            setTimeout(cargarTickersEnSelector, 1000);
+        }
+    }
+
+    async function activarAlerta() {
+        const selector = document.getElementById('alertaTickerSelect');
+        const ticker = selector.value;
+        if (!ticker) { alert('Selecciona una empresa'); return; }
+        if (!currentUser) { alert('Debes iniciar sesión'); return; }
+        
+        const { data: existente } = await supabaseClient
+            .from('alertas')
+            .select('id')
+            .eq('user_id', currentUser.id)
+            .eq('ticker', ticker);
+        
+        if (existente && existente.length > 0) {
+            alert('Ya tienes una alerta activa para esta empresa');
+            return;
+        }
+        
+        const { error } = await supabaseClient.from('alertas').insert({
+            user_id: currentUser.id,
+            ticker: ticker,
+            activa: true
+        });
+        
+        if (error) { alert('Error: ' + error.message); }
+        else { alert('✅ Alerta activada'); cargarAlertas(); }
     }
 
     async function traerTodosLosRegistros() {
@@ -684,7 +782,7 @@
     async function cargarEmpresas() {
         try {
             const data = await traerTodosLosRegistros();
-            if (!data || data.length === 0) { document.getElementById('empresasBody').innerHTML = '<tr><td colspan="7" class="sin-datos">No hay datos</td></tr>'; return; }
+            if (!data || data.length === 0) { document.getElementById('empresasBody').innerHTML = '<tr><td colspan="7" class="sin-datos">No hay datos</span></span></tr>'; return; }
             const porTicker = new Map();
             for (const reg of data) { if (!porTicker.has(reg.ticker)) porTicker.set(reg.ticker, []); porTicker.get(reg.ticker).push(reg); }
             const empresas = [];
@@ -711,7 +809,8 @@
                 todasLasEmpresas.forEach(emp => { const option = document.createElement('option'); option.value = emp.ticker; option.textContent = `${emp.nombre} (${emp.ticker})`; selector.appendChild(option); });
                 selector.onchange = (e) => { if (e.target.value) { seleccionarEmpresa(e.target.value); selector.value = ''; } };
             }
-        } catch (err) { console.error(err); document.getElementById('empresasBody').innerHTML = '<tr><td colspan="7" class="sin-datos">Error al cargar</td></tr>'; }
+            cargarTickersEnSelector();
+        } catch (err) { console.error(err); document.getElementById('empresasBody').innerHTML = '<tr><td colspan="7" class="sin-datos">Error al cargar</span></span></tr>'; }
     }
 
     function calcularUltimoPatron(registros, tieneInteresActual) {
@@ -750,7 +849,7 @@
 
     function renderizarPanelIzquierdo(empresas) {
         const tbody = document.getElementById('empresasBody');
-        if (!empresas.length) { tbody.innerHTML = '<tr><td colspan="7" class="sin-datos">No hay empresas</td></tr>'; return; }
+        if (!empresas.length) { tbody.innerHTML = '<tr><td colspan="7" class="sin-datos">No hay empresas</span></span></td>'; return; }
         let html = '';
         for (const emp of empresas) {
             const fechaUltPatron = emp.ultimoPatronInfo ? new Date(emp.ultimoPatronInfo.fecha).toLocaleDateString('es-ES') : '---';
@@ -776,7 +875,6 @@
         if (!historial || historial.length === 0 || !document.getElementById('graficaCanvas')) return;
         const datosOrdenados = [...historial].sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
         
-        // Etiquetas completas (con hora) para que los puntos coincidan
         const labelsCompletas = datosOrdenados.map(reg => {
             const fecha = new Date(reg.fecha);
             return fecha.toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
@@ -784,7 +882,6 @@
         
         const precios = datosOrdenados.map(reg => reg.precio_cierre);
         
-        // Encontrar mínimos por ciclo para marcadores
         function encontrarMinimosPorCiclo() {
             let ciclos = [], cicloActual = [], ultimaFecha = null;
             for (const reg of datosOrdenados) {
@@ -806,7 +903,6 @@
         
         const minimos = encontrarMinimosPorCiclo();
         
-        // Usar las mismas etiquetas completas para los puntos
         const minimosP7 = minimos.filter(m => m.patron === 7).map(m => ({ 
             x: new Date(m.fecha).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }), 
             y: m.precio 
@@ -838,14 +934,11 @@
                             minRotation: 45, 
                             autoSkip: true, 
                             maxTicksLimit: 10,
-                            // Formatear la etiqueta visible: solo día/mes, aunque internamente sea completa
                             callback: function(val, index) {
                                 const label = this.getLabelForValue(val);
-                                // Extraer solo día/mes (ej: "09/06" de "09/06/2025 14:30")
                                 return label.split(' ')[0];
                             }
                         }, 
-                        
                     }, 
                     y: { 
                         title: { display: true, text: 'Precio (€)' }, 
@@ -867,6 +960,7 @@
             }
         });
     }
+
     window.seleccionarEmpresa = async function(ticker) {
         tickerSeleccionado = ticker;
         document.querySelectorAll('#empresasBody tr').forEach(row => { row.classList.remove('seleccionada'); if (row.getAttribute('data-ticker') === ticker) row.classList.add('seleccionada'); });
@@ -921,7 +1015,7 @@
             if (reg.resistencias) { const resistencias = reg.resistencias.split('\n'); if (resistencias.length > 0) resistenciaText = resistencias[0].substring(0,30); }
             const isEntradaSeleccionada = (entradaSeleccionada && entradaSeleccionada.idx === i);
             const isSalidaSeleccionada = (salidaSeleccionada && salidaSeleccionada.idx === i);
-            html += `<tr class="${patronClass}" data-idx="${i}"><td style="font-size:0.7rem;">${fecha}</td><td class="precio-clickeable" data-idx="${i}" data-precio="${reg.precio_cierre}" data-fecha="${reg.fecha}">${isEntradaSeleccionada ? '<span class="precio-seleccionado">🔵 ' + precio + '</span>' : (isSalidaSeleccionada ? '<span class="precio-seleccionado">🟠 ' + precio + '</span>' : precio)}</td><td class="patron-tooltip">${patron}<span class="tooltip-text">${getDescripcionPatron(reg.caso_numero)}</span></span></td><td>${pw4h}</td><td>${pwDiario}</td><td>${pendiente}</td><td style="font-size:0.65rem; max-width:120px;">${soporteText}</td><td style="font-size:0.65rem; max-width:120px;">${resistenciaText}</td></tr>`;
+            html += `<tr class="${patronClass}" data-idx="${i}"><td style="font-size:0.7rem;">${fecha}</td><td class="precio-clickeable" data-idx="${i}" data-precio="${reg.precio_cierre}" data-fecha="${reg.fecha}">${isEntradaSeleccionada ? '<span class="precio-seleccionado">🔵 ' + precio + '</span>' : (isSalidaSeleccionada ? '<span class="precio-seleccionado">🟠 ' + precio + '</span>' : precio)}</span></span></span></span></td><td class="patron-tooltip">${patron}<span class="tooltip-text">${getDescripcionPatron(reg.caso_numero)}</span></span></span></span></span></span></td><td>${pw4h}</td><td>${pwDiario}</td><td>${pendiente}</td><td style="font-size:0.65rem; max-width:120px;">${soporteText}</td><td style="font-size:0.65rem; max-width:120px;">${resistenciaText}</td></tr>`;
         }
         tbody.innerHTML = html;
         document.querySelectorAll('#tablaHistorial td.precio-clickeable').forEach(cell => {
@@ -970,112 +1064,23 @@
         resultadoDiv.innerHTML = `<span class="${resultadoClass}">${resultadoNeto >= 0 ? '+' : ''}${resultadoNeto.toFixed(2)}€ (${rentabilidadPorcentaje >= 0 ? '+' : ''}${rentabilidadPorcentaje.toFixed(2)}%)</span>`;
     }
 
+    // Event listeners
     document.getElementById('btnCalcular').addEventListener('click', calcularResultado);
     document.getElementById('capitalInput').addEventListener('input', actualizarAccionesInfo);
+    document.getElementById('activarAlertaBtn')?.addEventListener('click', activarAlerta);
+    document.getElementById('refreshAlertasBtn')?.addEventListener('click', cargarAlertas);
+    
     if (document.getElementById('filtroEmpresa')) {
         document.getElementById('filtroEmpresa').addEventListener('input', aplicarFiltros);
         document.getElementById('filtroOportunidad').addEventListener('change', aplicarFiltros);
     }
-    // ============================================
-    // GESTIÓN DE ALERTAS (solo logueados)
-    // ============================================
-    let currentUser = null;
     
-    async function verificarSesion() {
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        if (session) {
-            currentUser = session.user;
-            document.getElementById('alertasPanel').style.display = 'block';
-            cargarAlertas();
-            cargarTickersEnSelector();
-        } else {
-            document.getElementById('alertasPanel').style.display = 'none';
+    // Verificar acceso antes de cargar nada
+    verificarAcceso().then(acceso => {
+        if (acceso) {
+            cargarEmpresas();
         }
-    }
-    
-    async function cargarAlertas() {
-        if (!currentUser) return;
-        const { data, error } = await supabaseClient
-            .from('alertas')
-            .select('*')
-            .eq('user_id', currentUser.id);
-        
-        if (error) { console.error(error); return; }
-        
-        const lista = document.getElementById('alertasLista');
-        if (!data || data.length === 0) {
-            lista.innerHTML = '<span style="color: #8ba0bc;">No tienes alertas activas</span>';
-            return;
-        }
-        
-        let html = '';
-        for (const alerta of data) {
-            const nombreEmpresa = todasLasEmpresas.find(e => e.ticker === alerta.ticker)?.nombre || alerta.ticker;
-            html += `<div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #d4e0e8;">
-                <span>📊 ${nombreEmpresa}</span>
-                <button class="eliminarAlertaBtn" data-id="${alerta.id}" style="background: #dc3545; color: white; border: none; border-radius: 12px; padding: 2px 8px; font-size: 0.6rem; cursor: pointer;">Eliminar</button>
-            </div>`;
-        }
-        lista.innerHTML = html;
-        
-        document.querySelectorAll('.eliminarAlertaBtn').forEach(btn => {
-            btn.addEventListener('click', async (e) => {
-                const id = btn.getAttribute('data-id');
-                await supabaseClient.from('alertas').delete().eq('id', id);
-                cargarAlertas();
-            });
-        });
-    }
-    
-    async function cargarTickersEnSelector() {
-        const selector = document.getElementById('alertaTickerSelect');
-        if (!selector) return;
-        selector.innerHTML = '<option value="">Seleccionar empresa...</option>';
-        todasLasEmpresas.forEach(emp => {
-            const option = document.createElement('option');
-            option.value = emp.ticker;
-            option.textContent = `${emp.nombre} (${emp.ticker})`;
-            selector.appendChild(option);
-        });
-    }
-    
-    async function activarAlerta() {
-        const selector = document.getElementById('alertaTickerSelect');
-        const ticker = selector.value;
-        if (!ticker) { alert('Selecciona una empresa'); return; }
-        if (!currentUser) { alert('Debes iniciar sesión'); return; }
-        
-        // Verificar si ya existe
-        const { data: existente } = await supabaseClient
-            .from('alertas')
-            .select('id')
-            .eq('user_id', currentUser.id)
-            .eq('ticker', ticker);
-        
-        if (existente && existente.length > 0) {
-            alert('Ya tienes una alerta activa para esta empresa');
-            return;
-        }
-        
-        const { error } = await supabaseClient.from('alertas').insert({
-            user_id: currentUser.id,
-            ticker: ticker,
-            activa: true
-        });
-        
-        if (error) { alert('Error: ' + error.message); }
-        else { alert('✅ Alerta activada'); cargarAlertas(); }
-    }
-    
-    document.getElementById('activarAlertaBtn')?.addEventListener('click', activarAlerta);
-    document.getElementById('refreshAlertasBtn')?.addEventListener('click', cargarAlertas);
-    
-    // Ejecutar al cargar la página
-    verificarSesion();
-
-
-    
-    cargarEmpresas();
+    });
 </script>
 </body>
 </html>
