@@ -245,7 +245,8 @@
         }
 
         if (isLogin) {
-            const { error } = await supabase.auth.signInWithPassword({ email, password });
+            // INICIAR SESIÓN
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
             if (error) {
                 messageDiv.textContent = error.message;
             } else {
@@ -253,21 +254,29 @@
                 setTimeout(() => { window.location.href = '/index.html'; }, 1000);
             }
         } else {
-            const { error } = await supabase.auth.signUp({ email, password });
+            // REGISTRARSE
+            const { data, error } = await supabase.auth.signUp({ email, password });
             if (error) {
                 messageDiv.textContent = error.message;
             } else {
-                messageDiv.textContent = '✅ Usuario registrado. Ahora inicia sesión.';
-                document.getElementById('authTitle').textContent = 'Acceder';
-                document.getElementById('authButton').textContent = 'Iniciar sesión';
-                isLogin = true;
-                document.getElementById('switchAuth').innerHTML = '¿No tienes cuenta? <span>Regístrate</span>';
+                if (data.user?.identities?.length === 0) {
+                    messageDiv.textContent = '⚠️ Este email ya está registrado. Inicia sesión.';
+                } else {
+                    messageDiv.textContent = '✅ Usuario registrado. Ahora inicia sesión.';
+                    // Cambiar a modo login
+                    document.getElementById('authTitle').textContent = 'Acceder';
+                    document.getElementById('authButton').textContent = 'Iniciar sesión';
+                    isLogin = true;
+                    document.getElementById('switchAuth').innerHTML = '¿No tienes cuenta? <span>Regístrate</span>';
+                    // Limpiar campos
+                    document.getElementById('emailInput').value = '';
+                    document.getElementById('passwordInput').value = '';
+                }
             }
         }
     }
 
-    document.getElementById('authButton').addEventListener('click', handleAuth);
-    document.getElementById('switchAuth').addEventListener('click', () => {
+    function switchMode() {
         isLogin = !isLogin;
         if (isLogin) {
             document.getElementById('authTitle').textContent = 'Acceder';
@@ -279,9 +288,30 @@
             document.getElementById('switchAuth').innerHTML = '¿Ya tienes cuenta? <span>Inicia sesión</span>';
         }
         document.getElementById('authMessage').textContent = '';
-    });
+        document.getElementById('emailInput').value = '';
+        document.getElementById('passwordInput').value = '';
+    }
 
-    checkSession();
+    // Asegurar que los elementos existen antes de asignar eventos
+    document.addEventListener('DOMContentLoaded', () => {
+        const authButton = document.getElementById('authButton');
+        const switchButton = document.getElementById('switchAuth');
+        
+        if (authButton) {
+            authButton.addEventListener('click', handleAuth);
+        } else {
+            console.error('No se encontró el botón authButton');
+        }
+        
+        if (switchButton) {
+            switchButton.addEventListener('click', switchMode);
+        } else {
+            console.error('No se encontró el switchAuth');
+        }
+        
+        checkSession();
+    });
 </script>
+
 </body>
 </html>
