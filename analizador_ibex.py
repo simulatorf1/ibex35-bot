@@ -6,7 +6,7 @@ from datetime import datetime
 import time
 import os
 import pytz
-
+import requests
 
 # ============================================
 # CONFIGURACIÓN DE SUPABASE
@@ -19,6 +19,14 @@ if not SUPABASE_URL or not SUPABASE_KEY:
     exit(1)
     
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+# ============================================
+# CONFIGURACIÓN DE RESEND (EMAILS GRATIS)
+# ============================================
+# Regístrate en https://resend.com y obtén tu API key
+# Luego configura esta variable de entorno: RESEND_API_KEY
+RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
+RESEND_FROM_EMAIL = os.environ.get("RESEND_FROM_EMAIL", "alertas@ibex35-bot.vercel.app")
 
 # ============================================
 # LISTA DE EMPRESAS DEL IBEX35
@@ -91,11 +99,125 @@ EMPRESAS = [
     ("BKY.MC", "Berkeley"),
     ("AMP.MC", "Amper"),
     ("IDR.MC", "Indra"),
-
-
-
-    
 ]
+
+# ============================================
+# FUNCIÓN PARA ENVIAR ALERTAS POR EMAIL
+# ============================================
+def enviar_alertas_email(ticker, nombre_empresa, patron, precio):
+    """Envía emails a usuarios con alerta activa para este ticker (solo P3 y P7)"""
+    
+    # Solo enviar alertas para patrones 3 y 7
+    if patron not in [3, 7]:
+        return
+    
+    print(f"📧 Verificando alertas para {ticker} (P{patron})...")
+    
+    try:
+        # 1. Obtener usuarios con alerta activa para este ticker
+        response = supabase.table('alertas').select('user_id').eq('ticker', ticker).eq('activa', True).execute()
+        
+        if not response.data:
+            print(f"   No hay alertas activas para {ticker}")
+            return
+        
+        print(f"   {len(response.data)} usuarios tienen alerta activa")
+        
+        # 2. Obtener emails de esos usuarios
+        user_ids = [u['user_id'] for u in response.data]
+        
+        # Consultar auth.users (necesita privilegios de admin)
+        # En Supabase, necesitas usar service_role key para esto
+        SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")
+        if not SUPABASE_SERVICE_KEY:
+            print("   ⚠️ No hay SERVICE_KEY, no se pueden obtener emails")
+            return
+        
+        admin_supabase = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+        users_response = admin_supabase.table('users').select('id, email').execute()
+        
+        emails = []
+        for user in users_response.data:
+            if user['id'] in user_ids:
+                emails.append(user['email'])
+        
+        if not emails:
+            print("   No se encontraron emails para los usuarios")
+            return
+        
+        # 3. Enviar email usando Resend
+        if not RESEND_API_KEY:
+            print("   ⚠️ No hay RESEND_API_KEY, no se envían emails")
+            return
+        
+        patron_nombre = "OPORTUNIDAD FUERTE" if patron == 7 else "OPORTUNIDAD"
+        patron_color = "#00ff88" if patron == 7 else "#b9f6ca"
+        
+        for email in emails:
+            try:
+                response = requests.post(
+                    "https://api.resend.com/emails",
+                    headers={
+                        "Authorization": f"Bearer {RESEND_API_KEY}",
+                        "Content-Type": "application/json"
+                    },
+                    json={
+                        "from": RESEND_FROM_EMAIL,
+                        "to": email,
+                        "subject": f"🔔 Alerta {nombre_empresa} - Patrón {patron_nombre} detectado",
+                        "html": f"""
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <style>
+                                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+                                .container {{ max-width: 500px; margin: 0 auto; padding: 20px; }}
+                                .header {{ background: #1e4668; color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; }}
+                                .content {{ background: #f8f9fa; padding: 20px; border-radius: 0 0 10px 10px; }}
+                                .patron {{ display: inline-block; background: {patron_color}; color: #1a2634; padding: 4px 12px; border-radius: 20px; font-weight: bold; }}
+                                .precio {{ font-size: 24px; font-weight: bold; color: #1e7e34; }}
+                                .btn {{ background: #2c7da0; color: white; padding: 10px 20px; text-decoration: none; border-radius: 40px; display: inline-block; margin-top: 20px; }}
+                                .footer {{ font-size: 11px; color: #8ba0bc; text-align: center; margin-top: 20px; }}
+                            </style>
+                        </head>
+                        <body>
+                            <div class="container">
+                                <div class="header">
+                                    <h2>📊 IBEX Backtesting</h2>
+                                </div>
+                                <div class="content">
+                                    <h3>🔔 Alerta detectada</h3>
+                                    <p>Se ha detectado el patrón <span class="patron">{patron_nombre}</span> en <strong>{nombre_empresa} ({ticker})</strong>.</p>
+                                    <p>Precio actual: <span class="precio">{precio}€</span></p>
+                                    <p><a href="https://ibex35-bot.vercel.app/index.html?ticker={ticker}" class="btn">📈 Ver en la herramienta</a></p>
+                                    <p style="font-size: 12px; color: #6c86a3;">Este es un aviso automático. No responder a este correo.</p>
+                                </div>
+                                <div class="footer">
+                                    Herramienta educativa · No recomendaciones de inversión
+                                </div>
+                            </div>
+                        </body>
+                        </html>
+                        """
+                    }
+                )
+                
+                if response.status_code == 200:
+                    print(f"   ✅ Email enviado a {email}")
+                    # Actualizar último_envio
+                    supabase.table('alertas').update({'ultimo_envio': datetime.now(pytz.timezone('Europe/Madrid')).isoformat()}).eq('ticker', ticker).eq('user_id', user_ids[0]).execute()
+                else:
+                    print(f"   ❌ Error enviando a {email}: {response.text}")
+                    
+            except Exception as e:
+                print(f"   ❌ Error con email {email}: {e}")
+                
+    except Exception as e:
+        print(f"   ❌ Error en envío de alertas: {e}")
+
+# ============================================
+# FUNCIONES EXISTENTES (sin cambios)
+# ============================================
 
 def calcular_smi_rapido(high, low, close):
     """Calcula SOLO la línea RÁPIDA del SMI"""
@@ -474,6 +596,12 @@ def analizar_todo():
                               smi_semanal, caso, mensaje, pendiente_diaria,
                               soportes, resistencias, gaps_alcistas, gaps_bajistas,
                               pinchos_alcistas, pinchos_bajistas, activada_por_4h)
+        
+        # ============================================
+        # NUEVO: Enviar alertas por email si es P3 o P7
+        # ============================================
+        if caso in [3, 7]:
+            enviar_alertas_email(ticker, nombre, caso, precio_actual)
         
         time.sleep(0.5)
     
