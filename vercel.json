@@ -20,7 +20,7 @@
       "dest": "/web/landing.html"
     },
     {
-      "src": "/(.*)",
+      "src": "/",
       "dest": "/web/landing.html"
     }
   ]
