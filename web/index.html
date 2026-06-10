@@ -554,7 +554,7 @@
             <div class="tabla-empresas-wrapper">
                 <table class="tabla-empresas" id="tablaEmpresas">
                     <thead><tr><th>Empresa</th><th>Precio</th><th>Fecha</th><th>Últ. patrón</th><th>Precio patrón</th><th>Rentabilidad</th><th>PW</th></tr></thead>
-                    <tbody id="empresasBody"><tr><td colspan="7" class="loading">Cargando datos...</td></tr>
+                    <tbody id="empresasBody"><tr><td colspan="7" class="loading">Cargando datos...</td></tr></tbody>
                 </table>
             </div>
         </div>
@@ -564,8 +564,7 @@
             <div class="derecho-contenido">
                 <div class="historial-wrapper">
                     <table class="tabla-historial" id="tablaHistorial">
-                        <thead>极<th>Fecha</th><th>Precio</th><th>Patrón</th><th>PW 4h</th><th>PW diario</th><th>Pendiente</th><th>Soportes</th><th>Resistencias</th></tr>
-                        </thead>
+                        <thead>极<th>Fecha</th><th>Precio</th><th>Patrón</th><th>PW 4h</th><th>PW diario</th><th>Pendiente</th><th>Soportes</th><th>Resistencias</th></tr></thead>
                         <tbody id="historialBody"><tr><td colspan="8" class="sin-datos">Selecciona una empresa del panel izquierdo</td></tr></tbody>
                     </table>
                 </div>
@@ -788,27 +787,46 @@
             }));
         }
         
-        // Encontrar máximos por día para SOBRECOMPRA (PW > 40 y pendiente negativa)
-        function encontrarMaximosSobrecompra() {
-            const maxPorDia = new Map(); // key: YYYY-MM-DD, value: { precioMax, fechaCompleta, registro }
+        // Encontrar máximos por día para SOBRECOMPRA con pendiente negativa (ROJO) y pendiente positiva (NARANJA)
+        function encontrarPuntosSobrecompra() {
+            const maxPorDiaNeg = new Map(); // pendiente negativa
+            const maxPorDiaPos = new Map(); // pendiente positiva
+            
             for (const reg of datosOrdenados) {
-                if (reg.smi_diario !== null && reg.pendiente_diaria !== null && reg.smi_diario > 40 && reg.pendiente_diaria < 0) {
+                if (reg.smi_diario !== null && reg.pendiente_diaria !== null && reg.smi_diario > 40) {
                     const fechaCompleta = new Date(reg.fecha);
                     const diaKey = fechaCompleta.toISOString().split('T')[0];
-                    if (!maxPorDia.has(diaKey) || reg.precio_cierre > maxPorDia.get(diaKey).precio) {
-                        maxPorDia.set(diaKey, { precio: reg.precio_cierre, fecha: reg.fecha });
+                    
+                    if (reg.pendiente_diaria < 0) {
+                        if (!maxPorDiaNeg.has(diaKey) || reg.precio_cierre > maxPorDiaNeg.get(diaKey).precio) {
+                            maxPorDiaNeg.set(diaKey, { precio: reg.precio_cierre, fecha: reg.fecha, pendiente: reg.pendiente_diaria });
+                        }
+                    } 
+                    else if (reg.pendiente_diaria > 0) {
+                        if (!maxPorDiaPos.has(diaKey) || reg.precio_cierre > maxPorDiaPos.get(diaKey).precio) {
+                            maxPorDiaPos.set(diaKey, { precio: reg.precio_cierre, fecha: reg.fecha, pendiente: reg.pendiente_diaria });
+                        }
                     }
                 }
             }
-            return Array.from(maxPorDia.values()).map(item => ({
+            
+            const puntosNegativos = Array.from(maxPorDiaNeg.values()).map(item => ({
                 x: new Date(item.fecha).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }),
                 y: item.precio,
-                patron: 'sobrecompra'
+                tipo: 'rojo'
             }));
+            
+            const puntosPositivos = Array.from(maxPorDiaPos.values()).map(item => ({
+                x: new Date(item.fecha).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }),
+                y: item.precio,
+                tipo: 'naranja'
+            }));
+            
+            return { rojos: puntosNegativos, naranjas: puntosPositivos };
         }
         
         const p7Points = encontrarMinimosP7();
-        const sobrecompraPoints = encontrarMaximosSobrecompra();
+        const { rojos, naranjas } = encontrarPuntosSobrecompra();
         
         const ctx = document.getElementById('graficaCanvas').getContext('2d');
         if (chartInstance) chartInstance.destroy();
@@ -820,7 +838,8 @@
                 datasets: [
                     { label: '', data: precios, borderColor: '#2c7da0', backgroundColor: 'transparent', borderWidth: 2, tension: 0.1, pointRadius: 0, pointHoverRadius: 5, fill: false },
                     { label: '🔵 P7 (Mínimo)', data: p7Points, borderColor: '#00ff88', backgroundColor: '#007039', pointRadius: 10, pointHoverRadius: 15, pointStyle: 'arrow', type: 'scatter', showLine: false, order: 1 },
-                    { label: '🔴 Sobrecompra (Máximo)', data: sobrecompraPoints, borderColor: '#ff4444', backgroundColor: '#cc0000', pointRadius: 10, pointHoverRadius: 15, pointStyle: 'arrow', type: 'scatter', showLine: false, order: 1 }
+                    { label: '🔴 Sobrecompra (Pendiente Negativa)', data: rojos, borderColor: '#ff4444', backgroundColor: '#cc0000', pointRadius: 10, pointHoverRadius: 15, pointStyle: 'arrow', type: 'scatter', showLine: false, order: 1 },
+                    { label: '🟠 Sobrecompra (Pendiente Positiva)', data: naranjas, borderColor: '#ff8800', backgroundColor: '#cc6600', pointRadius: 10, pointHoverRadius: 15, pointStyle: 'arrow', type: 'scatter', showLine: false, order: 1 }
                 ]
             },
             options: {
@@ -849,7 +868,8 @@
                             label: (ctx) => {
                                 if (ctx.datasetIndex === 0) return `Precio: ${ctx.parsed.y}€`;
                                 if (ctx.dataset.label === '🔵 P7 (Mínimo)') return `Mínimo P7: ${ctx.parsed.y}€`;
-                                if (ctx.dataset.label === '🔴 Sobrecompra (Máximo)') return `Máximo (Sobrecompra): ${ctx.parsed.y}€ (PW>40, Pendiente Neg)`;
+                                if (ctx.dataset.label === '🔴 Sobrecompra (Pendiente Negativa)') return `Máximo (Sobrecompra): ${ctx.parsed.y}€ (PW>40, Pendiente Negativa)`;
+                                if (ctx.dataset.label === '🟠 Sobrecompra (Pendiente Positiva)') return `Máximo (Sobrecompra): ${ctx.parsed.y}€ (PW>40, Pendiente Positiva)`;
                                 return `Punto: ${ctx.parsed.y}€`;
                             }
                         } 
@@ -890,7 +910,7 @@
 
     function renderizarPanelDerecho(historial) {
         const tbody = document.getElementById('historialBody');
-        if (!historial.length) { tbody.innerHTML = '<tr><td colspan="8" class="sin-datos">No hay historial</span></span></table>'; return; }
+        if (!historial.length) { tbody.innerHTML = '<tr><td colspan="8" class="sin-datos">No hay historial</span></span></td>'; return; }
         let html = '';
         for (let i = 0; i < historial.length; i++) {
             const reg = historial[i];
