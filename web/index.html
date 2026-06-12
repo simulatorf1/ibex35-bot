@@ -91,40 +91,42 @@
             border-bottom: 1px solid #e9ecef;
             align-items: center;
         }
-        .filtros-barra input, .filtros-barra select {
-            padding: 8px 14px;
+        .filtros-barra input {
+            flex: 2;
+            min-width: 200px;
+            padding: 10px 16px;
             border-radius: 40px;
             border: 1px solid #cfdfed;
-            font-size: 0.75rem;
+            font-size: 0.85rem;
             background: white;
             font-family: inherit;
         }
-        .filtros-barra input {
-            flex: 2;
-            min-width: 180px;
-        }
         .filtros-barra select {
             flex: 1;
-            min-width: 140px;
-        }
-        .btn-cargar {
-            background: #2c7da0;
-            color: white;
-            border: none;
-            padding: 8px 20px;
+            min-width: 160px;
+            padding: 10px 16px;
             border-radius: 40px;
+            border: 1px solid #cfdfed;
+            font-size: 0.85rem;
+            background: white;
+            font-family: inherit;
             cursor: pointer;
-            font-weight: 600;
-            font-size: 0.75rem;
-            transition: 0.2s;
         }
-        .btn-cargar:hover {
-            background: #1e5a74;
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #e9ecef;
+            border-top-color: #2c7da0;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin-right: 8px;
         }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         .tabla-empresas-wrapper {
             overflow-x: auto;
-            max-height: 500px;
+            max-height: 550px;
             overflow-y: auto;
         }
 
@@ -432,6 +434,11 @@
             color: #8ba0bc;
             font-size: 0.85rem;
         }
+        .cargando-texto {
+            text-align: center;
+            padding: 40px;
+            color: #6c86a3;
+        }
 
         @media (max-width: 900px) {
             body { padding: 12px; }
@@ -454,16 +461,15 @@
 <body>
 <div class="container">
     <div class="panel-principal">
-        <h2>📋 ANÁLISIS DE EMPRESAS <span style="font-size: 0.6rem; font-weight: normal;">Filtra y carga los datos que quieras ver</span></h2>
+        <h2>📋 ANÁLISIS DE EMPRESAS <span style="font-size: 0.6rem; font-weight: normal;">Escribe para buscar instantáneamente</span></h2>
         <div class="filtros-barra">
-            <input type="text" id="filtroEmpresa" placeholder="🔍 Buscar empresa (nombre o ticker)...">
+            <input type="text" id="filtroEmpresa" placeholder="🔍 Buscar por nombre o ticker (ej: Telefónica, SAN, BBVA)...">
             <select id="filtroOportunidad">
                 <option value="todos">📋 Todos los patrones</option>
                 <option value="7">🟢 Solo Oportunidad fuerte (tipo 7)</option>
                 <option value="3">🟢 Solo Oportunidad (tipo 3)</option>
                 <option value="7,3">🟢 Oportunidad 7 o 3</option>
             </select>
-            <button class="btn-cargar" id="btnCargarEmpresas">🔍 Cargar empresas</button>
         </div>
         <div class="tabla-empresas-wrapper">
             <table class="tabla-empresas" id="tablaEmpresas">
@@ -471,7 +477,7 @@
                     <tr><th>Empresa</th><th>Precio</th><th>Fecha</th><th>Últ. patrón</th><th>Precio patrón</th><th>Rentabilidad</th><th>PW</th></tr>
                 </thead>
                 <tbody id="empresasBody">
-                    <tr><td colspan="7" class="mensaje-inicial">🔍 Usa los filtros y haz clic en "Cargar empresas" para comenzar</td></tr>
+                    <tr><td colspan="7" class="mensaje-inicial">🔍 Empieza a escribir para buscar empresas...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -525,8 +531,8 @@
             <span class="toggle-icon" id="toggleIcon">▼</span>
         </div>
         <div class="explicativo-contenido" id="explicativoContenido">
-            <p><strong>¿Cómo usar?</strong> 1️⃣ Selecciona los filtros que desees (búsqueda por nombre o tipo de oportunidad). 2️⃣ Haz clic en "Cargar empresas" para ver los resultados. 3️⃣ Haz clic en cualquier fila para expandir el gráfico y el historial completo. 4️⃣ Dentro del historial, haz clic en un precio para marcar entrada y en otro más reciente para salida, luego calcula el resultado.</p>
-            <p><strong>Tabla de empresas:</strong> Muestra todas las empresas que coinciden con los filtros aplicados. Las filas con fondo verde indican patrón de interés (tipos 7 y 3 principalmente).</p>
+            <p><strong>Búsqueda instantánea:</strong> Escribe en el buscador para ver empresas en tiempo real. Al hacer clic en cualquier fila, se cargan los datos detallados, el gráfico y el historial completo. El filtro de oportunidad te permite ver solo empresas con patrones específicos.</p>
+            <p><strong>Simulación:</strong> Dentro del historial, haz clic en un precio (entrada) y luego en otro más reciente (salida). Ajusta el capital y calcula el resultado con comisiones simuladas.</p>
             <div class="grid-explicativo">
                 <div class="item-explicativo"><strong>🎯 PW</strong><span>Oscila -100 a +100. <-40 sobreventa, >+40 sobrecompra.</span></div>
                 <div class="item-explicativo"><strong>🟢 Patrones</strong><span>Tipo 7 (fuerte), 3 (rebote), 6 (cambio), 4 (consolidación), 5 (agotamiento).</span></div>
@@ -552,35 +558,104 @@
     const PATRONES_INTERES = [1, 2, 3, 6, 7];
     const CONDICION_EXCLUSION = (pwDiario, pendiente) => pwDiario !== null && pendiente !== null && pwDiario > 50 && pendiente < 0;
 
-    let todasLasEmpresas = [];
-    let empresasFiltradas = [];
-    let historialActual = [];
+    let catalogoEmpresas = []; // Lista rápida: { ticker, nombre }
+    let datosCompletosCache = new Map(); // Cache de datos completos por ticker
     let tickerSeleccionado = null;
+    let historialActual = [];
     let entradaSeleccionada = null;
     let salidaSeleccionada = null;
     let filaEntradaIndex = -1;
     let filaSalidaIndex = -1;
     let chartInstance = null;
-    let datosCargados = false;
+    let cargandoDatos = false;
 
     function getDescripcionPatron(patron) {
         const descripciones = { 1: "🔴 Señal de interés con impulso alcista", 2: "🟡 Señal anticipada", 3: "⚫ Rebote corto plazo", 4: "⚪ Fase de consolidación", 5: "🔴 Agotamiento alcista", 6: "🟢 Señal de interés directa", 7: "🔷 Pre-señal" };
         return descripciones[patron] || "Sin patrón";
     }
 
-    async function traerTodosLosRegistros() {
-        let allData = [];
-        let page = 0;
-        let hasMore = true;
-        while (hasMore) {
-            const from = page * 1000;
-            const to = from + 999;
-            const { data, error } = await supabaseClient.from('recomendaciones_ibex').select('*').order('fecha', { ascending: true }).range(from, to);
-            if (error) break;
-            if (data && data.length > 0) { allData = allData.concat(data); page++; }
-            if (!data || data.length < 1000) hasMore = false;
+    // Carga solo el catálogo de empresas (rápido)
+    async function cargarCatalogoEmpresas() {
+        try {
+            const { data, error } = await supabaseClient
+                .from('recomendaciones_ibex')
+                .select('ticker, nombre_empresa')
+                .order('fecha', { ascending: false });
+            
+            if (error) throw error;
+            
+            const uniqueMap = new Map();
+            for (const item of data) {
+                if (!uniqueMap.has(item.ticker)) {
+                    uniqueMap.set(item.ticker, {
+                        ticker: item.ticker,
+                        nombre: item.nombre_empresa || item.ticker
+                    });
+                }
+            }
+            catalogoEmpresas = Array.from(uniqueMap.values()).sort((a,b) => a.nombre.localeCompare(b.nombre));
+            
+            // Mostrar mensaje de que puede buscar
+            const tbody = document.getElementById('empresasBody');
+            if (catalogoEmpresas.length > 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="mensaje-inicial">🔍 Escribe para buscar empresas...</td></tr>';
+            } else {
+                tbody.innerHTML = '<tr><td colspan="7" class="mensaje-inicial">⚠️ No se pudieron cargar las empresas</td></tr>';
+            }
+        } catch (err) {
+            console.error('Error cargando catálogo:', err);
+            document.getElementById('empresasBody').innerHTML = '<tr><td colspan="7" class="mensaje-inicial">❌ Error al conectar con la base de datos</td></tr>';
         }
-        return allData;
+    }
+
+    // Carga datos completos de una empresa específica
+    async function cargarDatosCompletos(ticker) {
+        if (datosCompletosCache.has(ticker)) {
+            return datosCompletosCache.get(ticker);
+        }
+        
+        const { data, error } = await supabaseClient
+            .from('recomendaciones_ibex')
+            .select('*')
+            .eq('ticker', ticker)
+            .order('fecha', { ascending: true });
+        
+        if (error) throw error;
+        
+        const empresaCompleta = procesarRegistrosEmpresa(data, ticker);
+        datosCompletosCache.set(ticker, empresaCompleta);
+        return empresaCompleta;
+    }
+
+    function procesarRegistrosEmpresa(registros, ticker) {
+        if (!registros || registros.length === 0) return null;
+        
+        registros.sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
+        const ultimo = registros[registros.length - 1];
+        const nombre = ultimo.nombre_empresa || ticker;
+        const precioActual = ultimo.precio_cierre;
+        const fechaActual = ultimo.fecha;
+        const pwDiarioActual = ultimo.smi_diario;
+        const pendiente = ultimo.pendiente_diaria;
+        const tieneInteres = PATRONES_INTERES.includes(ultimo.caso_numero);
+        let ultimoPatronInfo = calcularUltimoPatron(registros, tieneInteres);
+        let subida = null;
+        if (ultimoPatronInfo && ultimoPatronInfo.precioPatron && precioActual) 
+            subida = ((precioActual - ultimoPatronInfo.precioPatron) / ultimoPatronInfo.precioPatron) * 100;
+        
+        return {
+            ticker,
+            nombre,
+            precioActual,
+            fechaActual,
+            tieneInteres,
+            ultimoPatronInfo,
+            subida,
+            pwDiarioActual,
+            pendiente,
+            registros,
+            ultimoPatron: ultimo.caso_numero
+        };
     }
 
     function calcularUltimoPatron(registros, tieneInteresActual) {
@@ -603,86 +678,60 @@
         return null;
     }
 
-    async function cargarEmpresas() {
-        const btnCargar = document.getElementById('btnCargarEmpresas');
-        btnCargar.textContent = '⏳ Cargando...';
-        btnCargar.disabled = true;
+    async function buscarYMostrarEmpresas() {
+        const texto = document.getElementById('filtroEmpresa').value.toLowerCase().trim();
+        const oportunidad = document.getElementById('filtroOportunidad').value;
         
-        try {
-            const data = await traerTodosLosRegistros();
-            if (!data || data.length === 0) { 
-                document.getElementById('empresasBody').innerHTML = '<tr><td colspan="7" class="sin-datos">No hay datos disponibles</td></tr>';
-                return;
-            }
-            
-            const porTicker = new Map();
-            for (const reg of data) { 
-                if (!porTicker.has(reg.ticker)) porTicker.set(reg.ticker, []); 
-                porTicker.get(reg.ticker).push(reg); 
-            }
-            
-            const empresas = [];
-            for (let [ticker, registros] of porTicker.entries()) {
-                registros.sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
-                const ultimo = registros[registros.length - 1];
-                const nombre = ultimo.nombre_empresa || ticker;
-                const precioActual = ultimo.precio_cierre;
-                const fechaActual = ultimo.fecha;
-                const pwDiarioActual = ultimo.smi_diario;
-                const pendiente = ultimo.pendiente_diaria;
-                const tieneInteres = PATRONES_INTERES.includes(ultimo.caso_numero);
-                let ultimoPatronInfo = calcularUltimoPatron(registros, tieneInteres);
-                let subida = null;
-                if (ultimoPatronInfo && ultimoPatronInfo.precioPatron && precioActual) 
-                    subida = ((precioActual - ultimoPatronInfo.precioPatron) / ultimoPatronInfo.precioPatron) * 100;
-                empresas.push({ ticker, nombre, precioActual, fechaActual, tieneInteres, ultimoPatronInfo, subida, pwDiarioActual, pendiente, registros, ultimoPatron: ultimo.caso_numero });
-            }
-            empresas.sort((a,b) => a.nombre.localeCompare(b.nombre));
-            todasLasEmpresas = empresas;
-            datosCargados = true;
-            aplicarFiltrosYMostrar();
-        } catch (err) { 
-            console.error(err); 
-            document.getElementById('empresasBody').innerHTML = '<tr><td colspan="7" class="sin-datos">Error al cargar datos</td></tr>';
-        } finally {
-            btnCargar.textContent = '🔍 Cargar empresas';
-            btnCargar.disabled = false;
-        }
-    }
-
-    function aplicarFiltrosYMostrar() {
-        if (!datosCargados || todasLasEmpresas.length === 0) return;
-        
-        const texto = document.getElementById('filtroEmpresa')?.value.toLowerCase() || '';
-        const oportunidad = document.getElementById('filtroOportunidad')?.value || 'todos';
-        
-        let filtradas = [...todasLasEmpresas];
-        
-        // Filtrar por texto
-        if (texto) {
-            filtradas = filtradas.filter(emp => 
-                emp.nombre.toLowerCase().includes(texto) || 
-                emp.ticker.toLowerCase().includes(texto)
-            );
+        if (!texto && oportunidad === 'todos') {
+            document.getElementById('empresasBody').innerHTML = '<tr><td colspan="7" class="mensaje-inicial">🔍 Empieza a escribir para buscar empresas...</td></tr>';
+            return;
         }
         
-        // Filtrar por oportunidad
+        // Filtrar catálogo por texto
+        let filtradas = catalogoEmpresas.filter(emp => 
+            emp.nombre.toLowerCase().includes(texto) || 
+            emp.ticker.toLowerCase().includes(texto)
+        );
+        
+        if (filtradas.length === 0) {
+            document.getElementById('empresasBody').innerHTML = '<tr><td colspan="7" class="mensaje-inicial">📭 No se encontraron empresas</td></tr>';
+            return;
+        }
+        
+        // Mostrar loading en la tabla
+        const tbody = document.getElementById('empresasBody');
+        tbody.innerHTML = '<tr><td colspan="7" class="cargando-texto"><div class="loading-spinner"></div> Cargando datos...</td></tr>';
+        
+        // Cargar datos completos de las empresas filtradas (máximo 50 para no sobrecargar)
+        const empresasAMostrar = filtradas.slice(0, 50);
+        const empresasConDatos = [];
+        
+        for (const emp of empresasAMostrar) {
+            try {
+                const datos = await cargarDatosCompletos(emp.ticker);
+                if (datos) empresasConDatos.push(datos);
+            } catch (err) {
+                console.error(`Error cargando ${emp.ticker}:`, err);
+            }
+        }
+        
+        // Aplicar filtro de oportunidad
+        let finalEmpresas = empresasConDatos;
         if (oportunidad === '7') {
-            filtradas = filtradas.filter(emp => emp.ultimoPatron === 7);
+            finalEmpresas = empresasConDatos.filter(emp => emp.ultimoPatron === 7);
         } else if (oportunidad === '3') {
-            filtradas = filtradas.filter(emp => emp.ultimoPatron === 3);
+            finalEmpresas = empresasConDatos.filter(emp => emp.ultimoPatron === 3);
         } else if (oportunidad === '7,3') {
-            filtradas = filtradas.filter(emp => emp.ultimoPatron === 7 || emp.ultimoPatron === 3);
+            finalEmpresas = empresasConDatos.filter(emp => emp.ultimoPatron === 7 || emp.ultimoPatron === 3);
         }
         
-        empresasFiltradas = filtradas;
-        renderizarTablaEmpresas(empresasFiltradas);
+        renderizarTablaEmpresas(finalEmpresas);
     }
 
     function renderizarTablaEmpresas(empresas) {
         const tbody = document.getElementById('empresasBody');
         if (!empresas.length) { 
-            tbody.innerHTML = '<tr><td colspan="7" class="mensaje-inicial">🔍 No hay empresas que coincidan con los filtros</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="mensaje-inicial">📭 No hay empresas que coincidan con los filtros</td></tr>';
             return; 
         }
         
@@ -767,29 +816,50 @@
         });
     }
 
-    window.seleccionarEmpresa = function(ticker) {
+    window.seleccionarEmpresa = async function(ticker) {
         tickerSeleccionado = ticker;
-        const empresa = empresasFiltradas.find(e => e.ticker === ticker);
-        if (!empresa) return;
-        document.getElementById('detalleTituloEmpresa').innerHTML = `📊 ${empresa.nombre} (${ticker})`;
-        historialActual = [...empresa.registros].sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
-        renderizarHistorialCompleto(historialActual);
-        renderizarGrafico(empresa.registros);
-        entradaSeleccionada = null; salidaSeleccionada = null;
-        document.getElementById('compraSeleccionada').innerHTML = '---';
-        document.getElementById('ventaSeleccionada').innerHTML = '---';
-        document.getElementById('resultadoSimulacion').innerHTML = '';
-        document.getElementById('accionesInfo').innerHTML = 'Selecciona primero un punto de entrada';
+        
+        // Mostrar loading en el detalle
         const detalleDiv = document.getElementById('seccionDetalle');
         detalleDiv.classList.add('visible');
-        detalleDiv.scrollIntoView({ behavior: 'smooth' });
-        actualizarAccionesInfo();
-        document.querySelectorAll('#empresasBody tr').forEach(row => { row.classList.remove('seleccionada'); if (row.getAttribute('data-ticker') === ticker) row.classList.add('seleccionada'); });
+        document.getElementById('detalleTituloEmpresa').innerHTML = `📊 Cargando datos...`;
+        document.getElementById('historialBody').innerHTML = '<tr><td colspan="8" class="cargando-texto"><div class="loading-spinner"></div> Cargando historial...</td></td>';
+        
+        try {
+            const empresaCompleta = await cargarDatosCompletos(ticker);
+            if (!empresaCompleta) {
+                document.getElementById('detalleTituloEmpresa').innerHTML = `📊 Error al cargar datos`;
+                return;
+            }
+            
+            document.getElementById('detalleTituloEmpresa').innerHTML = `📊 ${empresaCompleta.nombre} (${ticker})`;
+            historialActual = [...empresaCompleta.registros].sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+            renderizarHistorialCompleto(historialActual);
+            renderizarGrafico(empresaCompleta.registros);
+            
+            entradaSeleccionada = null; salidaSeleccionada = null;
+            document.getElementById('compraSeleccionada').innerHTML = '---';
+            document.getElementById('ventaSeleccionada').innerHTML = '---';
+            document.getElementById('resultadoSimulacion').innerHTML = '';
+            document.getElementById('accionesInfo').innerHTML = 'Selecciona primero un punto de entrada';
+            
+            detalleDiv.scrollIntoView({ behavior: 'smooth' });
+            actualizarAccionesInfo();
+            
+            // Resaltar fila seleccionada en la tabla
+            document.querySelectorAll('#empresasBody tr').forEach(row => { 
+                row.classList.remove('seleccionada'); 
+                if (row.getAttribute('data-ticker') === ticker) row.classList.add('seleccionada'); 
+            });
+        } catch (err) {
+            console.error('Error cargando empresa:', err);
+            document.getElementById('detalleTituloEmpresa').innerHTML = `📊 Error al cargar ${ticker}`;
+        }
     };
 
     function renderizarHistorialCompleto(historial) {
         const tbody = document.getElementById('historialBody');
-        if (!historial.length) { tbody.innerHTML = '<tr><td colspan="8" class="sin-datos">No hay historial</td></tr>'; return; }
+        if (!historial.length) { tbody.innerHTML = '<tr><td colspan="8" class="sin-datos">No hay historial</span></span></td>'; return; }
         let html = '';
         for (let i = 0; i < historial.length; i++) {
             const reg = historial[i];
@@ -815,11 +885,11 @@
             const isSalida = (salidaSeleccionada && salidaSeleccionada.idx === i);
             html += `<tr class="${patronClass}" data-idx="${i}">
                         <td style="font-size:0.7rem;">${fecha}</td>
-                        <td class="precio-clickeable" data-idx="${i}" data-precio="${reg.precio_cierre}" data-fecha="${reg.fecha}">${isEntrada ? '<span class="precio-seleccionado">🔵 '+precio+'</span>' : (isSalida ? '<span class="precio-seleccionado">🟠 '+precio+'</span>' : precio)}</td>
+                        <td class="precio-clickeable" data-idx="${i}" data-precio="${reg.precio_cierre}" data-fecha="${reg.fecha}">${isEntrada ? '<span class="precio-seleccionado">🔵 '+precio+'</span>' : (isSalida ? '<span class="precio-seleccionado">🟠 '+precio+'</span>' : precio)}</span>
                         <td class="patron-tooltip">${reg.caso_numero || '---'}<span class="tooltip-text">${getDescripcionPatron(reg.caso_numero)}</span></td>
-                        <td>${pw4h}</td><td>${pwDiario}</td><td>${pendiente}</td>
+                        <td>${pw4h}</span><td>${pwDiario}</span><td>${pendiente}</span>
                         <td style="font-size:0.65rem;">${soporteText}</td><td style="font-size:0.65rem;">${resistenciaText}</td>
-                      </tr>`;
+                     </tr>`;
         }
         tbody.innerHTML = html;
         document.querySelectorAll('#tablaHistorial td.precio-clickeable').forEach(cell => {
@@ -860,7 +930,7 @@
         const precioEntrada = entradaSeleccionada.precio;
         const acciones = Math.floor(capital / precioEntrada);
         const inversionReal = acciones * precioEntrada;
-        document.getElementById('accionesInfo').innerHTML = `📊 ${acciones} acciones · Inversión simulada: ${inversionReal.toFixed(2)}€ (comisión estimada: ${(11 + inversionReal * 0.004).toFixed(2)}€)`;
+        document.getElementById('accionesInfo').innerHTML = `📊 ${acciones} acciones · Inversión simulada: ${inversionReal.toFixed(2)}€ (comisión: ${(11 + inversionReal * 0.004).toFixed(2)}€)`;
     }
 
     function calcularResultado() {
@@ -877,15 +947,26 @@
         resultadoDiv.innerHTML = `<span class="${resultadoNeto >= 0 ? 'positivo' : 'negativo'}">${resultadoNeto >= 0 ? '+' : ''}${resultadoNeto.toFixed(2)}€ (${rentabilidadPorcentaje >= 0 ? '+' : ''}${rentabilidadPorcentaje.toFixed(2)}%)</span>`;
     }
 
+    // Event listeners
+    let timeoutBusqueda;
+    document.getElementById('filtroEmpresa').addEventListener('input', () => {
+        clearTimeout(timeoutBusqueda);
+        timeoutBusqueda = setTimeout(() => {
+            buscarYMostrarEmpresas();
+        }, 300);
+    });
+    document.getElementById('filtroOportunidad').addEventListener('change', () => {
+        buscarYMostrarEmpresas();
+    });
     document.getElementById('btnCalcular').addEventListener('click', calcularResultado);
     document.getElementById('capitalInput').addEventListener('input', actualizarAccionesInfo);
-    document.getElementById('btnCargarEmpresas').addEventListener('click', cargarEmpresas);
-    document.getElementById('filtroEmpresa').addEventListener('input', () => { if(datosCargados) aplicarFiltrosYMostrar(); });
-    document.getElementById('filtroOportunidad').addEventListener('change', () => { if(datosCargados) aplicarFiltrosYMostrar(); });
     document.getElementById('cerrarDetalleBtn').addEventListener('click', () => {
         document.getElementById('seccionDetalle').classList.remove('visible');
         tickerSeleccionado = null;
     });
+
+    // Inicializar cargando el catálogo
+    cargarCatalogoEmpresas();
 </script>
 </body>
 </html>
