@@ -103,7 +103,7 @@
         }
         .filtros-barra select {
             flex: 1;
-            min-width: 180px;
+            min-width: 200px;
             padding: 10px 16px;
             border-radius: 40px;
             border: 1px solid #cfdfed;
@@ -469,7 +469,7 @@
                 <option value="oportunidad">🟢 Empresas oportunidad</option>
                 <option value="posible">🟡 Empresas con posible oportunidad</option>
                 <option value="exito">⭐ Casos de éxito</option>
-                <option value="riesgo">⚠️ Empresas en riesgo</option>
+                <option value="riesgo">⚠️ Empresas en riesgo (PW > 40)</option>
             </select>
         </div>
         <div class="tabla-empresas-wrapper">
@@ -537,7 +537,7 @@
                 • <strong>Empresas oportunidad:</strong> Empresas con patrón tipo 7 (señal fuerte).
                 • <strong>Empresas con posible oportunidad:</strong> Empresas con patrón tipo 3 (rebote).
                 • <strong>Casos de éxito:</strong> Empresas con rentabilidad actual superior al 2%.
-                • <strong>Empresas en riesgo:</strong> Empresas que han tenido puntos rojos (sobrecompra con pendiente negativa) o naranjas (sobrecompra con pendiente positiva) en el gráfico.
+                • <strong>Empresas en riesgo (PW > 40):</strong> Empresas que tienen el Price Wave por encima de 40.
             </p>
             <p><strong>Simulación:</strong> Dentro del historial, haz clic en un precio (entrada) y luego en otro más reciente (salida). Ajusta el capital y calcula el resultado con comisiones simuladas.</p>
             <div class="grid-explicativo">
@@ -644,9 +644,6 @@
         if (ultimoPatronInfo && ultimoPatronInfo.precioPatron && precioActual) 
             subida = ((precioActual - ultimoPatronInfo.precioPatron) / ultimoPatronInfo.precioPatron) * 100;
         
-        // Detectar si la empresa tiene puntos en riesgo (rojos o naranjas en el gráfico)
-        const tieneRiesgo = detectarRiesgoEnHistorial(registros);
-        
         return {
             ticker,
             nombre,
@@ -658,18 +655,8 @@
             pwDiarioActual,
             pendiente,
             registros,
-            ultimoPatron: ultimo.caso_numero,
-            tieneRiesgo
+            ultimoPatron: ultimo.caso_numero
         };
-    }
-    
-    function detectarRiesgoEnHistorial(registros) {
-        for (const reg of registros) {
-            if (reg.smi_diario !== null && reg.pendiente_diaria !== null && reg.smi_diario > 40) {
-                return true;
-            }
-        }
-        return false;
     }
 
     function calcularUltimoPatron(registros, tieneInteresActual) {
@@ -696,11 +683,9 @@
         const texto = document.getElementById('filtroEmpresa').value.toLowerCase().trim();
         const filtro = document.getElementById('filtroOportunidad').value;
         
-        // Si no hay texto y el filtro es "todas", mostrar todas las empresas
         let empresasBase = [];
         
         if (!texto && filtro === 'todas') {
-            // Cargar todas las empresas
             const tbody = document.getElementById('empresasBody');
             tbody.innerHTML = '<tr><td colspan="7" class="cargando-texto"><div class="loading-spinner"></div> Cargando todas las empresas...</span></span></tr>';
             
@@ -708,14 +693,13 @@
             const resultados = await Promise.all(promesas);
             empresasBase = resultados.filter(r => r !== null);
         } else {
-            // Filtrar catálogo por texto
             let filtradasPorTexto = catalogoEmpresas.filter(emp => 
                 emp.nombre.toLowerCase().includes(texto) || 
                 emp.ticker.toLowerCase().includes(texto)
             );
             
             if (filtradasPorTexto.length === 0) {
-                document.getElementById('empresasBody').innerHTML = '<tr><td colspan="7" class="mensaje-inicial">📭 No se encontraron empresas</span></span></tr>';
+                document.getElementById('empresasBody').innerHTML = '<td><td colspan="7" class="mensaje-inicial">📭 No se encontraron empresas</span></span></tr>';
                 return;
             }
             
@@ -728,7 +712,6 @@
             empresasBase = resultados.filter(r => r !== null);
         }
         
-        // Aplicar filtro según la selección
         let finalEmpresas = empresasBase;
         
         if (filtro === 'oportunidad') {
@@ -738,7 +721,8 @@
         } else if (filtro === 'exito') {
             finalEmpresas = empresasBase.filter(emp => emp.subida !== null && emp.subida > 2);
         } else if (filtro === 'riesgo') {
-            finalEmpresas = empresasBase.filter(emp => emp.tieneRiesgo === true);
+            // Filtrar empresas con PW > 40
+            finalEmpresas = empresasBase.filter(emp => emp.pwDiarioActual !== null && emp.pwDiarioActual > 40);
         }
         
         renderizarTablaEmpresas(finalEmpresas);
@@ -873,7 +857,7 @@
 
     function renderizarHistorialCompleto(historial) {
         const tbody = document.getElementById('historialBody');
-        if (!historial.length) { tbody.innerHTML = '<tr><td colspan="8" class="sin-datos">No hay historial</span></span></td>'; return; }
+        if (!historial.length) { tbody.innerHTML = '<tr><td colspan="8" class="sin-datos">No hay historial</span></span></tr>'; return; }
         let html = '';
         for (let i = 0; i < historial.length; i++) {
             const reg = historial[i];
