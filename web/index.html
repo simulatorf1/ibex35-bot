@@ -502,7 +502,7 @@
                         <tr><th>Fecha</th><th>Precio</th><th>Patrón</th><th>PW 4h</th><th>PW diario</th><th>Pendiente</th><th>Soportes</th><th>Resistencias</th></tr>
                     </thead>
                     <tbody id="historialBody">
-                        <tr><td colspan="8" class="sin-datos">Selecciona una empresa de la tabla</span></span></tr>
+                        <tr><td colspan="8" class="sin-datos">Selecciona una empresa de la tabla</span></span></td>
                     </tbody>
                 </table>
             </div>
@@ -602,7 +602,7 @@
             
             const tbody = document.getElementById('empresasBody');
             if (catalogoEmpresas.length > 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="mensaje-inicial">🔍 Escribe para buscar empresas...</span></span></tr>';
+                tbody.innerHTML = '</tr><td colspan="7" class="mensaje-inicial">🔍 Escribe para buscar empresas...</span></span></tr>';
             }
         } catch (err) {
             console.error('Error cargando catálogo:', err);
@@ -679,13 +679,44 @@
         return null;
     }
 
+    // Función para limpiar la selección de empresa y cerrar el detalle
+    function limpiarSeleccionEmpresa() {
+        tickerSeleccionado = null;
+        const detalleDiv = document.getElementById('seccionDetalle');
+        detalleDiv.classList.remove('visible');
+        // Limpiar también la selección de precios en el historial
+        entradaSeleccionada = null;
+        salidaSeleccionada = null;
+        document.getElementById('compraSeleccionada').innerHTML = '---';
+        document.getElementById('ventaSeleccionada').innerHTML = '---';
+        document.getElementById('resultadoSimulacion').innerHTML = '';
+        document.getElementById('accionesInfo').innerHTML = 'Selecciona primero un punto de entrada';
+        // Quitar clase seleccionada de todas las filas
+        document.querySelectorAll('#empresasBody tr').forEach(row => {
+            row.classList.remove('seleccionada');
+        });
+    }
+
     async function buscarYMostrarEmpresas() {
         const texto = document.getElementById('filtroEmpresa').value.toLowerCase().trim();
         const filtro = document.getElementById('filtroOportunidad').value;
         
         let empresasBase = [];
         
-        if (!texto && filtro === 'todas') {
+        // Si el filtro no es "todas", limpiamos el texto del buscador para que no interfiera
+        if (filtro !== 'todas') {
+            const inputBusqueda = document.getElementById('filtroEmpresa');
+            if (inputBusqueda.value !== '') {
+                inputBusqueda.value = '';
+            }
+            // Limpiar selección de empresa al cambiar el filtro
+            limpiarSeleccionEmpresa();
+        }
+        
+        // Obtener el texto nuevamente por si lo hemos limpiado
+        const textoFinal = document.getElementById('filtroEmpresa').value.toLowerCase().trim();
+        
+        if (!textoFinal && filtro === 'todas') {
             const tbody = document.getElementById('empresasBody');
             tbody.innerHTML = '<tr><td colspan="7" class="cargando-texto"><div class="loading-spinner"></div> Cargando todas las empresas...</span></span></tr>';
             
@@ -693,13 +724,24 @@
             const resultados = await Promise.all(promesas);
             empresasBase = resultados.filter(r => r !== null);
         } else {
-            let filtradasPorTexto = catalogoEmpresas.filter(emp => 
-                emp.nombre.toLowerCase().includes(texto) || 
-                emp.ticker.toLowerCase().includes(texto)
-            );
+            let filtradasPorTexto = catalogoEmpresas;
+            
+            // Solo filtrar por texto si hay texto y el filtro es "todas"
+            if (textoFinal && filtro === 'todas') {
+                filtradasPorTexto = catalogoEmpresas.filter(emp => 
+                    emp.nombre.toLowerCase().includes(textoFinal) || 
+                    emp.ticker.toLowerCase().includes(textoFinal)
+                );
+            } else if (!textoFinal && filtro !== 'todas') {
+                // Si hay un filtro activo y no hay texto, tomamos todas las empresas del catálogo
+                filtradasPorTexto = catalogoEmpresas;
+            } else if (textoFinal && filtro !== 'todas') {
+                // Esto no debería pasar porque limpiamos el texto, pero por seguridad
+                filtradasPorTexto = catalogoEmpresas;
+            }
             
             if (filtradasPorTexto.length === 0) {
-                document.getElementById('empresasBody').innerHTML = '<td><td colspan="7" class="mensaje-inicial">📭 No se encontraron empresas</span></span></tr>';
+                document.getElementById('empresasBody').innerHTML = '<tr><td colspan="7" class="mensaje-inicial">📭 No se encontraron empresas</span></span></tr>';
                 return;
             }
             
@@ -721,7 +763,6 @@
         } else if (filtro === 'exito') {
             finalEmpresas = empresasBase.filter(emp => emp.subida !== null && emp.subida > 2);
         } else if (filtro === 'riesgo') {
-            // Filtrar empresas con PW > 40
             finalEmpresas = empresasBase.filter(emp => emp.pwDiarioActual !== null && emp.pwDiarioActual > 40);
         }
         
@@ -731,7 +772,7 @@
     function renderizarTablaEmpresas(empresas) {
         const tbody = document.getElementById('empresasBody');
         if (!empresas.length) { 
-            tbody.innerHTML = '<tr><td colspan="7" class="mensaje-inicial">📭 No hay empresas que coincidan con los filtros</span></span></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="mensaje-inicial">📭 No hay empresas que coincidan con los filtros</span></span><tr>';
             return; 
         }
         
@@ -949,17 +990,30 @@
     document.getElementById('filtroEmpresa').addEventListener('input', () => {
         clearTimeout(timeoutBusqueda);
         timeoutBusqueda = setTimeout(() => {
+            // Al escribir, si hay texto, automáticamente cambiamos el filtro a "todas" para que la búsqueda tenga sentido
+            const inputText = document.getElementById('filtroEmpresa').value.trim();
+            if (inputText !== '') {
+                const filtroSelect = document.getElementById('filtroOportunidad');
+                if (filtroSelect.value !== 'todas') {
+                    filtroSelect.value = 'todas';
+                }
+            }
             buscarYMostrarEmpresas();
         }, 300);
     });
     document.getElementById('filtroOportunidad').addEventListener('change', () => {
+        // Al cambiar el filtro, limpiamos el buscador y la selección de empresa
+        const inputBusqueda = document.getElementById('filtroEmpresa');
+        if (inputBusqueda.value !== '') {
+            inputBusqueda.value = '';
+        }
+        limpiarSeleccionEmpresa();
         buscarYMostrarEmpresas();
     });
     document.getElementById('btnCalcular').addEventListener('click', calcularResultado);
     document.getElementById('capitalInput').addEventListener('input', actualizarAccionesInfo);
     document.getElementById('cerrarDetalleBtn').addEventListener('click', () => {
-        document.getElementById('seccionDetalle').classList.remove('visible');
-        tickerSeleccionado = null;
+        limpiarSeleccionEmpresa();
     });
 
     cargarCatalogoEmpresas();
