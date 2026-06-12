@@ -22,10 +22,9 @@
         .container {
             max-width: 1600px;
             margin: 0 auto;
-            height: calc(100vh - 40px);
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 20px;
         }
 
         .titulo-principal {
@@ -68,44 +67,15 @@
         .leyenda-colores .naranja { background: #ffe2d6; padding: 2px 10px; border-radius: 20px; }
         .leyenda-colores .rojo { background: #f8d7da; padding: 2px 10px; border-radius: 20px; }
 
-        .mini-guia {
-            background: #eef2fa;
-            border-radius: 12px;
-            padding: 8px 12px;
-            margin: 8px 12px;
-            font-size: 0.65rem;
-            color: #1e4668;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        .mini-guia strong {
-            background: #1e4668;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 20px;
-            font-size: 0.6rem;
-        }
-
-        .paneles {
-            display: flex;
-            gap: 20px;
-            flex: 1;
-            min-height: 0;
-        }
-
-        .panel-izquierdo {
-            width: 38%;
+        /* Panel Principal: Tabla de empresas */
+        .panel-principal {
             background: white;
             border-radius: 20px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            display: flex;
-            flex-direction: column;
             overflow: hidden;
         }
 
-        .panel-izquierdo h2 {
+        .panel-principal h2 {
             padding: 18px 20px;
             font-size: 1.1rem;
             background: #1e4668;
@@ -113,9 +83,34 @@
             margin: 0;
         }
 
-        .tabla-empresas-wrapper {
+        .filtros-barra {
+            padding: 12px 20px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            background: white;
+            border-bottom: 1px solid #e9ecef;
+            align-items: center;
+        }
+        .filtros-barra input, .filtros-barra select {
+            padding: 8px 14px;
+            border-radius: 40px;
+            border: 1px solid #cfdfed;
+            font-size: 0.75rem;
+            background: white;
+            font-family: inherit;
+        }
+        .filtros-barra input {
+            flex: 2;
+            min-width: 180px;
+        }
+        .filtros-barra select {
             flex: 1;
-            overflow-y: auto;
+            min-width: 140px;
+        }
+
+        .tabla-empresas-wrapper {
+            overflow-x: auto;
         }
 
         .tabla-empresas {
@@ -125,19 +120,19 @@
         }
 
         .tabla-empresas th {
-            position: sticky;
-            top: 0;
             background: #f8f9fa;
-            padding: 10px 8px;
+            padding: 12px 10px;
             text-align: left;
             font-weight: 600;
             color: #1e4668;
             border-bottom: 2px solid #e9ecef;
+            position: sticky;
+            top: 0;
             z-index: 10;
         }
 
         .tabla-empresas td {
-            padding: 10px 8px;
+            padding: 12px 10px;
             border-bottom: 1px solid #e9ecef;
             cursor: pointer;
         }
@@ -155,10 +150,10 @@
             background-color: #f8d7da;
         }
         .tabla-empresas tr.interes-alcista-7 {
-            background-color: #1e7e34;
+            background-color: #d4edda;
         }
         .tabla-empresas tr.interes-alcista-3 {
-            background-color: #2d6a4f;
+            background-color: #c8e6d9;
         }
         
         .positivo {
@@ -171,80 +166,115 @@
             font-weight: 600;
         }
 
-        .panel-derecho {
-            width: 62%;
+        /* Sección Detalle (Gráfico + Historial) */
+        .seccion-detalle {
             background: white;
             border-radius: 20px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            display: flex;
-            flex-direction: column;
             overflow: hidden;
+            display: none;
         }
 
-        .panel-derecho h2 {
-            padding: 18px 20px;
-            font-size: 1.1rem;
+        .seccion-detalle.visible {
+            display: block;
+        }
+
+        .detalle-header {
+            padding: 16px 20px;
             background: #2c7da0;
             color: white;
-            margin: 0;
-        }
-
-        .derecho-contenido {
-            flex: 1;
             display: flex;
-            flex-direction: column;
-            min-height: 0;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .detalle-header h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        .cerrar-detalle {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+        .cerrar-detalle:hover {
+            background: rgba(255,255,255,0.4);
         }
 
-        .historial-wrapper {
-            flex: 1;
-            min-height: 0;
-            overflow-y: auto;
+        /* Gráfico con medidas fijas (ajustables) */
+        .grafico-fijo {
+            width: 100%;
+            height: 400px;  /* Altura fija, puedes editarla después */
+            padding: 16px;
+            background: #ffffff;
+            border-bottom: 1px solid #e9ecef;
         }
-
-        .grafico-wrapper {
-            height: 40%;
-            min-height: 200px;
-            border-top: 1px solid #e9ecef;
-            background: white;
-            padding: 10px;
-        }
-
         #graficaContainer {
             width: 100%;
             height: 100%;
             position: relative;
         }
 
-        canvas {
-            max-width: 100%;
-            height: auto;
+        /* Historial completo con scroll vertical */
+        .historial-completo {
+            padding: 0 16px 16px 16px;
         }
-
+        .historial-completo h4 {
+            margin: 16px 0 12px 0;
+            color: #1e4668;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .historial-wrapper {
+            max-height: 400px;   /* Altura inicial para que se vean ~15 filas, pero con scroll se ve todo */
+            overflow-y: auto;
+            border: 1px solid #e9ecef;
+            border-radius: 16px;
+        }
         .tabla-historial {
             width: 100%;
             border-collapse: collapse;
             font-size: 0.7rem;
         }
-
         .tabla-historial th {
             position: sticky;
             top: 0;
             background: #f8f9fa;
-            padding: 8px 6px;
+            padding: 10px 8px;
             text-align: left;
             font-weight: 600;
             color: #1e4668;
             border-bottom: 2px solid #e9ecef;
             z-index: 10;
         }
-
         .tabla-historial td {
-            padding: 8px 6px;
+            padding: 8px 8px;
             border-bottom: 1px solid #e9ecef;
         }
+        .precio-clickeable {
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: underline dotted;
+            text-underline-offset: 3px;
+        }
+        .precio-seleccionado {
+            background-color: #ffc107;
+            border-radius: 4px;
+            padding: 2px 4px;
+            display: inline-block;
+        }
 
-        .patron-7 { background-color: #00ff88; }
+        /* Colores patrones */
+        .patron-7 { background-color: #d4edda; }
         .patron-3 { background-color: #b9f6ca; }
         .patron-6 { background-color: #f4ff81; }
         .patron-1 { background-color: #fff9c4; }
@@ -253,109 +283,12 @@
         .patron-5 { background-color: #ffe2d6; }
         .patron-exclusion { background-color: #f8d7da; }
 
-        .precio-clickeable {
-            cursor: pointer;
-            font-weight: 600;
-            text-decoration: underline;
-            text-decoration-style: dotted;
-            text-underline-offset: 3px;
-        }
-
-        .precio-seleccionado {
-            background-color: #ffc107;
-            border-radius: 4px;
-            padding: 2px 4px;
-            display: inline-block;
-        }
-
-        .simulador {
-            padding: 16px 20px;
-            background: #f8f9fa;
-            border-top: 1px solid #e9ecef;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 16px;
-            justify-content: space-between;
-        }
-
-        .simulador-info {
-            flex: 2;
-            font-size: 0.8rem;
-        }
-
-        .simulador-info span {
-            font-weight: 700;
-            color: #1e4668;
-        }
-
-        .simulador-capital {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: white;
-            padding: 6px 12px;
-            border-radius: 40px;
-            border: 1px solid #cfdfed;
-        }
-
-        .simulador-capital label {
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: #1e4668;
-        }
-
-        .simulador-capital input {
-            width: 100px;
-            padding: 6px 8px;
-            border: 1px solid #cfdfed;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            text-align: right;
-            font-weight: 600;
-        }
-
-        .btn-calcular {
-            background: #1e7e34;
-            color: white;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 40px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.8rem;
-        }
-
-        .btn-calcular:hover {
-            background: #166b2c;
-        }
-
-        .resultado-sim {
-            font-size: 0.85rem;
-            font-weight: 700;
-            min-width: 180px;
-            text-align: right;
-        }
-
-        .acciones-info {
-            font-size: 0.65rem;
-            color: #6c86a3;
-            margin-top: 4px;
-        }
-
-        .loading, .sin-datos {
-            text-align: center;
-            padding: 40px;
-            color: #8ba0bc;
-        }
-
         .patron-tooltip {
             position: relative;
             cursor: help;
             text-decoration: underline dotted;
             font-weight: 600;
         }
-
         .patron-tooltip .tooltip-text {
             visibility: hidden;
             opacity: 0;
@@ -376,7 +309,6 @@
             pointer-events: none;
             box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
-
         .patron-tooltip .tooltip-text::after {
             content: "";
             position: absolute;
@@ -387,12 +319,72 @@
             border-style: solid;
             border-color: #1e4668 transparent transparent transparent;
         }
-
         .patron-tooltip:hover .tooltip-text {
             visibility: visible;
             opacity: 1;
         }
 
+        /* Simulador */
+        .simulador {
+            padding: 16px 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 16px;
+            justify-content: space-between;
+            margin-top: 12px;
+            border-radius: 16px;
+        }
+        .simulador-info {
+            flex: 2;
+            font-size: 0.8rem;
+        }
+        .simulador-info span {
+            font-weight: 700;
+            color: #1e4668;
+        }
+        .simulador-capital {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            padding: 6px 12px;
+            border-radius: 40px;
+            border: 1px solid #cfdfed;
+        }
+        .simulador-capital input {
+            width: 100px;
+            padding: 6px 8px;
+            border: 1px solid #cfdfed;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            text-align: right;
+        }
+        .btn-calcular {
+            background: #1e7e34;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+        .resultado-sim {
+            font-size: 0.85rem;
+            font-weight: 700;
+            min-width: 180px;
+            text-align: right;
+        }
+        .acciones-info {
+            font-size: 0.65rem;
+            color: #6c86a3;
+            margin-top: 4px;
+        }
+
+        /* Panel explicativo */
         .panel-explicativo {
             background: white;
             border-radius: 16px;
@@ -400,7 +392,6 @@
             border: 1px solid #e9ecef;
             overflow: hidden;
         }
-
         .explicativo-header {
             padding: 12px 20px;
             background: #f8f9fa;
@@ -409,13 +400,8 @@
             justify-content: space-between;
             align-items: center;
             user-select: none;
-            transition: background 0.2s;
         }
-
-        .explicativo-header:hover {
-            background: #eef2fa;
-        }
-
+        .explicativo-header:hover { background: #eef2fa; }
         .explicativo-header h4 {
             color: #1e4668;
             font-size: 0.8rem;
@@ -423,105 +409,22 @@
             align-items: center;
             gap: 8px;
         }
-
-        .explicativo-header .toggle-icon {
-            font-size: 0.7rem;
-            color: #8ba0bc;
-            transition: transform 0.2s;
-        }
-
-        .explicativo-contenido {
-            padding: 0 20px 20px 20px;
-            display: none;
-        }
-
-        .explicativo-contenido.abierto {
-            display: block;
-        }
-
-        .explicativo-contenido p {
-            font-size: 0.7rem;
-            color: #4a627a;
-            line-height: 1.5;
-            margin-bottom: 12px;
-        }
-
-        .explicativo-contenido .grid-explicativo {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            margin-top: 12px;
-            border-top: 1px solid #e9ecef;
-            padding-top: 12px;
-        }
-
-        .explicativo-contenido .item-explicativo {
-            flex: 1;
-            min-width: 150px;
-        }
-
-        .explicativo-contenido .item-explicativo strong {
-            font-size: 0.7rem;
-            color: #1e4668;
-            display: block;
-            margin-bottom: 4px;
-        }
-
-        .explicativo-contenido .item-explicativo span {
-            font-size: 0.65rem;
-            color: #6c86a3;
-        }
-
-        .disclaimer {
-            font-size: 0.55rem;
-            color: #8ba0bc;
-            text-align: center;
-            padding: 8px 12px;
-            background: #f8f9fa;
-            border-radius: 10px;
-            line-height: 1.4;
-        }
+        .toggle-icon { font-size: 0.7rem; color: #8ba0bc; transition: transform 0.2s; }
+        .explicativo-contenido { padding: 0 20px 20px 20px; display: none; }
+        .explicativo-contenido.abierto { display: block; }
+        .explicativo-contenido p { font-size: 0.7rem; color: #4a627a; line-height: 1.5; margin-bottom: 12px; }
+        .grid-explicativo { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 12px; border-top: 1px solid #e9ecef; padding-top: 12px; }
+        .item-explicativo { flex: 1; min-width: 150px; }
+        .item-explicativo strong { font-size: 0.7rem; color: #1e4668; display: block; margin-bottom: 4px; }
+        .item-explicativo span { font-size: 0.65rem; color: #6c86a3; }
+        .disclaimer { font-size: 0.55rem; color: #8ba0bc; text-align: center; padding: 8px 12px; background: #f8f9fa; border-radius: 10px; }
 
         @media (max-width: 900px) {
-            .paneles {
-                flex-direction: column;
-                min-height: auto;
-            }
-            .panel-izquierdo, .panel-derecho {
-                width: 100%;
-                min-height: 400px;
-            }
-            .simulador {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .resultado-sim {
-                text-align: left;
-            }
-            .leyenda-colores {
-                font-size: 0.55rem;
-                gap: 8px;
-            }
-            .grafico-wrapper {
-                height: 200px;
-            }
-            .tabla-empresas, .tabla-historial {
-                font-size: 0.6rem;
-            }
-            .tabla-empresas th, .tabla-historial th {
-                padding: 6px 4px;
-            }
-            .tabla-empresas td, .tabla-historial td {
-                padding: 6px 4px;
-            }
-            .historial-wrapper {
-                max-height: 300px;
-                overflow-y: auto;
-            }
-            .tabla-empresas-wrapper {
-                max-height: 300px;
-                overflow-y: auto;
-            }
+            body { padding: 12px; }
+            .grafico-fijo { height: 280px; }
+            .tabla-empresas th, .tabla-empresas td { padding: 8px 6px; font-size: 0.65rem; }
+            .simulador { flex-direction: column; align-items: stretch; }
+            .resultado-sim { text-align: left; }
         }
     </style>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-LVV061GCPF"></script>
@@ -536,51 +439,57 @@
 </head>
 <body>
 <div class="container">
-    <div class="paneles">
-        <div class="panel-izquierdo">
-            <h2 style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px;">📋 TODAS LAS EMPRESAS <span style="font-size: 0.6rem; font-weight: normal; color: #a8c4d8;">Los datos se actualizan varias veces al día. % ganancias desde última entrada</span></h2>
-            <div style="padding: 12px; display: flex; gap: 8px; flex-wrap: wrap; background: white; border-bottom: 1px solid #e9ecef;">
-                <input type="text" id="filtroEmpresa" placeholder="🔍 Buscar empresa..." style="flex: 1; padding: 6px 12px; border-radius: 20px; border: 1px solid #cfdfed; font-size: 0.7rem;">
-                <select id="filtroOportunidad" style="padding: 6px 12px; border-radius: 20px; border: 1px solid #cfdfed; font-size: 0.7rem; background: white;">
-                    <option value="todos">📋 Todos los patrones</option>
-                    <option value="7">🟢 Solo Oportunidad fuerte</option>
-                    <option value="3">🟢 Solo Oportunidad</option>
-                    <option value="7,3">🟢 Oportunidad y Fuerte</option>
-                </select>
-                <select id="selectorEmpresaDirecto" style="padding: 6px 12px; border-radius: 20px; border: 1px solid #cfdfed; font-size: 0.7rem; background: white;">
-                    <option value="">📌 Ir a empresa...</option>
-                </select>
-            </div>    
-            <div class="tabla-empresas-wrapper">
-                <table class="tabla-empresas" id="tablaEmpresas">
-                    <thead><tr><th>Empresa</th><th>Precio</th><th>Fecha</th><th>Últ. patrón</th><th>Precio patrón</th><th>Rentabilidad</th><th>PW</th></tr></thead>
-                    <tbody id="empresasBody"><tr><td colspan="7" class="loading">Cargando datos...</td></tr></tbody>
-                </table>
+    <!-- Panel único: Tabla de empresas con filtros -->
+    <div class="panel-principal">
+        <h2>📋 TODAS LAS EMPRESAS <span style="font-size: 0.6rem; font-weight: normal;">% ganancias desde última entrada</span></h2>
+        <div class="filtros-barra">
+            <input type="text" id="filtroEmpresa" placeholder="🔍 Buscar empresa (nombre o ticker)...">
+            <select id="filtroOportunidad">
+                <option value="todos">📋 Todos los patrones</option>
+                <option value="7">🟢 Solo Oportunidad fuerte (tipo 7)</option>
+                <option value="3">🟢 Solo Oportunidad (tipo 3)</option>
+                <option value="7,3">🟢 Oportunidad 7 o 3</option>
+            </select>
+        </div>
+        <div class="tabla-empresas-wrapper">
+            <table class="tabla-empresas" id="tablaEmpresas">
+                <thead>
+                    <tr><th>Empresa</th><th>Precio</th><th>Fecha</th><th>Últ. patrón</th><th>Precio patrón</th><th>Rentabilidad</th><th>PW</th></tr>
+                </thead>
+                <tbody id="empresasBody">
+                    <tr><td colspan="7" class="loading">Cargando datos...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Sección de detalle (Gráfico + Historial completo) que aparece al seleccionar empresa -->
+    <div id="seccionDetalle" class="seccion-detalle">
+        <div class="detalle-header">
+            <h3 id="detalleTituloEmpresa">📊 Detalle de la empresa</h3>
+            <button class="cerrar-detalle" id="cerrarDetalleBtn">✕ Cerrar detalle</button>
+        </div>
+        <!-- Gráfico con altura fija (400px) -->
+        <div class="grafico-fijo">
+            <div id="graficaContainer">
+                <canvas id="graficaCanvas" style="width:100%; height:100%;"></canvas>
             </div>
         </div>
-
-        <div class="panel-derecho">
-            <h2 id="tituloEmpresa">📊 Selecciona una empresa</h2>
-            <div class="derecho-contenido">
-                <div class="historial-wrapper">
-                    <table class="tabla-historial" id="tablaHistorial">
-                        <thead>极<th>Fecha</th><th>Precio</th><th>Patrón</th><th>PW 4h</th><th>PW diario</th><th>Pendiente</th><th>Soportes</th><th>Resistencias</th></tr></thead>
-                        <tbody id="historialBody"><tr><td colspan="8" class="sin-datos">Selecciona una empresa del panel izquierdo</td></tr></tbody>
-                    </table>
-                </div>
-                <div class="grafico-wrapper">
-                    <div id="graficaContainer">
-                        <canvas id="graficaCanvas" style="width:100%; height:100%;"></canvas>
-                    </div>
-                </div>
+        <!-- Historial completo con scroll vertical (todas las filas) -->
+        <div class="historial-completo">
+            <h4>📜 Historial completo de señales <span style="font-size:0.6rem;">(desplázate para ver más registros)</span></h4>
+            <div class="historial-wrapper" id="historialScrollWrapper">
+                <table class="tabla-historial" id="tablaHistorial">
+                    <thead>
+                        <tr><th>Fecha</th><th>Precio</th><th>Patrón</th><th>PW 4h</th><th>PW diario</th><th>Pendiente</th><th>Soportes</th><th>Resistencias</th></tr>
+                    </thead>
+                    <tbody id="historialBody">
+                        <tr><td colspan="8" class="sin-datos">Selecciona una empresa de la tabla</td></tr>
+                    </tbody>
+                </table>
             </div>
-            <div id="miniGuia" class="mini-guia" style="display: none;">
-                <strong>📌 CÓMO USAR</strong>
-                <span>1️⃣ Haz clic en un <strong>precio</strong> → punto de entrada</span>
-                <span>2️⃣ Haz clic en otro <strong>precio más reciente</strong> → punto de salida</span>
-                <span>3️⃣ Ajusta el capital y pulsa <strong>Calcular</strong></span>
-            </div>
-            <div class="simulador" id="simuladorPanel" style="display: none;">
+            <!-- Simulador integrado -->
+            <div class="simulador" id="simuladorPanel">
                 <div class="simulador-info">
                     <div>📌 Punto de entrada: <span id="compraSeleccionada">---</span></div>
                     <div>📌 Punto de salida: <span id="ventaSeleccionada">---</span></div>
@@ -589,7 +498,7 @@
                 <div class="simulador-capital">
                     <label>💰 Capital simulado</label>
                     <input type="number" id="capitalInput" value="10000" step="1000">
-                    <span style="font-size:0.7rem;">€</span>
+                    <span>€</span>
                 </div>
                 <button class="btn-calcular" id="btnCalcular">📈 Calcular resultado</button>
                 <div class="resultado-sim" id="resultadoSimulacion"></div>
@@ -597,22 +506,22 @@
         </div>
     </div>
 
+    <!-- Guía colapsable -->
     <div class="panel-explicativo">
         <div class="explicativo-header" id="toggleExplicativo">
             <h4 style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 12px; flex-wrap: wrap;">
                 <span>📘 GUÍA COMPLETA DEL SISTEMA</span>
-                <span style="font-size: 0.55rem; font-weight: normal; color: #8ba0bc;">⚠️ Herramienta educativa · Los patrones mostrados son análisis estadísticos, no recomendaciones de inversión.</span>
-            </h4>            
+                <span style="font-size: 0.55rem; font-weight: normal; color: #8ba0bc;">⚠️ Herramienta educativa · Patrones estadísticos, no recomendaciones</span>
+            </h4>
             <span class="toggle-icon" id="toggleIcon">▼</span>
         </div>
         <div class="explicativo-contenido" id="explicativoContenido">
-            <p><strong>Panel izquierdo:</strong> Vista general de todas las empresas. Las filas con <span style="background:#d4edda; padding:2px 6px; border-radius:4px;">fondo verde</span> indican que actualmente se ha detectado un patrón de interés (tipos 1,2,3,6,7). La columna <strong>"Últ. patrón"</strong> muestra la fecha del último patrón detectado y el <strong>"Precio patrón"</strong> es el precio más bajo alcanzado durante ese ciclo. La <strong>"Rentabilidad"</strong> calcula la evolución desde ese precio hasta el actual.</p>
-            <p><strong>Panel derecho:</strong> Al hacer clic en cualquier empresa, se muestra su historial completo ordenado de más reciente a más antiguo. Las filas se colorean según el tipo de patrón. Para simular una operación hipotética, <strong>haz clic en un precio</strong> (columna Precio) para marcar el punto de entrada, y luego en otro precio más reciente para marcar el punto de salida. Ajusta el capital simulado (por defecto 10.000€) y pulsa <strong>"Calcular resultado"</strong> para ver el resultado neto (incluye simulación de comisiones: 11€ + 0,4% por operación).</p>
+            <p><strong>Tabla principal:</strong> Muestra todas las empresas. Las filas con <span style="background:#d4edda; padding:2px 6px; border-radius:4px;">fondo verde</span> indican patrón de interés (tipos 7 y 3 principalmente). <strong>Haz clic en cualquier fila</strong> para expandir el gráfico y el historial completo debajo. El gráfico tiene altura fija (ajustable en CSS), y el historial se desplaza con scroll para ver todos los registros sin límite.</p>
+            <p><strong>Simulación:</strong> Dentro del historial, haz clic en un <strong>precio</strong> (columna Precio) para fijar punto de entrada, y luego en otro precio <strong>más reciente</strong> (fila por encima) para punto de salida. Ajusta capital y pulsa "Calcular resultado". Comisiones simuladas: 11€ + 0,4% por operación.</p>
             <div class="grid-explicativo">
-                <div class="item-explicativo"><strong>🎯 ¿Qué es el PW?</strong><span>El PW (Price Wave) es un indicador técnico que oscila entre -100 y +100. Valores por debajo de -40 indican zona de sobreventa, valores por encima de +40 indican zona de sobrecompra.</span></div>
-                <div class="item-explicativo"><strong>🟢 Tipos de patrón ordenados por fuerza</strong><span>Tipo 7: Señal fuerte de anticipación | Tipo 3: Rebote | Tipo 6: Cambio de tendencia | Tipo 4: Consolidación| Tipo 5: Posible Agotamiento.</span></div>
-                <div class="item-explicativo"><strong>🔴 Filtro de exclusión</strong><span>Cuando el PW supera +50 y la pendiente es negativa, la acción se colorea en rojo.</span></div>
-                <div class="item-explicativo"><strong>📊 Simulación de escenarios</strong><span>Selecciona cualquier par entrada/salida para analizar escenarios históricos.</span></div>
+                <div class="item-explicativo"><strong>🎯 PW</strong><span>Oscila -100 a +100. <-40 sobreventa, >+40 sobrecompra.</span></div>
+                <div class="item-explicativo"><strong>🟢 Patrones</strong><span>Tipo 7 (fuerte), 3 (rebote), 6 (cambio), 4 (consolidación), 5 (agotamiento).</span></div>
+                <div class="item-explicativo"><strong>🔴 Exclusión</strong><span>PW > +50 y pendiente negativa → fondo rojo.</span></div>
             </div>
         </div>
     </div>
@@ -646,7 +555,7 @@
 
     function getDescripcionPatron(patron) {
         const descripciones = { 1: "🔴 Señal de interés con impulso alcista", 2: "🟡 Señal anticipada", 3: "⚫ Rebote corto plazo", 4: "⚪ Fase de consolidación", 5: "🔴 Agotamiento alcista", 6: "🟢 Señal de interés directa", 7: "🔷 Pre-señal" };
-        return descripciones[patron] || "Sin patrón detectado";
+        return descripciones[patron] || "Sin patrón";
     }
 
     async function traerTodosLosRegistros() {
@@ -662,6 +571,26 @@
             if (!data || data.length < 1000) hasMore = false;
         }
         return allData;
+    }
+
+    function calcularUltimoPatron(registros, tieneInteresActual) {
+        let enCiclo = false, precioMinimoCiclo = null, fechaInicioCiclo = null;
+        for (let i = registros.length - 1; i >= 0; i--) {
+            const reg = registros[i];
+            const esInteres = PATRONES_INTERES.includes(reg.caso_numero);
+            if (!enCiclo && esInteres) { enCiclo = true; precioMinimoCiclo = reg.precio_cierre; fechaInicioCiclo = reg.fecha; }
+            else if (enCiclo && !esInteres) { if (tieneInteresActual && i === registros.length - 1) break; enCiclo = false; break; }
+            else if (enCiclo && esInteres && reg.precio_cierre < precioMinimoCiclo) { precioMinimoCiclo = reg.precio_cierre; fechaInicioCiclo = reg.fecha; }
+        }
+        if (enCiclo && precioMinimoCiclo !== null) return { fecha: fechaInicioCiclo, precioPatron: precioMinimoCiclo, esActual: tieneInteresActual };
+        for (let i = registros.length - 1; i >= 0; i--) {
+            if (PATRONES_INTERES.includes(registros[i].caso_numero)) {
+                let minPrecio = registros[i].precio_cierre, fechaMin = registros[i].fecha, j = i;
+                while (j >= 0 && PATRONES_INTERES.includes(registros[j].caso_numero)) { if (registros[j].precio_cierre < minPrecio) { minPrecio = registros[j].precio_cierre; fechaMin = registros[j].fecha; } j--; }
+                return { fecha: fechaMin, precioPatron: minPrecio, esActual: false };
+            }
+        }
+        return null;
     }
 
     async function cargarEmpresas() {
@@ -687,51 +616,11 @@
             }
             empresas.sort((a,b) => a.nombre.localeCompare(b.nombre));
             todasLasEmpresas = empresas;
-            renderizarPanelIzquierdo(empresas);
-            const selector = document.getElementById('selectorEmpresaDirecto');
-            if (selector) {
-                selector.innerHTML = '<option value="">📌 Ir a empresa...</option>';
-                todasLasEmpresas.forEach(emp => { const option = document.createElement('option'); option.value = emp.ticker; option.textContent = `${emp.nombre} (${emp.ticker})`; selector.appendChild(option); });
-                selector.onchange = (e) => { if (e.target.value) { seleccionarEmpresa(e.target.value); selector.value = ''; } };
-            }
+            renderizarTablaEmpresas(empresas);
         } catch (err) { console.error(err); document.getElementById('empresasBody').innerHTML = '<tr><td colspan="7" class="sin-datos">Error al cargar</td></tr>'; }
     }
 
-    function calcularUltimoPatron(registros, tieneInteresActual) {
-        let enCiclo = false, precioMinimoCiclo = null, fechaInicioCiclo = null;
-        for (let i = registros.length - 1; i >= 0; i--) {
-            const reg = registros[i];
-            const esInteres = PATRONES_INTERES.includes(reg.caso_numero);
-            if (!enCiclo && esInteres) { enCiclo = true; precioMinimoCiclo = reg.precio_cierre; fechaInicioCiclo = reg.fecha; }
-            else if (enCiclo && !esInteres) { if (tieneInteresActual && i === registros.length - 1) break; enCiclo = false; break; }
-            else if (enCiclo && esInteres && reg.precio_cierre < precioMinimoCiclo) { precioMinimoCiclo = reg.precio_cierre; fechaInicioCiclo = reg.fecha; }
-        }
-        if (enCiclo && precioMinimoCiclo !== null) return { fecha: fechaInicioCiclo, precioPatron: precioMinimoCiclo, esActual: tieneInteresActual };
-        for (let i = registros.length - 1; i >= 0; i--) {
-            if (PATRONES_INTERES.includes(registros[i].caso_numero)) {
-                let minPrecio = registros[i].precio_cierre, fechaMin = registros[i].fecha, j = i;
-                while (j >= 0 && PATRONES_INTERES.includes(registros[j].caso_numero)) { if (registros[j].precio_cierre < minPrecio) { minPrecio = registros[j].precio_cierre; fechaMin = registros[j].fecha; } j--; }
-                return { fecha: fechaMin, precioPatron: minPrecio, esActual: false };
-            }
-        }
-        return null;
-    }
-
-    function aplicarFiltros() {
-        const texto = document.getElementById('filtroEmpresa')?.value.toLowerCase() || '';
-        const oportunidad = document.getElementById('filtroOportunidad')?.value || 'todos';
-        const rows = document.querySelectorAll('#empresasBody tr');
-        rows.forEach(row => {
-            const nombre = row.cells[0]?.innerText.toLowerCase() || '';
-            let patronMatch = true;
-            if (oportunidad === '7') patronMatch = row.classList.contains('interes-alcista-7');
-            else if (oportunidad === '3') patronMatch = row.classList.contains('interes-alcista-3');
-            else if (oportunidad === '7,3') patronMatch = row.classList.contains('interes-alcista-7') || row.classList.contains('interes-alcista-3');
-            row.style.display = (patronMatch && nombre.includes(texto)) ? '' : 'none';
-        });
-    }
-
-    function renderizarPanelIzquierdo(empresas) {
+    function renderizarTablaEmpresas(empresas) {
         const tbody = document.getElementById('empresasBody');
         if (!empresas.length) { tbody.innerHTML = '<tr><td colspan="7" class="sin-datos">No hay empresas</td></tr>'; return; }
         let html = '';
@@ -749,174 +638,116 @@
             else if (emp.ultimoPatron === 7) filaClass = 'interes-alcista-7';
             else if (emp.ultimoPatron === 3) filaClass = 'interes-alcista-3';
             const seleccionadaClass = tickerSeleccionado === emp.ticker ? 'seleccionada' : '';
-            html += `<tr class="${filaClass} ${seleccionadaClass}" data-ticker="${emp.ticker}" onclick="seleccionarEmpresa('${emp.ticker}')"><td><strong>${emp.nombre}</strong><br><span style="font-size:0.6rem;color:#8ba0bc;">${emp.ticker}</span></span></span></span></td><td>${precioText}</td><td style="font-size:0.7rem;">${fechaText}</td><td style="font-size:0.7rem;">${fechaUltPatron}</span></td><td>${precioUltPatron}</td><td class="${subidaClass}">${subidaText}</span></td><td>${pwText}</span></tr>`;
+            html += `<tr class="${filaClass} ${seleccionadaClass}" data-ticker="${emp.ticker}" onclick="seleccionarEmpresa('${emp.ticker}')">
+                        <td><strong>${emp.nombre}</strong><br><span style="font-size:0.6rem;color:#8ba0bc;">${emp.ticker}</span></td>
+                        <td>${precioText}</td>
+                        <td style="font-size:0.7rem;">${fechaText}</td>
+                        <td style="font-size:0.7rem;">${fechaUltPatron}</td>
+                        <td>${precioUltPatron}</td>
+                        <td class="${subidaClass}">${subidaText}</td>
+                        <td>${pwText}</td>
+                    </tr>`;
         }
         tbody.innerHTML = html;
-        aplicarFiltros();
+        aplicarFiltrosTabla();
     }
 
-    function renderizarGrafico(historial) {
-        if (!historial || historial.length === 0 || !document.getElementById('graficaCanvas')) return;
-        const datosOrdenados = [...historial].sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
-        
-        // Etiquetas completas (con hora) para que los puntos coincidan
-        const labelsCompletas = datosOrdenados.map(reg => {
-            const fecha = new Date(reg.fecha);
-            return fecha.toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+    function aplicarFiltrosTabla() {
+        const texto = document.getElementById('filtroEmpresa')?.value.toLowerCase() || '';
+        const oportunidad = document.getElementById('filtroOportunidad')?.value || 'todos';
+        const rows = document.querySelectorAll('#empresasBody tr');
+        rows.forEach(row => {
+            const nombreTicker = (row.cells[0]?.innerText.toLowerCase() || '');
+            let patronMatch = true;
+            if (oportunidad === '7') patronMatch = row.classList.contains('interes-alcista-7');
+            else if (oportunidad === '3') patronMatch = row.classList.contains('interes-alcista-3');
+            else if (oportunidad === '7,3') patronMatch = row.classList.contains('interes-alcista-7') || row.classList.contains('interes-alcista-3');
+            row.style.display = (patronMatch && nombreTicker.includes(texto)) ? '' : 'none';
         });
-        
+    }
+
+    function renderizarGrafico(historialCompleto) {
+        if (!historialCompleto || historialCompleto.length === 0 || !document.getElementById('graficaCanvas')) return;
+        const datosOrdenados = [...historialCompleto].sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
+        const labelsCompletas = datosOrdenados.map(reg => new Date(reg.fecha).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }));
         const precios = datosOrdenados.map(reg => reg.precio_cierre);
         
-        // Encontrar mínimos por día para P7 (SOLO P7)
         function encontrarMinimosP7() {
-            // Agrupar por día (fecha sin hora)
-            const minPorDia = new Map(); // key: YYYY-MM-DD, value: { precioMin, fechaCompleta, registro }
+            const minPorDia = new Map();
             for (const reg of datosOrdenados) {
                 if (reg.caso_numero === 7) {
-                    const fechaCompleta = new Date(reg.fecha);
-                    const diaKey = fechaCompleta.toISOString().split('T')[0];
+                    const diaKey = new Date(reg.fecha).toISOString().split('T')[0];
                     if (!minPorDia.has(diaKey) || reg.precio_cierre < minPorDia.get(diaKey).precio) {
-                        minPorDia.set(diaKey, { precio: reg.precio_cierre, fecha: reg.fecha, patron: reg.caso_numero });
+                        minPorDia.set(diaKey, { precio: reg.precio_cierre, fecha: reg.fecha });
                     }
                 }
             }
-            return Array.from(minPorDia.values()).map(item => ({
-                x: new Date(item.fecha).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }),
-                y: item.precio,
-                patron: 7
-            }));
+            return Array.from(minPorDia.values()).map(item => ({ x: new Date(item.fecha).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }), y: item.precio }));
         }
-        
-        // Encontrar máximos por día para SOBRECOMPRA con pendiente negativa (ROJO) y pendiente positiva (NARANJA)
         function encontrarPuntosSobrecompra() {
-            const maxPorDiaNeg = new Map(); // pendiente negativa
-            const maxPorDiaPos = new Map(); // pendiente positiva
-            
+            const maxPorDiaNeg = new Map(), maxPorDiaPos = new Map();
             for (const reg of datosOrdenados) {
                 if (reg.smi_diario !== null && reg.pendiente_diaria !== null && reg.smi_diario > 40) {
-                    const fechaCompleta = new Date(reg.fecha);
-                    const diaKey = fechaCompleta.toISOString().split('T')[0];
-                    
+                    const diaKey = new Date(reg.fecha).toISOString().split('T')[0];
                     if (reg.pendiente_diaria < 0) {
-                        if (!maxPorDiaNeg.has(diaKey) || reg.precio_cierre > maxPorDiaNeg.get(diaKey).precio) {
-                            maxPorDiaNeg.set(diaKey, { precio: reg.precio_cierre, fecha: reg.fecha, pendiente: reg.pendiente_diaria });
-                        }
-                    } 
-                    else if (reg.pendiente_diaria > 0) {
-                        if (!maxPorDiaPos.has(diaKey) || reg.precio_cierre > maxPorDiaPos.get(diaKey).precio) {
-                            maxPorDiaPos.set(diaKey, { precio: reg.precio_cierre, fecha: reg.fecha, pendiente: reg.pendiente_diaria });
-                        }
+                        if (!maxPorDiaNeg.has(diaKey) || reg.precio_cierre > maxPorDiaNeg.get(diaKey).precio)
+                            maxPorDiaNeg.set(diaKey, { precio: reg.precio_cierre, fecha: reg.fecha });
+                    } else if (reg.pendiente_diaria > 0) {
+                        if (!maxPorDiaPos.has(diaKey) || reg.precio_cierre > maxPorDiaPos.get(diaKey).precio)
+                            maxPorDiaPos.set(diaKey, { precio: reg.precio_cierre, fecha: reg.fecha });
                     }
                 }
             }
-            
-            const puntosNegativos = Array.from(maxPorDiaNeg.values()).map(item => ({
-                x: new Date(item.fecha).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }),
-                y: item.precio,
-                tipo: 'rojo'
-            }));
-            
-            const puntosPositivos = Array.from(maxPorDiaPos.values()).map(item => ({
-                x: new Date(item.fecha).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }),
-                y: item.precio,
-                tipo: 'naranja'
-            }));
-            
-            return { rojos: puntosNegativos, naranjas: puntosPositivos };
+            return { rojos: Array.from(maxPorDiaNeg.values()).map(item => ({ x: new Date(item.fecha).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }), y: item.precio })), naranjas: Array.from(maxPorDiaPos.values()).map(item => ({ x: new Date(item.fecha).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }), y: item.precio })) };
         }
-        
         const p7Points = encontrarMinimosP7();
         const { rojos, naranjas } = encontrarPuntosSobrecompra();
-        
         const ctx = document.getElementById('graficaCanvas').getContext('2d');
         if (chartInstance) chartInstance.destroy();
-        
         chartInstance = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: labelsCompletas,
                 datasets: [
-                    { label: '', data: precios, borderColor: '#2c7da0', backgroundColor: 'transparent', borderWidth: 2, tension: 0.1, pointRadius: 0, pointHoverRadius: 5, fill: false },
-                    { label: '🔵 P7 (Mínimo)', data: p7Points, borderColor: '#00ff88', backgroundColor: '#007039', pointRadius: 10, pointHoverRadius: 15, pointStyle: 'arrow', type: 'scatter', showLine: false, order: 1 },
-                    { label: '🔴 Sobrecompra (Pendiente Negativa)', data: rojos, borderColor: '#ff4444', backgroundColor: '#cc0000', pointRadius: 10, pointHoverRadius: 15, pointStyle: 'arrow', type: 'scatter', showLine: false, order: 1 },
-                    { label: '🟠 Sobrecompra (Pendiente Positiva)', data: naranjas, borderColor: '#ff8800', backgroundColor: '#cc6600', pointRadius: 10, pointHoverRadius: 15, pointStyle: 'arrow', type: 'scatter', showLine: false, order: 1 }
+                    { label: '', data: precios, borderColor: '#2c7da0', borderWidth: 2, tension: 0.1, pointRadius: 0, fill: false },
+                    { label: '🔵 P7 (Mínimo)', data: p7Points, backgroundColor: '#007039', pointRadius: 8, pointStyle: 'arrow', type: 'scatter', showLine: false, order: 1 },
+                    { label: '🔴 Sobrecompra (Pend. Negativa)', data: rojos, backgroundColor: '#cc0000', pointRadius: 8, pointStyle: 'arrow', type: 'scatter', showLine: false, order: 1 },
+                    { label: '🟠 Sobrecompra (Pend. Positiva)', data: naranjas, backgroundColor: '#cc6600', pointRadius: 8, pointStyle: 'arrow', type: 'scatter', showLine: false, order: 1 }
                 ]
             },
-            options: {
-                responsive: true, maintainAspectRatio: false,
-                scales: { 
-                    x: { 
-                        ticks: { 
-                            maxRotation: 45, 
-                            minRotation: 45, 
-                            autoSkip: true, 
-                            maxTicksLimit: 10,
-                            callback: function(val, index) {
-                                const label = this.getLabelForValue(val);
-                                return label.split(' ')[0];
-                            }
-                        }, 
-                    }, 
-                    y: { 
-                        title: { display: true, text: 'Precio (€)' }, 
-                        beginAtZero: false 
-                    } 
-                },
-                plugins: { 
-                    tooltip: { 
-                        callbacks: { 
-                            label: (ctx) => {
-                                if (ctx.datasetIndex === 0) return `Precio: ${ctx.parsed.y}€`;
-                                if (ctx.dataset.label === '🔵 P7 (Mínimo)') return `Mínimo P7: ${ctx.parsed.y}€`;
-                                if (ctx.dataset.label === '🔴 Sobrecompra (Pendiente Negativa)') return `Máximo (Sobrecompra): ${ctx.parsed.y}€ (PW>40, Pendiente Negativa)`;
-                                if (ctx.dataset.label === '🟠 Sobrecompra (Pendiente Positiva)') return `Máximo (Sobrecompra): ${ctx.parsed.y}€ (PW>40, Pendiente Positiva)`;
-                                return `Punto: ${ctx.parsed.y}€`;
-                            }
-                        } 
-                    }, 
-                    legend: { display: false } 
-                },
-                interaction: { mode: 'index', intersect: false }
-            }
+            options: { responsive: true, maintainAspectRatio: false, scales: { x: { ticks: { maxRotation: 45, autoSkip: true, maxTicksLimit: 8 } } }, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => `Precio: ${ctx.parsed.y}€` } } } }
         });
     }
-    
-    window.seleccionarEmpresa = async function(ticker) {
+
+    window.seleccionarEmpresa = function(ticker) {
         tickerSeleccionado = ticker;
-        document.querySelectorAll('#empresasBody tr').forEach(row => { row.classList.remove('seleccionada'); if (row.getAttribute('data-ticker') === ticker) row.classList.add('seleccionada'); });
         const empresa = todasLasEmpresas.find(e => e.ticker === ticker);
         if (!empresa) return;
-        document.getElementById('tituloEmpresa').innerHTML = `📊 ${empresa.nombre} (${ticker})`;
-        historialActual = [...empresa.registros];
-        historialActual.sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
-        renderizarPanelDerecho(historialActual);
+        document.getElementById('detalleTituloEmpresa').innerHTML = `📊 ${empresa.nombre} (${ticker})`;
+        historialActual = [...empresa.registros].sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+        renderizarHistorialCompleto(historialActual);
         renderizarGrafico(empresa.registros);
-        entradaSeleccionada = null; salidaSeleccionada = null; filaEntradaIndex = -1; filaSalidaIndex = -1;
-        document.getElementById('compraSeleccionada').innerHTML = '---'; document.getElementById('ventaSeleccionada').innerHTML = '---';
-        document.getElementById('resultadoSimulacion').innerHTML = ''; document.getElementById('accionesInfo').innerHTML = '---';
-        document.getElementById('simuladorPanel').style.display = 'flex';
-        const miniGuia = document.getElementById('miniGuia'); if (miniGuia) miniGuia.style.display = 'flex';
+        entradaSeleccionada = null; salidaSeleccionada = null;
+        document.getElementById('compraSeleccionada').innerHTML = '---';
+        document.getElementById('ventaSeleccionada').innerHTML = '---';
+        document.getElementById('resultadoSimulacion').innerHTML = '';
+        document.getElementById('accionesInfo').innerHTML = 'Selecciona primero un punto de entrada';
+        const detalleDiv = document.getElementById('seccionDetalle');
+        detalleDiv.classList.add('visible');
+        detalleDiv.scrollIntoView({ behavior: 'smooth' });
+        actualizarAccionesInfo();
+        // Resaltar fila seleccionada en la tabla
+        document.querySelectorAll('#empresasBody tr').forEach(row => { row.classList.remove('seleccionada'); if (row.getAttribute('data-ticker') === ticker) row.classList.add('seleccionada'); });
     };
 
-    function actualizarAccionesInfo() {
-        if (!entradaSeleccionada) { document.getElementById('accionesInfo').innerHTML = 'Selecciona primero un punto de entrada'; return; }
-        const capital = parseFloat(document.getElementById('capitalInput').value);
-        if (isNaN(capital) || capital <= 0) { document.getElementById('accionesInfo').innerHTML = '⚠️ Capital simulado inválido'; return; }
-        const precioEntrada = entradaSeleccionada.precio;
-        const acciones = Math.floor(capital / precioEntrada);
-        const inversionReal = acciones * precioEntrada;
-        document.getElementById('accionesInfo').innerHTML = `📊 ${acciones} acciones · Inversión simulada: ${inversionReal.toFixed(2)}€ (comisión estimada: ${(11 + inversionReal * 0.004).toFixed(2)}€)`;
-    }
-
-    function renderizarPanelDerecho(historial) {
+    function renderizarHistorialCompleto(historial) {
         const tbody = document.getElementById('historialBody');
-        if (!historial.length) { tbody.innerHTML = '<tr><td colspan="8" class="sin-datos">No hay historial</span></span></td>'; return; }
+        if (!historial.length) { tbody.innerHTML = '<tr><td colspan="8" class="sin-datos">No hay historial</td></tr>'; return; }
         let html = '';
         for (let i = 0; i < historial.length; i++) {
             const reg = historial[i];
             const fecha = new Date(reg.fecha).toLocaleString('es-ES');
             const precio = reg.precio_cierre ? reg.precio_cierre.toFixed(2) + '€' : '---';
-            const patron = reg.caso_numero !== null ? reg.caso_numero : '---';
             let patronClass = '';
             if (reg.caso_numero === 7) patronClass = 'patron-7';
             else if (reg.caso_numero === 3) patronClass = 'patron-3';
@@ -931,48 +762,64 @@
             const pwDiario = reg.smi_diario !== null ? reg.smi_diario.toFixed(1) : '---';
             const pendiente = reg.pendiente_diaria !== null ? reg.pendiente_diaria.toFixed(1) : '---';
             let soporteText = '---', resistenciaText = '---';
-            if (reg.soportes) { const soportes = reg.soportes.split('\n'); if (soportes.length > 0) soporteText = soportes[0].substring(0,30); }
-            if (reg.resistencias) { const resistencias = reg.resistencias.split('\n'); if (resistencias.length > 0) resistenciaText = resistencias[0].substring(0,30); }
-            const isEntradaSeleccionada = (entradaSeleccionada && entradaSeleccionada.idx === i);
-            const isSalidaSeleccionada = (salidaSeleccionada && salidaSeleccionada.idx === i);
-            html += `<tr class="${patronClass}" data-idx="${i}"><td style="font-size:0.7rem;">${fecha}</span><td class="precio-clickeable" data-idx="${i}" data-precio="${reg.precio_cierre}" data-fecha="${reg.fecha}">${isEntradaSeleccionada ? '<span class="precio-seleccionado">🔵 ' + precio + '</span>' : (isSalidaSeleccionada ? '<span class="precio-seleccionado">🟠 ' + precio + '</span>' : precio)}</span><td class="patron-tooltip">${patron}<span class="tooltip-text">${getDescripcionPatron(reg.caso_numero)}</span></span><td>${pw4h}</span><td>${pwDiario}</span><td>${pendiente}</span><td style="font-size:0.65rem; max-width:120px;">${soporteText}</span><td style="font-size:0.65rem; max-width:120px;">${resistenciaText}</span></tr>`;
+            if (reg.soportes) soporteText = reg.soportes.split('\n')[0]?.substring(0,30) || '---';
+            if (reg.resistencias) resistenciaText = reg.resistencias.split('\n')[0]?.substring(0,30) || '---';
+            const isEntrada = (entradaSeleccionada && entradaSeleccionada.idx === i);
+            const isSalida = (salidaSeleccionada && salidaSeleccionada.idx === i);
+            html += `<tr class="${patronClass}" data-idx="${i}">
+                        <td style="font-size:0.7rem;">${fecha}</td>
+                        <td class="precio-clickeable" data-idx="${i}" data-precio="${reg.precio_cierre}" data-fecha="${reg.fecha}">${isEntrada ? '<span class="precio-seleccionado">🔵 '+precio+'</span>' : (isSalida ? '<span class="precio-seleccionado">🟠 '+precio+'</span>' : precio)}</td>
+                        <td class="patron-tooltip">${reg.caso_numero || '---'}<span class="tooltip-text">${getDescripcionPatron(reg.caso_numero)}</span></td>
+                        <td>${pw4h}</td><td>${pwDiario}</td><td>${pendiente}</td>
+                        <td style="font-size:0.65rem;">${soporteText}</td><td style="font-size:0.65rem;">${resistenciaText}</td>
+                     </tr>`;
         }
         tbody.innerHTML = html;
         document.querySelectorAll('#tablaHistorial td.precio-clickeable').forEach(cell => {
-            cell.addEventListener('click', (e) => { e.stopPropagation(); const idx = parseInt(cell.getAttribute('data-idx')); const precio = parseFloat(cell.getAttribute('data-precio')); const fecha = cell.getAttribute('data-fecha'); seleccionarPrecio(idx, precio, fecha); });
+            cell.addEventListener('click', (e) => { e.stopPropagation(); const idx = parseInt(cell.getAttribute('data-idx')); const precio = parseFloat(cell.getAttribute('data-precio')); const fecha = cell.getAttribute('data-fecha'); seleccionarPrecioEnHistorial(idx, precio, fecha); });
         });
     }
 
-    function seleccionarPrecio(idx, precio, fecha) {
+    function seleccionarPrecioEnHistorial(idx, precio, fecha) {
         if (entradaSeleccionada === null) {
             entradaSeleccionada = { idx, precio, fecha };
             filaEntradaIndex = idx;
             document.getElementById('compraSeleccionada').innerHTML = `${new Date(fecha).toLocaleString('es-ES')} · ${precio.toFixed(2)}€`;
             document.getElementById('ventaSeleccionada').innerHTML = '---';
-            salidaSeleccionada = null; filaSalidaIndex = -1;
+            salidaSeleccionada = null;
             document.getElementById('resultadoSimulacion').innerHTML = '';
             actualizarAccionesInfo();
         } else if (salidaSeleccionada === null) {
-            if (idx >= filaEntradaIndex) { alert('❌ El punto de salida debe seleccionarse en una fila MÁS RECIENTE (por encima del punto de entrada)'); return; }
+            if (idx >= filaEntradaIndex) { alert('❌ El punto de salida debe ser MÁS RECIENTE (fila por encima del punto de entrada)'); return; }
             salidaSeleccionada = { idx, precio, fecha };
             filaSalidaIndex = idx;
             document.getElementById('ventaSeleccionada').innerHTML = `${new Date(fecha).toLocaleString('es-ES')} · ${precio.toFixed(2)}€`;
         } else {
             entradaSeleccionada = { idx, precio, fecha };
             filaEntradaIndex = idx;
-            salidaSeleccionada = null; filaSalidaIndex = -1;
+            salidaSeleccionada = null;
             document.getElementById('compraSeleccionada').innerHTML = `${new Date(fecha).toLocaleString('es-ES')} · ${precio.toFixed(2)}€`;
             document.getElementById('ventaSeleccionada').innerHTML = '---';
             document.getElementById('resultadoSimulacion').innerHTML = '';
             actualizarAccionesInfo();
         }
-        renderizarPanelDerecho(historialActual);
+        renderizarHistorialCompleto(historialActual);
+    }
+
+    function actualizarAccionesInfo() {
+        if (!entradaSeleccionada) { document.getElementById('accionesInfo').innerHTML = 'Selecciona primero un punto de entrada'; return; }
+        const capital = parseFloat(document.getElementById('capitalInput').value);
+        if (isNaN(capital) || capital <= 0) { document.getElementById('accionesInfo').innerHTML = '⚠️ Capital inválido'; return; }
+        const precioEntrada = entradaSeleccionada.precio;
+        const acciones = Math.floor(capital / precioEntrada);
+        const inversionReal = acciones * precioEntrada;
+        document.getElementById('accionesInfo').innerHTML = `📊 ${acciones} acciones · Inversión simulada: ${inversionReal.toFixed(2)}€ (comisión estimada: ${(11 + inversionReal * 0.004).toFixed(2)}€)`;
     }
 
     function calcularResultado() {
-        if (!entradaSeleccionada || !salidaSeleccionada) { alert('❌ Debes seleccionar un punto de entrada y uno de salida'); return; }
+        if (!entradaSeleccionada || !salidaSeleccionada) { alert('❌ Punto de entrada y salida requeridos'); return; }
         const capital = parseFloat(document.getElementById('capitalInput').value);
-        if (isNaN(capital) || capital <= 0) { alert('❌ Introduce un capital simulado válido'); return; }
+        if (isNaN(capital) || capital <= 0) { alert('❌ Capital inválido'); return; }
         const precioEntrada = entradaSeleccionada.precio, precioSalida = salidaSeleccionada.precio;
         const acciones = Math.floor(capital / precioEntrada);
         const dineroInvertido = acciones * precioEntrada;
@@ -980,16 +827,18 @@
         const resultadoNeto = (precioSalida - precioEntrada) * acciones - (comisionEntrada + comisionSalida);
         const rentabilidadPorcentaje = ((precioSalida - precioEntrada) / precioEntrada) * 100;
         const resultadoDiv = document.getElementById('resultadoSimulacion');
-        const resultadoClass = resultadoNeto >= 0 ? 'positivo' : 'negativo';
-        resultadoDiv.innerHTML = `<span class="${resultadoClass}">${resultadoNeto >= 0 ? '+' : ''}${resultadoNeto.toFixed(2)}€ (${rentabilidadPorcentaje >= 0 ? '+' : ''}${rentabilidadPorcentaje.toFixed(2)}%)</span>`;
+        resultadoDiv.innerHTML = `<span class="${resultadoNeto >= 0 ? 'positivo' : 'negativo'}">${resultadoNeto >= 0 ? '+' : ''}${resultadoNeto.toFixed(2)}€ (${rentabilidadPorcentaje >= 0 ? '+' : ''}${rentabilidadPorcentaje.toFixed(2)}%)</span>`;
     }
 
     document.getElementById('btnCalcular').addEventListener('click', calcularResultado);
     document.getElementById('capitalInput').addEventListener('input', actualizarAccionesInfo);
-    if (document.getElementById('filtroEmpresa')) {
-        document.getElementById('filtroEmpresa').addEventListener('input', aplicarFiltros);
-        document.getElementById('filtroOportunidad').addEventListener('change', aplicarFiltros);
-    }
+    document.getElementById('filtroEmpresa').addEventListener('input', aplicarFiltrosTabla);
+    document.getElementById('filtroOportunidad').addEventListener('change', aplicarFiltrosTabla);
+    document.getElementById('cerrarDetalleBtn').addEventListener('click', () => {
+        document.getElementById('seccionDetalle').classList.remove('visible');
+        tickerSeleccionado = null;
+    });
+
     cargarEmpresas();
 </script>
 </body>
