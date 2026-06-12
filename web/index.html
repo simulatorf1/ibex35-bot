@@ -67,7 +67,6 @@
         .leyenda-colores .naranja { background: #ffe2d6; padding: 2px 10px; border-radius: 20px; }
         .leyenda-colores .rojo { background: #f8d7da; padding: 2px 10px; border-radius: 20px; }
 
-        /* Panel Principal: Tabla de empresas */
         .panel-principal {
             background: white;
             border-radius: 20px;
@@ -108,9 +107,25 @@
             flex: 1;
             min-width: 140px;
         }
+        .btn-cargar {
+            background: #2c7da0;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.75rem;
+            transition: 0.2s;
+        }
+        .btn-cargar:hover {
+            background: #1e5a74;
+        }
 
         .tabla-empresas-wrapper {
             overflow-x: auto;
+            max-height: 500px;
+            overflow-y: auto;
         }
 
         .tabla-empresas {
@@ -166,7 +181,6 @@
             font-weight: 600;
         }
 
-        /* Sección Detalle (Gráfico + Historial) */
         .seccion-detalle {
             background: white;
             border-radius: 20px;
@@ -208,10 +222,9 @@
             background: rgba(255,255,255,0.4);
         }
 
-        /* Gráfico con medidas fijas (ajustables) */
         .grafico-fijo {
             width: 100%;
-            height: 400px;  /* Altura fija, puedes editarla después */
+            height: 400px;
             padding: 16px;
             background: #ffffff;
             border-bottom: 1px solid #e9ecef;
@@ -222,7 +235,6 @@
             position: relative;
         }
 
-        /* Historial completo con scroll vertical */
         .historial-completo {
             padding: 0 16px 16px 16px;
         }
@@ -235,7 +247,7 @@
             gap: 8px;
         }
         .historial-wrapper {
-            max-height: 400px;   /* Altura inicial para que se vean ~15 filas, pero con scroll se ve todo */
+            max-height: 400px;
             overflow-y: auto;
             border: 1px solid #e9ecef;
             border-radius: 16px;
@@ -273,7 +285,6 @@
             display: inline-block;
         }
 
-        /* Colores patrones */
         .patron-7 { background-color: #d4edda; }
         .patron-3 { background-color: #b9f6ca; }
         .patron-6 { background-color: #f4ff81; }
@@ -324,7 +335,6 @@
             opacity: 1;
         }
 
-        /* Simulador */
         .simulador {
             padding: 16px 20px;
             background: #f8f9fa;
@@ -384,7 +394,6 @@
             margin-top: 4px;
         }
 
-        /* Panel explicativo */
         .panel-explicativo {
             background: white;
             border-radius: 16px;
@@ -417,7 +426,12 @@
         .item-explicativo { flex: 1; min-width: 150px; }
         .item-explicativo strong { font-size: 0.7rem; color: #1e4668; display: block; margin-bottom: 4px; }
         .item-explicativo span { font-size: 0.65rem; color: #6c86a3; }
-        .disclaimer { font-size: 0.55rem; color: #8ba0bc; text-align: center; padding: 8px 12px; background: #f8f9fa; border-radius: 10px; }
+        .mensaje-inicial {
+            text-align: center;
+            padding: 60px 20px;
+            color: #8ba0bc;
+            font-size: 0.85rem;
+        }
 
         @media (max-width: 900px) {
             body { padding: 12px; }
@@ -439,9 +453,8 @@
 </head>
 <body>
 <div class="container">
-    <!-- Panel único: Tabla de empresas con filtros -->
     <div class="panel-principal">
-        <h2>📋 TODAS LAS EMPRESAS <span style="font-size: 0.6rem; font-weight: normal;">% ganancias desde última entrada</span></h2>
+        <h2>📋 ANÁLISIS DE EMPRESAS <span style="font-size: 0.6rem; font-weight: normal;">Filtra y carga los datos que quieras ver</span></h2>
         <div class="filtros-barra">
             <input type="text" id="filtroEmpresa" placeholder="🔍 Buscar empresa (nombre o ticker)...">
             <select id="filtroOportunidad">
@@ -450,6 +463,7 @@
                 <option value="3">🟢 Solo Oportunidad (tipo 3)</option>
                 <option value="7,3">🟢 Oportunidad 7 o 3</option>
             </select>
+            <button class="btn-cargar" id="btnCargarEmpresas">🔍 Cargar empresas</button>
         </div>
         <div class="tabla-empresas-wrapper">
             <table class="tabla-empresas" id="tablaEmpresas">
@@ -457,25 +471,22 @@
                     <tr><th>Empresa</th><th>Precio</th><th>Fecha</th><th>Últ. patrón</th><th>Precio patrón</th><th>Rentabilidad</th><th>PW</th></tr>
                 </thead>
                 <tbody id="empresasBody">
-                    <tr><td colspan="7" class="loading">Cargando datos...</td></tr>
+                    <tr><td colspan="7" class="mensaje-inicial">🔍 Usa los filtros y haz clic en "Cargar empresas" para comenzar</td></tr>
                 </tbody>
             </table>
         </div>
     </div>
 
-    <!-- Sección de detalle (Gráfico + Historial completo) que aparece al seleccionar empresa -->
     <div id="seccionDetalle" class="seccion-detalle">
         <div class="detalle-header">
             <h3 id="detalleTituloEmpresa">📊 Detalle de la empresa</h3>
             <button class="cerrar-detalle" id="cerrarDetalleBtn">✕ Cerrar detalle</button>
         </div>
-        <!-- Gráfico con altura fija (400px) -->
         <div class="grafico-fijo">
             <div id="graficaContainer">
                 <canvas id="graficaCanvas" style="width:100%; height:100%;"></canvas>
             </div>
         </div>
-        <!-- Historial completo con scroll vertical (todas las filas) -->
         <div class="historial-completo">
             <h4>📜 Historial completo de señales <span style="font-size:0.6rem;">(desplázate para ver más registros)</span></h4>
             <div class="historial-wrapper" id="historialScrollWrapper">
@@ -488,7 +499,6 @@
                     </tbody>
                 </table>
             </div>
-            <!-- Simulador integrado -->
             <div class="simulador" id="simuladorPanel">
                 <div class="simulador-info">
                     <div>📌 Punto de entrada: <span id="compraSeleccionada">---</span></div>
@@ -506,7 +516,6 @@
         </div>
     </div>
 
-    <!-- Guía colapsable -->
     <div class="panel-explicativo">
         <div class="explicativo-header" id="toggleExplicativo">
             <h4 style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 12px; flex-wrap: wrap;">
@@ -516,8 +525,8 @@
             <span class="toggle-icon" id="toggleIcon">▼</span>
         </div>
         <div class="explicativo-contenido" id="explicativoContenido">
-            <p><strong>Tabla principal:</strong> Muestra todas las empresas. Las filas con <span style="background:#d4edda; padding:2px 6px; border-radius:4px;">fondo verde</span> indican patrón de interés (tipos 7 y 3 principalmente). <strong>Haz clic en cualquier fila</strong> para expandir el gráfico y el historial completo debajo. El gráfico tiene altura fija (ajustable en CSS), y el historial se desplaza con scroll para ver todos los registros sin límite.</p>
-            <p><strong>Simulación:</strong> Dentro del historial, haz clic en un <strong>precio</strong> (columna Precio) para fijar punto de entrada, y luego en otro precio <strong>más reciente</strong> (fila por encima) para punto de salida. Ajusta capital y pulsa "Calcular resultado". Comisiones simuladas: 11€ + 0,4% por operación.</p>
+            <p><strong>¿Cómo usar?</strong> 1️⃣ Selecciona los filtros que desees (búsqueda por nombre o tipo de oportunidad). 2️⃣ Haz clic en "Cargar empresas" para ver los resultados. 3️⃣ Haz clic en cualquier fila para expandir el gráfico y el historial completo. 4️⃣ Dentro del historial, haz clic en un precio para marcar entrada y en otro más reciente para salida, luego calcula el resultado.</p>
+            <p><strong>Tabla de empresas:</strong> Muestra todas las empresas que coinciden con los filtros aplicados. Las filas con fondo verde indican patrón de interés (tipos 7 y 3 principalmente).</p>
             <div class="grid-explicativo">
                 <div class="item-explicativo"><strong>🎯 PW</strong><span>Oscila -100 a +100. <-40 sobreventa, >+40 sobrecompra.</span></div>
                 <div class="item-explicativo"><strong>🟢 Patrones</strong><span>Tipo 7 (fuerte), 3 (rebote), 6 (cambio), 4 (consolidación), 5 (agotamiento).</span></div>
@@ -528,7 +537,6 @@
 </div>
 
 <script>
-    // Toggle guía
     const toggleBtn = document.getElementById('toggleExplicativo');
     const contenido = document.getElementById('explicativoContenido');
     const icon = document.getElementById('toggleIcon');
@@ -545,6 +553,7 @@
     const CONDICION_EXCLUSION = (pwDiario, pendiente) => pwDiario !== null && pendiente !== null && pwDiario > 50 && pendiente < 0;
 
     let todasLasEmpresas = [];
+    let empresasFiltradas = [];
     let historialActual = [];
     let tickerSeleccionado = null;
     let entradaSeleccionada = null;
@@ -552,6 +561,7 @@
     let filaEntradaIndex = -1;
     let filaSalidaIndex = -1;
     let chartInstance = null;
+    let datosCargados = false;
 
     function getDescripcionPatron(patron) {
         const descripciones = { 1: "🔴 Señal de interés con impulso alcista", 2: "🟡 Señal anticipada", 3: "⚫ Rebote corto plazo", 4: "⚪ Fase de consolidación", 5: "🔴 Agotamiento alcista", 6: "🟢 Señal de interés directa", 7: "🔷 Pre-señal" };
@@ -594,11 +604,23 @@
     }
 
     async function cargarEmpresas() {
+        const btnCargar = document.getElementById('btnCargarEmpresas');
+        btnCargar.textContent = '⏳ Cargando...';
+        btnCargar.disabled = true;
+        
         try {
             const data = await traerTodosLosRegistros();
-            if (!data || data.length === 0) { document.getElementById('empresasBody').innerHTML = '<tr><td colspan="7" class="sin-datos">No hay datos</td></tr>'; return; }
+            if (!data || data.length === 0) { 
+                document.getElementById('empresasBody').innerHTML = '<tr><td colspan="7" class="sin-datos">No hay datos disponibles</td></tr>';
+                return;
+            }
+            
             const porTicker = new Map();
-            for (const reg of data) { if (!porTicker.has(reg.ticker)) porTicker.set(reg.ticker, []); porTicker.get(reg.ticker).push(reg); }
+            for (const reg of data) { 
+                if (!porTicker.has(reg.ticker)) porTicker.set(reg.ticker, []); 
+                porTicker.get(reg.ticker).push(reg); 
+            }
+            
             const empresas = [];
             for (let [ticker, registros] of porTicker.entries()) {
                 registros.sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
@@ -611,18 +633,59 @@
                 const tieneInteres = PATRONES_INTERES.includes(ultimo.caso_numero);
                 let ultimoPatronInfo = calcularUltimoPatron(registros, tieneInteres);
                 let subida = null;
-                if (ultimoPatronInfo && ultimoPatronInfo.precioPatron && precioActual) subida = ((precioActual - ultimoPatronInfo.precioPatron) / ultimoPatronInfo.precioPatron) * 100;
+                if (ultimoPatronInfo && ultimoPatronInfo.precioPatron && precioActual) 
+                    subida = ((precioActual - ultimoPatronInfo.precioPatron) / ultimoPatronInfo.precioPatron) * 100;
                 empresas.push({ ticker, nombre, precioActual, fechaActual, tieneInteres, ultimoPatronInfo, subida, pwDiarioActual, pendiente, registros, ultimoPatron: ultimo.caso_numero });
             }
             empresas.sort((a,b) => a.nombre.localeCompare(b.nombre));
             todasLasEmpresas = empresas;
-            renderizarTablaEmpresas(empresas);
-        } catch (err) { console.error(err); document.getElementById('empresasBody').innerHTML = '<tr><td colspan="7" class="sin-datos">Error al cargar</td></tr>'; }
+            datosCargados = true;
+            aplicarFiltrosYMostrar();
+        } catch (err) { 
+            console.error(err); 
+            document.getElementById('empresasBody').innerHTML = '<tr><td colspan="7" class="sin-datos">Error al cargar datos</td></tr>';
+        } finally {
+            btnCargar.textContent = '🔍 Cargar empresas';
+            btnCargar.disabled = false;
+        }
+    }
+
+    function aplicarFiltrosYMostrar() {
+        if (!datosCargados || todasLasEmpresas.length === 0) return;
+        
+        const texto = document.getElementById('filtroEmpresa')?.value.toLowerCase() || '';
+        const oportunidad = document.getElementById('filtroOportunidad')?.value || 'todos';
+        
+        let filtradas = [...todasLasEmpresas];
+        
+        // Filtrar por texto
+        if (texto) {
+            filtradas = filtradas.filter(emp => 
+                emp.nombre.toLowerCase().includes(texto) || 
+                emp.ticker.toLowerCase().includes(texto)
+            );
+        }
+        
+        // Filtrar por oportunidad
+        if (oportunidad === '7') {
+            filtradas = filtradas.filter(emp => emp.ultimoPatron === 7);
+        } else if (oportunidad === '3') {
+            filtradas = filtradas.filter(emp => emp.ultimoPatron === 3);
+        } else if (oportunidad === '7,3') {
+            filtradas = filtradas.filter(emp => emp.ultimoPatron === 7 || emp.ultimoPatron === 3);
+        }
+        
+        empresasFiltradas = filtradas;
+        renderizarTablaEmpresas(empresasFiltradas);
     }
 
     function renderizarTablaEmpresas(empresas) {
         const tbody = document.getElementById('empresasBody');
-        if (!empresas.length) { tbody.innerHTML = '<tr><td colspan="7" class="sin-datos">No hay empresas</td></tr>'; return; }
+        if (!empresas.length) { 
+            tbody.innerHTML = '<tr><td colspan="7" class="mensaje-inicial">🔍 No hay empresas que coincidan con los filtros</td></tr>';
+            return; 
+        }
+        
         let html = '';
         for (const emp of empresas) {
             const fechaUltPatron = emp.ultimoPatronInfo ? new Date(emp.ultimoPatronInfo.fecha).toLocaleDateString('es-ES') : '---';
@@ -646,24 +709,9 @@
                         <td>${precioUltPatron}</td>
                         <td class="${subidaClass}">${subidaText}</td>
                         <td>${pwText}</td>
-                    </tr>`;
+                     </tr>`;
         }
         tbody.innerHTML = html;
-        aplicarFiltrosTabla();
-    }
-
-    function aplicarFiltrosTabla() {
-        const texto = document.getElementById('filtroEmpresa')?.value.toLowerCase() || '';
-        const oportunidad = document.getElementById('filtroOportunidad')?.value || 'todos';
-        const rows = document.querySelectorAll('#empresasBody tr');
-        rows.forEach(row => {
-            const nombreTicker = (row.cells[0]?.innerText.toLowerCase() || '');
-            let patronMatch = true;
-            if (oportunidad === '7') patronMatch = row.classList.contains('interes-alcista-7');
-            else if (oportunidad === '3') patronMatch = row.classList.contains('interes-alcista-3');
-            else if (oportunidad === '7,3') patronMatch = row.classList.contains('interes-alcista-7') || row.classList.contains('interes-alcista-3');
-            row.style.display = (patronMatch && nombreTicker.includes(texto)) ? '' : 'none';
-        });
     }
 
     function renderizarGrafico(historialCompleto) {
@@ -721,7 +769,7 @@
 
     window.seleccionarEmpresa = function(ticker) {
         tickerSeleccionado = ticker;
-        const empresa = todasLasEmpresas.find(e => e.ticker === ticker);
+        const empresa = empresasFiltradas.find(e => e.ticker === ticker);
         if (!empresa) return;
         document.getElementById('detalleTituloEmpresa').innerHTML = `📊 ${empresa.nombre} (${ticker})`;
         historialActual = [...empresa.registros].sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
@@ -736,7 +784,6 @@
         detalleDiv.classList.add('visible');
         detalleDiv.scrollIntoView({ behavior: 'smooth' });
         actualizarAccionesInfo();
-        // Resaltar fila seleccionada en la tabla
         document.querySelectorAll('#empresasBody tr').forEach(row => { row.classList.remove('seleccionada'); if (row.getAttribute('data-ticker') === ticker) row.classList.add('seleccionada'); });
     };
 
@@ -772,7 +819,7 @@
                         <td class="patron-tooltip">${reg.caso_numero || '---'}<span class="tooltip-text">${getDescripcionPatron(reg.caso_numero)}</span></td>
                         <td>${pw4h}</td><td>${pwDiario}</td><td>${pendiente}</td>
                         <td style="font-size:0.65rem;">${soporteText}</td><td style="font-size:0.65rem;">${resistenciaText}</td>
-                     </tr>`;
+                      </tr>`;
         }
         tbody.innerHTML = html;
         document.querySelectorAll('#tablaHistorial td.precio-clickeable').forEach(cell => {
@@ -832,14 +879,13 @@
 
     document.getElementById('btnCalcular').addEventListener('click', calcularResultado);
     document.getElementById('capitalInput').addEventListener('input', actualizarAccionesInfo);
-    document.getElementById('filtroEmpresa').addEventListener('input', aplicarFiltrosTabla);
-    document.getElementById('filtroOportunidad').addEventListener('change', aplicarFiltrosTabla);
+    document.getElementById('btnCargarEmpresas').addEventListener('click', cargarEmpresas);
+    document.getElementById('filtroEmpresa').addEventListener('input', () => { if(datosCargados) aplicarFiltrosYMostrar(); });
+    document.getElementById('filtroOportunidad').addEventListener('change', () => { if(datosCargados) aplicarFiltrosYMostrar(); });
     document.getElementById('cerrarDetalleBtn').addEventListener('click', () => {
         document.getElementById('seccionDetalle').classList.remove('visible');
         tickerSeleccionado = null;
     });
-
-    cargarEmpresas();
 </script>
 </body>
 </html>
