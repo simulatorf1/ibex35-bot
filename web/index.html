@@ -2210,6 +2210,71 @@
     // Inicializar contador y actualizar cada 30 segundos
     cargarContadorNotificaciones();
     setInterval(cargarContadorNotificaciones, 30000);
+    // ============================================================
+    // FORZAR ACTUALIZACIÓN DEL CONTADOR
+    // ============================================================
+    
+    // Función mejorada para el contador
+    async function actualizarContadorNotificaciones() {
+        try {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (!user) {
+                const badge = document.getElementById('notificationBadge');
+                badge.style.display = 'none';
+                return;
+            }
+            
+            const { count, error } = await supabaseClient
+                .from('historial_notificaciones')
+                .select('*', { count: 'exact', head: true })
+                .eq('usuario_id', user.id)
+                .eq('leido', false);
+                
+            if (error) throw error;
+            
+            const badge = document.getElementById('notificationBadge');
+            if (count > 0) {
+                badge.textContent = count;
+                badge.style.display = 'inline';
+                notificationBell.style.color = '#dc3545';
+                notificationBell.style.transform = 'scale(1.1)';
+            } else {
+                badge.style.display = 'none';
+                notificationBell.style.color = '#6c86a3';
+                notificationBell.style.transform = 'scale(1)';
+            }
+        } catch (error) {
+            console.error('Error actualizando contador:', error);
+        }
+    }
+    
+    // Reemplazar la función antigua
+    const cargarContadorNotificaciones = actualizarContadorNotificaciones;
+    
+    // Ejecutar inmediatamente y cada 15 segundos
+    actualizarContadorNotificaciones();
+    setInterval(actualizarContadorNotificaciones, 15000);
+    
+    // También al hacer clic en la campana
+    notificationBell.addEventListener('click', async () => {
+        await actualizarContadorNotificaciones();
+        // ... resto del código existente
+    });
+    
+    // También al guardar preferencias
+    btnGuardarPreferencias.addEventListener('click', async () => {
+        // ... código existente ...
+        await actualizarContadorNotificaciones();
+    });
+    
+    // También al marcar como leída
+    btnMarcarTodasLeidas.addEventListener('click', async () => {
+        // ... código existente ...
+        await actualizarContadorNotificaciones();
+    });
+
+
+    
 </script>
 </body>
 </html>
