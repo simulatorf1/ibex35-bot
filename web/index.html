@@ -1123,7 +1123,6 @@
             const { data, error } = await supabaseClient
                 .from('recomendaciones_ibex')
                 .select('ticker, nombre_empresa')
-                .order('fecha', { ascending: false })
                 .range(0, 99999);
             
             if (error) throw error;
@@ -1607,7 +1606,6 @@
             const { data, error } = await supabaseClient
                 .from('recomendaciones_ibex')
                 .select('ticker, nombre_empresa')
-                .order('nombre_empresa')
                 .range(0, 99999);
                 
             if (error) throw error;
