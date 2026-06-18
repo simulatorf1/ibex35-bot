@@ -546,6 +546,89 @@
             min-width: 18px;
             text-align: center;
         }
+
+        /* Estilos del modal */
+        #modalNotificaciones {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        #modalNotificaciones .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        #modalNotificaciones h3 {
+            color: #1e4668;
+            margin-bottom: 20px;
+        }
+        #modalNotificaciones p {
+            font-size: 0.85rem;
+            color: #6c86a3;
+            margin-bottom: 15px;
+        }
+        #empresasSeleccionables {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .empresa-chip {
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 2px solid #cfdfed;
+            background: white;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: 0.2s;
+        }
+        .empresa-chip.seleccionada {
+            border-color: #1e7e34;
+            background: #d4edda;
+        }
+        .empresa-chip.deshabilitada {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        .btn-guardar {
+            background: #1e7e34;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .btn-cerrar-modal {
+            background: #f8d7da;
+            color: #721c24;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        #mensajePreferencias {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            text-align: center;
+        }
     </style>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-LVV061GCPF"></script>
     <script>
@@ -611,7 +694,7 @@
                         <tr><th>Empresa</th><th>Precio</th><th>Fecha</th><th>Últ. patrón</th><th>Precio patrón</th><th>Rentabilidad</th><th>PW</th></tr>
                     </thead>
                     <tbody id="empresasBody">
-                        <tr><td colspan="7" class="mensaje-inicial">🔍 Empieza a escribir para buscar empresas...</span></span></tr>
+                        <tr><td colspan="7" class="mensaje-inicial">🔍 Empieza a escribir para buscar empresas...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -635,7 +718,7 @@
                             <tr><th>Fecha</th><th>Precio</th><th>Patrón</th><th>PW 4h</th><th>PW diario</th><th>Pendiente</th><th>Soportes</th><th>Resistencias</th></tr>
                         </thead>
                         <tbody id="historialBody">
-                            <tr><td colspan="8" class="sin-datos">Selecciona una empresa de la tabla</span></span></tr>
+                            <tr><td colspan="8" class="sin-datos">Selecciona una empresa de la tabla</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -681,6 +764,21 @@
             </div>
         </div>
     </div>
+
+    <!-- MODAL DE NOTIFICACIONES (dentro del container, antes de cerrar body) -->
+    <div id="modalNotificaciones">
+        <div class="modal-content">
+            <h3>🔔 Configurar notificaciones</h3>
+            <p>Selecciona hasta 5 empresas para recibir alertas cuando den señales (P7, P3 o estén en peligro).</p>
+            <div id="empresasSeleccionables"></div>
+            <div class="modal-buttons">
+                <button class="btn-guardar" id="btnGuardarPreferencias">Guardar preferencias</button>
+                <button class="btn-cerrar-modal" id="btnCerrarModal">Cerrar</button>
+            </div>
+            <div id="mensajePreferencias"></div>
+        </div>
+    </div>
+
 </div>
 
 <script>
@@ -741,12 +839,10 @@
     
         try {
             if (isLoginMode) {
-                // LOGIN
                 const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
                 if (error) throw error;
                 await loadUserProfile(data.user.id);
             } else {
-                // REGISTRO
                 const nombre = authNombre.value.trim();
                 const ciudad = authCiudad.value.trim();
                 if (!nombre || !ciudad) {
@@ -754,35 +850,21 @@
                     return;
                 }
                 
-                // PASO 1: Registrar el usuario
-                const { data, error } = await supabaseClient.auth.signUp({ 
-                    email, 
-                    password
-                });
-                
+                const { data, error } = await supabaseClient.auth.signUp({ email, password });
                 if (error) throw error;
                 
                 if (data.user) {
-                    // PASO 2: Esperar un momento para que el usuario se propague
                     await new Promise(resolve => setTimeout(resolve, 500));
                     
-                    // PASO 3: Crear el perfil
                     const { error: profileError } = await supabaseClient
                         .from('perfiles')
-                        .insert([{ 
-                            id: data.user.id, 
-                            nombre: nombre, 
-                            ciudad: ciudad, 
-                            email: email  // Usamos el email que el usuario escribió, no el de data.user
-                        }]);
+                        .insert([{ id: data.user.id, nombre, ciudad, email }]);
                         
                     if (profileError) {
                         console.error('Error creando perfil:', profileError);
-                        // Si falla, mostramos error pero intentamos loguear igual
                         authError.textContent = 'Error al crear el perfil. Por favor, inicia sesión.';
                     }
                     
-                    // PASO 4: Cargar el perfil (con retry si falla)
                     await loadUserProfileWithRetry(data.user.id);
                 }
             }
@@ -792,11 +874,9 @@
         }
     }
     
-    // Función con reintentos para cargar el perfil
     async function loadUserProfileWithRetry(userId, maxRetries = 3) {
         for (let i = 0; i < maxRetries; i++) {
             try {
-                // Esperar un poco entre intentos
                 if (i > 0) await new Promise(resolve => setTimeout(resolve, 1000));
                 
                 const { data, error } = await supabaseClient
@@ -821,7 +901,6 @@
             }
         }
         
-        // Si todos los intentos fallan, mostrar el email como fallback
         try {
             const { data: userData } = await supabaseClient.auth.getUser();
             if (userData?.user) {
@@ -843,7 +922,6 @@
                 .eq('id', userId)
                 .single();
             if (error) {
-                // Si no existe perfil, usar email como nombre
                 const { data: userData } = await supabaseClient.auth.getUser();
                 userNameDisplay.textContent = userData.user.email.split('@')[0];
                 userEmailDisplay.textContent = userData.user.email;
@@ -857,7 +935,6 @@
             }
         } catch (error) {
             console.error('Error cargando perfil:', error);
-            // Fallback: mostrar email
             const { data: userData } = await supabaseClient.auth.getUser();
             userNameDisplay.textContent = userData.user.email.split('@')[0];
             userEmailDisplay.textContent = userData.user.email;
@@ -868,7 +945,6 @@
     function showApp() {
         authContainer.style.display = 'none';
         appContainer.classList.add('visible');
-        // Cargar la aplicación principal (se ejecuta al final del script)
         if (typeof cargarCatalogoEmpresas === 'function') {
             cargarCatalogoEmpresas();
         }
@@ -883,20 +959,17 @@
     async function handleLogout() {
         await supabaseClient.auth.signOut();
         showAuth();
-        // Limpiar selección de empresa si la hay
         if (typeof limpiarSeleccionEmpresa === 'function') {
             limpiarSeleccionEmpresa();
         }
     }
 
-    // --- EVENT LISTENERS DE AUTENTICACIÓN ---
     authForm.addEventListener('submit', handleAuthSubmit);
     authToggleLink.addEventListener('click', () => {
         setAuthMode(isLoginMode ? 'register' : 'login');
     });
     logoutBtn.addEventListener('click', handleLogout);
 
-    // --- VERIFICAR SESIÓN AL CARGAR ---
     (async function checkSession() {
         const { data: { session } } = await supabaseClient.auth.getSession();
         if (session) {
@@ -906,14 +979,8 @@
         }
     })();
 
-    // --- EL RESTO DEL CÓDIGO DE TU APLICACIÓN (SIN CAMBIOS SIGNIFICATIVOS) ---
-    // ... (todo el código de análisis técnico, gráficos, etc. que ya tenías)
-
-    // NOTA: Para que funcione, debes crear la tabla 'perfiles' en Supabase con:
-    // id (uuid, primary key, references auth.users), nombre (text), ciudad (text), email (text)
-
     // ========================================================================
-    // CÓDIGO DE TU APLICACIÓN (casi sin cambios, solo adaptado para que funciones con el login)
+    // CÓDIGO DE TU APLICACIÓN
     // ========================================================================
 
     const toggleBtn = document.getElementById('toggleExplicativo');
@@ -964,11 +1031,11 @@
             
             const tbody = document.getElementById('empresasBody');
             if (catalogoEmpresas.length > 0) {
-                tbody.innerHTML = '</tr><td colspan="7" class="mensaje-inicial">🔍 Escribe para buscar empresas...</span></span></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="mensaje-inicial">🔍 Escribe para buscar empresas...</td></tr>';
             }
         } catch (err) {
             console.error('Error cargando catálogo:', err);
-            document.getElementById('empresasBody').innerHTML = '<tr><td colspan="7" class="mensaje-inicial">❌ Error al conectar con la base de datos</span></span></tr>';
+            document.getElementById('empresasBody').innerHTML = '<tr><td colspan="7" class="mensaje-inicial">❌ Error al conectar con la base de datos</td></tr>';
         }
     }
 
@@ -1074,7 +1141,7 @@
         
         if (!textoFinal && filtro === 'todas') {
             const tbody = document.getElementById('empresasBody');
-            tbody.innerHTML = '<tr><td colspan="7" class="cargando-texto"><div class="loading-spinner"></div> Cargando todas las empresas...</span></span></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="cargando-texto"><div class="loading-spinner"></div> Cargando todas las empresas...</td></tr>';
             
             const promesas = catalogoEmpresas.map(emp => cargarDatosCompletos(emp.ticker));
             const resultados = await Promise.all(promesas);
@@ -1094,12 +1161,12 @@
             }
             
             if (filtradasPorTexto.length === 0) {
-                document.getElementById('empresasBody').innerHTML = '<tr><td colspan="7" class="mensaje-inicial">📭 No se encontraron empresas</span></span></tr>';
+                document.getElementById('empresasBody').innerHTML = '<tr><td colspan="7" class="mensaje-inicial">📭 No se encontraron empresas</td></tr>';
                 return;
             }
             
             const tbody = document.getElementById('empresasBody');
-            tbody.innerHTML = '<tr><td colspan="7" class="cargando-texto"><div class="loading-spinner"></div> Cargando datos...</span></span></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="cargando-texto"><div class="loading-spinner"></div> Cargando datos...</td></tr>';
             
             const empresasAMostrar = filtradasPorTexto.slice(0, 50);
             const promesas = empresasAMostrar.map(emp => cargarDatosCompletos(emp.ticker));
@@ -1125,7 +1192,7 @@
     function renderizarTablaEmpresas(empresas) {
         const tbody = document.getElementById('empresasBody');
         if (!empresas.length) { 
-            tbody.innerHTML = '<tr><td colspan="7" class="mensaje-inicial">📭 No hay empresas que coincidan con los filtros</span></span></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="mensaje-inicial">📭 No hay empresas que coincidan con los filtros</td></tr>';
             return; 
         }
         
@@ -1145,14 +1212,14 @@
             else if (emp.ultimoPatron === 3) filaClass = 'interes-alcista-3';
             const seleccionadaClass = tickerSeleccionado === emp.ticker ? 'seleccionada' : '';
             html += `<tr class="${filaClass} ${seleccionadaClass}" data-ticker="${emp.ticker}" onclick="seleccionarEmpresa('${emp.ticker}')">
-                        <td><strong>${emp.nombre}</strong><br><span style="font-size:0.6rem;color:#8ba0bc;">${emp.ticker}</span></span>
-                        <td>${precioText}</span>
-                        <td style="font-size:0.7rem;">${fechaText}</span>
-                        <td style="font-size:0.7rem;">${fechaUltPatron}</span>
-                        <td>${precioUltPatron}</span>
-                        <td class="${subidaClass}">${subidaText}</span>
-                        <td>${pwText}</span>
-                      </span>`;
+                        <td><strong>${emp.nombre}</strong><br><span style="font-size:0.6rem;color:#8ba0bc;">${emp.ticker}</span></td>
+                        <td>${precioText}</td>
+                        <td style="font-size:0.7rem;">${fechaText}</td>
+                        <td style="font-size:0.7rem;">${fechaUltPatron}</td>
+                        <td>${precioUltPatron}</td>
+                        <td class="${subidaClass}">${subidaText}</td>
+                        <td>${pwText}</td>
+                      </tr>`;
         }
         tbody.innerHTML = html;
     }
@@ -1215,13 +1282,13 @@
         
         const detalleDiv = document.getElementById('seccionDetalle');
         detalleDiv.classList.add('visible');
-        document.getElementById('detalleTituloEmpresa').innerHTML = `📊 Cargando datos...`;
-        document.getElementById('historialBody').innerHTML = '<tr><td colspan="8" class="cargando-texto"><div class="loading-spinner"></div> Cargando historial...</span></span></tr>';
+        document.getElementById('detalleTituloEmpresa').innerHTML = '📊 Cargando datos...';
+        document.getElementById('historialBody').innerHTML = '<tr><td colspan="8" class="cargando-texto"><div class="loading-spinner"></div> Cargando historial...</td></tr>';
         
         try {
             const empresaCompleta = await cargarDatosCompletos(ticker);
             if (!empresaCompleta) {
-                document.getElementById('detalleTituloEmpresa').innerHTML = `📊 Error al cargar datos`;
+                document.getElementById('detalleTituloEmpresa').innerHTML = '📊 Error al cargar datos';
                 return;
             }
             
@@ -1251,7 +1318,7 @@
 
     function renderizarHistorialCompleto(historial) {
         const tbody = document.getElementById('historialBody');
-        if (!historial.length) { tbody.innerHTML = '<tr><td colspan="8" class="sin-datos">No hay historial</span></span></tr>'; return; }
+        if (!historial.length) { tbody.innerHTML = '<tr><td colspan="8" class="sin-datos">No hay historial</td></tr>'; return; }
         let html = '';
         for (let i = 0; i < historial.length; i++) {
             const reg = historial[i];
@@ -1276,12 +1343,12 @@
             const isEntrada = (entradaSeleccionada && entradaSeleccionada.idx === i);
             const isSalida = (salidaSeleccionada && salidaSeleccionada.idx === i);
             html += `<tr class="${patronClass}" data-idx="${i}">
-                        <td style="font-size:0.7rem;">${fecha}</span>
-                        <td class="precio-clickeable" data-idx="${i}" data-precio="${reg.precio_cierre}" data-fecha="${reg.fecha}">${isEntrada ? '<span class="precio-seleccionado">🔵 '+precio+'</span>' : (isSalida ? '<span class="precio-seleccionado">🟠 '+precio+'</span>' : precio)}</span>
-                        <td class="patron-tooltip">${reg.caso_numero || '---'}<span class="tooltip-text">${getDescripcionPatron(reg.caso_numero)}</span></span>
-                        <td>${pw4h}</span><td>${pwDiario}</span><td>${pendiente}</span>
-                        <td style="font-size:0.65rem;">${soporteText}</span><td style="font-size:0.65rem;">${resistenciaText}</span>
-                      </span>`;
+                        <td style="font-size:0.7rem;">${fecha}</td>
+                        <td class="precio-clickeable" data-idx="${i}" data-precio="${reg.precio_cierre}" data-fecha="${reg.fecha}">${isEntrada ? '<span class="precio-seleccionado">🔵 '+precio+'</span>' : (isSalida ? '<span class="precio-seleccionado">🟠 '+precio+'</span>' : precio)}</td>
+                        <td class="patron-tooltip">${reg.caso_numero || '---'}<span class="tooltip-text">${getDescripcionPatron(reg.caso_numero)}</span></td>
+                        <td>${pw4h}</td><td>${pwDiario}</td><td>${pendiente}</td>
+                        <td style="font-size:0.65rem;">${soporteText}</td><td style="font-size:0.65rem;">${resistenciaText}</td>
+                      </tr>`;
         }
         tbody.innerHTML = html;
         document.querySelectorAll('#tablaHistorial td.precio-clickeable').forEach(cell => {
@@ -1367,8 +1434,6 @@
         limpiarSeleccionEmpresa();
     });
 
-    // IMPORTANTE: Ahora la carga inicial de empresas se dispara desde showApp() tras el login.
-    // No llamamos a cargarCatalogoEmpresas() aquí para que no se ejecute antes de login.
     // ============================================================
     // GESTIÓN DE NOTIFICACIONES
     // ============================================================
@@ -1378,7 +1443,6 @@
     const btnGuardarPreferencias = document.getElementById('btnGuardarPreferencias');
     const btnCerrarModal = document.getElementById('btnCerrarModal');
     const mensajePreferencias = document.getElementById('mensajePreferencias');
-    const notificationBell = document.getElementById('notificationBell');
     
     let empresasSeleccionadas = [];
     
@@ -1439,16 +1503,7 @@
             for (const emp of empresasUnicas) {
                 const isSelected = empresasSeleccionadas.includes(emp.ticker);
                 const div = document.createElement('div');
-                div.style.cssText = `
-                    padding: 6px 14px;
-                    border-radius: 20px;
-                    border: 2px solid ${isSelected ? '#1e7e34' : '#cfdfed'};
-                    background: ${isSelected ? '#d4edda' : 'white'};
-                    cursor: pointer;
-                    font-size: 0.8rem;
-                    transition: 0.2s;
-                    ${empresasSeleccionadas.length >= 5 && !isSelected ? 'opacity:0.5; pointer-events:none;' : ''}
-                `;
+                div.className = `empresa-chip ${isSelected ? 'seleccionada' : ''} ${empresasSeleccionadas.length >= 5 && !isSelected ? 'deshabilitada' : ''}`;
                 div.textContent = `${emp.nombre_empresa} (${emp.ticker})`;
                 div.dataset.ticker = emp.ticker;
                 
@@ -1468,8 +1523,7 @@
         const index = empresasSeleccionadas.indexOf(ticker);
         if (index > -1) {
             empresasSeleccionadas.splice(index, 1);
-            elemento.style.border = '2px solid #cfdfed';
-            elemento.style.background = 'white';
+            elemento.classList.remove('seleccionada');
         } else {
             if (empresasSeleccionadas.length >= 5) {
                 mensajePreferencias.textContent = '⚠️ Solo puedes seleccionar hasta 5 empresas';
@@ -1477,17 +1531,15 @@
                 return;
             }
             empresasSeleccionadas.push(ticker);
-            elemento.style.border = '2px solid #1e7e34';
-            elemento.style.background = '#d4edda';
+            elemento.classList.add('seleccionada');
         }
         mensajePreferencias.textContent = '';
         
-        // Actualizar opacidad de elementos no seleccionados
-        document.querySelectorAll('#empresasSeleccionables div').forEach(el => {
+        // Actualizar chips deshabilitados
+        document.querySelectorAll('#empresasSeleccionables .empresa-chip').forEach(el => {
             const tickerEl = el.dataset.ticker;
             if (!empresasSeleccionadas.includes(tickerEl)) {
-                el.style.opacity = empresasSeleccionadas.length >= 5 ? '0.5' : '1';
-                el.style.pointerEvents = empresasSeleccionadas.length >= 5 ? 'none' : 'auto';
+                el.classList.toggle('deshabilitada', empresasSeleccionadas.length >= 5);
             }
         });
     }
@@ -1511,13 +1563,11 @@
                 
             let result;
             if (existente) {
-                // Actualizar
                 result = await supabaseClient
                     .from('preferencias_notificaciones')
                     .update({ empresas_seleccionadas: empresasSeleccionadas, updated_at: new Date() })
                     .eq('usuario_id', user.id);
             } else {
-                // Insertar
                 result = await supabaseClient
                     .from('preferencias_notificaciones')
                     .insert({ usuario_id: user.id, empresas_seleccionadas: empresasSeleccionadas });
@@ -1568,21 +1618,6 @@
     // Cargar contador al iniciar y cada 30 segundos
     cargarContadorNotificaciones();
     setInterval(cargarContadorNotificaciones, 30000);
-
-    
 </script>
-<!-- Modal de preferencias de notificaciones -->
-<div id="modalNotificaciones" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
-    <div style="background:white; border-radius:20px; padding:30px; max-width:500px; width:90%; max-height:80vh; overflow-y:auto;">
-        <h3 style="color:#1e4668; margin-bottom:20px;">🔔 Configurar notificaciones</h3>
-        <p style="font-size:0.85rem; color:#6c86a3; margin-bottom:15px;">Selecciona hasta 5 empresas para recibir alertas cuando den señales (P7, P3 o estén en peligro).</p>
-        <div id="empresasSeleccionables" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px;"></div>
-        <div style="display:flex; gap:10px; justify-content:flex-end;">
-            <button id="btnGuardarPreferencias" style="background:#1e7e34; color:white; border:none; padding:10px 20px; border-radius:40px; cursor:pointer; font-weight:600;">Guardar preferencias</button>
-            <button id="btnCerrarModal" style="background:#f8d7da; color:#721c24; border:none; padding:10px 20px; border-radius:40px; cursor:pointer; font-weight:600;">Cerrar</button>
-        </div>
-        <div id="mensajePreferencias" style="margin-top:10px; font-size:0.85rem; text-align:center;"></div>
-    </div>
-</div>    
 </body>
 </html>
