@@ -564,7 +564,15 @@
             background: #e9ecef;
             color: #1e4668;
         }
-
+        /* Animación para la campana */
+        @keyframes bell-ring {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-15deg); }
+            75% { transform: rotate(15deg); }
+        }
+        .notification-bell.has-notifications {
+            animation: bell-ring 0.5s ease-in-out 3;
+        }
         /* --- ESTILOS PARA MODALES --- */
         #modalNotificaciones, #modalListaNotificaciones {
             display: none;
@@ -2177,35 +2185,60 @@
     async function cargarContadorNotificaciones() {
         try {
             const { data: { user } } = await supabaseClient.auth.getUser();
+            const badge = document.getElementById('notificationBadge');
+            
             if (!user) {
-                const badge = document.getElementById('notificationBadge');
                 badge.style.display = 'none';
+                notificationBell.style.color = '#6c86a3';
+                notificationBell.style.transform = 'scale(1)';
                 return;
             }
             
-            const { data, error } = await supabaseClient
+            const { count, error } = await supabaseClient
                 .from('historial_notificaciones')
-                .select('id', { count: 'exact', head: true })
+                .select('*', { count: 'exact', head: true })
                 .eq('usuario_id', user.id)
                 .eq('leido', false);
                 
             if (error) throw error;
             
-            const badge = document.getElementById('notificationBadge');
-            const count = data?.length || 0;
             if (count > 0) {
                 badge.textContent = count;
                 badge.style.display = 'inline';
-                // Poner la campana en modo "activa"
                 notificationBell.style.color = '#dc3545';
+                notificationBell.style.transform = 'scale(1.1)';
             } else {
                 badge.style.display = 'none';
                 notificationBell.style.color = '#6c86a3';
+                notificationBell.style.transform = 'scale(1)';
             }
         } catch (error) {
             console.error('Error cargando contador:', error);
+            const badge = document.getElementById('notificationBadge');
+            badge.style.display = 'none';
         }
     }
+    
+    // Ejecutar al cargar y cada 15 segundos
+    cargarContadorNotificaciones();
+    setInterval(cargarContadorNotificaciones, 15000);
+    
+    // También actualizar al hacer clic en la campana
+    const originalBellClick = notificationBell._listeners ? null : null;
+    notificationBell.addEventListener('click', async () => {
+        setTimeout(cargarContadorNotificaciones, 500);
+    });
+    
+    // Actualizar después de guardar preferencias
+    const originalGuardar = btnGuardarPreferencias._listeners ? null : null;
+    btnGuardarPreferencias.addEventListener('click', () => {
+        setTimeout(cargarContadorNotificaciones, 1000);
+    });
+    
+    // Actualizar después de marcar todas como leídas
+    btnMarcarTodasLeidas.addEventListener('click', () => {
+        setTimeout(cargarContadorNotificaciones, 500);
+    });
     
     // Inicializar contador y actualizar cada 30 segundos
     cargarContadorNotificaciones();
