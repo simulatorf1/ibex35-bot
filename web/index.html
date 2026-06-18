@@ -422,7 +422,8 @@
             .simulador { flex-direction: column; align-items: stretch; }
             .resultado-sim { text-align: left; }
         }
-        /* Estilos para el selector múltiple */
+
+        /* --- ESTILOS PARA SELECTOR MÚLTIPLE --- */
         #selectorEmpresas option {
             padding: 8px 12px;
             cursor: pointer;
@@ -434,8 +435,8 @@
         #selectorEmpresas option:hover {
             background: #e3f2fd;
         }
-        
-        /* Estilos para chips de empresas seleccionadas */
+
+        /* --- ESTILOS PARA CHIPS DE EMPRESAS SELECCIONADAS --- */
         .empresa-chip-seleccionada {
             display: inline-flex;
             align-items: center;
@@ -457,7 +458,61 @@
         .empresa-chip-seleccionada .eliminar:hover {
             color: #a71d2a;
         }
-        /* --- NUEVOS ESTILOS PARA AUTENTICACIÓN Y BARRA DE USUARIO --- */
+
+        /* --- ESTILOS PARA NOTIFICACIONES --- */
+        .notificacion-item {
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            border-left: 4px solid #1e4668;
+            background: #f8f9fa;
+            cursor: default;
+            transition: 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .notificacion-item:hover {
+            background: #e9ecef;
+        }
+        .notificacion-item .mensaje {
+            flex: 1;
+            font-size: 0.85rem;
+        }
+        .notificacion-item .fecha {
+            font-size: 0.65rem;
+            color: #6c86a3;
+            margin-left: 10px;
+            white-space: nowrap;
+        }
+        .notificacion-item .tipo-oportunidad {
+            border-left-color: #1e7e34;
+        }
+        .notificacion-item .tipo-peligro {
+            border-left-color: #dc3545;
+        }
+        .notificacion-item .tipo-rebote {
+            border-left-color: #ffc107;
+        }
+        .notificacion-item .btn-marcar-leida {
+            background: #1e4668;
+            color: white;
+            border: none;
+            padding: 2px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.65rem;
+            transition: 0.2s;
+        }
+        .notificacion-item .btn-marcar-leida:hover {
+            background: #2c7da0;
+        }
+        .notificacion-item.leida {
+            opacity: 0.5;
+            border-left-color: #6c86a3;
+        }
+
+        /* --- ESTILOS PARA AUTENTICACIÓN Y BARRA DE USUARIO --- */
         #authContainer {
             max-width: 400px;
             margin: 40px auto;
@@ -581,8 +636,8 @@
             text-align: center;
         }
 
-        /* Estilos del modal */
-        #modalNotificaciones {
+        /* --- ESTILOS DE MODALES --- */
+        #modalNotificaciones, #modalListaNotificaciones {
             display: none;
             position: fixed;
             top: 0;
@@ -594,16 +649,21 @@
             justify-content: center;
             align-items: center;
         }
-        #modalNotificaciones .modal-content {
+        #modalListaNotificaciones {
+            z-index: 1001;
+        }
+        #modalNotificaciones .modal-content,
+        #modalListaNotificaciones .modal-content {
             background: white;
             border-radius: 20px;
             padding: 30px;
-            max-width: 500px;
-            width: 90%;
+            max-width: 600px;
+            width: 95%;
             max-height: 80vh;
             overflow-y: auto;
         }
-        #modalNotificaciones h3 {
+        #modalNotificaciones h3,
+        #modalListaNotificaciones h3 {
             color: #1e4668;
             margin-bottom: 20px;
         }
@@ -611,29 +671,6 @@
             font-size: 0.85rem;
             color: #6c86a3;
             margin-bottom: 15px;
-        }
-        #empresasSeleccionables {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 20px;
-        }
-        .empresa-chip {
-            padding: 6px 14px;
-            border-radius: 20px;
-            border: 2px solid #cfdfed;
-            background: white;
-            cursor: pointer;
-            font-size: 0.8rem;
-            transition: 0.2s;
-        }
-        .empresa-chip.seleccionada {
-            border-color: #1e7e34;
-            background: #d4edda;
-        }
-        .empresa-chip.deshabilitada {
-            opacity: 0.5;
-            pointer-events: none;
         }
         .modal-buttons {
             display: flex;
@@ -658,10 +695,48 @@
             cursor: pointer;
             font-weight: 600;
         }
+        .btn-marcar-todas {
+            background: #1e4668;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        .btn-marcar-todas:hover {
+            background: #2c7da0;
+        }
         #mensajePreferencias {
             margin-top: 10px;
             font-size: 0.85rem;
             text-align: center;
+        }
+        #listaNotificacionesContainer {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .modal-header h3 {
+            margin: 0;
+        }
+        .sin-notificaciones {
+            text-align: center;
+            color: #8ba0bc;
+            padding: 40px 0;
+        }
+        .separador-notificaciones {
+            color: #6c86a3;
+            margin: 15px 0 10px 0;
+            font-size: 0.85rem;
+            border-bottom: 1px solid #e9ecef;
+            padding-bottom: 8px;
         }
     </style>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-LVV061GCPF"></script>
@@ -709,7 +784,7 @@
             </div>
         </div>
 
-        <!-- TU APLICACIÓN EXISTENTE (SIN MODIFICAR) -->
+        <!-- APLICACIÓN PRINCIPAL -->
         <div class="panel-principal">
             <h2>📋 ANÁLISIS DE EMPRESAS <span style="font-size: 0.6rem; font-weight: normal;">Escribe para buscar instantáneamente</span></h2>
             <div class="filtros-barra">
@@ -799,7 +874,7 @@
         </div>
     </div>
 
-    <!-- MODAL DE NOTIFICACIONES -->
+    <!-- MODAL DE CONFIGURACIÓN DE NOTIFICACIONES -->
     <div id="modalNotificaciones">
         <div class="modal-content">
             <h3>🔔 Configurar notificaciones</h3>
@@ -807,25 +882,35 @@
                 Selecciona hasta 5 empresas para recibir alertas cuando den señales (P7, P3 o estén en peligro).
                 <br><span style="font-size:0.75rem; color:#dc3545;" id="contadorSeleccion">0 de 5 seleccionadas</span>
             </p>
-            
-            <!-- Selector múltiple -->
             <div style="margin-bottom:15px;">
                 <select id="selectorEmpresas" multiple style="width:100%; height:200px; padding:10px; border-radius:10px; border:1px solid #cfdfed; font-size:0.85rem; font-family:inherit;">
-                    <!-- Aquí se cargarán las empresas -->
                 </select>
                 <p style="font-size:0.7rem; color:#6c86a3; margin-top:5px;">Mantén presionada la tecla Ctrl (Windows) o Cmd (Mac) para seleccionar múltiples empresas</p>
             </div>
-            
-            <!-- Empresas seleccionadas (mostradas como chips) -->
             <div id="empresasSeleccionadasContainer" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:15px; min-height:30px; padding:8px; background:#f8f9fa; border-radius:10px; border:1px dashed #cfdfed;">
                 <span style="font-size:0.75rem; color:#8ba0bc;">Las empresas seleccionadas aparecerán aquí</span>
             </div>
-            
             <div class="modal-buttons">
                 <button class="btn-guardar" id="btnGuardarPreferencias">💾 Guardar preferencias</button>
                 <button class="btn-cerrar-modal" id="btnCerrarModal">✕ Cerrar</button>
             </div>
             <div id="mensajePreferencias" style="margin-top:10px; font-size:0.85rem; text-align:center;"></div>
+        </div>
+    </div>
+
+    <!-- MODAL DE LISTA DE NOTIFICACIONES -->
+    <div id="modalListaNotificaciones">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🔔 Mis notificaciones</h3>
+                <button class="btn-cerrar-modal" id="btnCerrarListaNotificaciones">✕ Cerrar</button>
+            </div>
+            <div id="listaNotificacionesContainer">
+                <p class="sin-notificaciones">📭 No tienes notificaciones pendientes</p>
+            </div>
+            <div style="margin-top:15px; text-align:center;">
+                <button class="btn-marcar-todas" id="btnMarcarTodasLeidas">✅ Marcar todas como leídas</button>
+            </div>
         </div>
     </div>
 
@@ -837,7 +922,7 @@
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtsd2NsZXRwcXFzYWJ0ZGFubGR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4MDg2NTEsImV4cCI6MjA5MjM4NDY1MX0.nbs0tYbFOL-I8qIkgB7Ub_jcOwHTdzg0EcAp1DS6sCU";
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // --- ELEMENTOS DEL DOM PARA AUTENTICACIÓN ---
+    // --- ELEMENTOS DEL DOM ---
     const authContainer = document.getElementById('authContainer');
     const appContainer = document.getElementById('appContainer');
     const authForm = document.getElementById('authForm');
@@ -936,7 +1021,6 @@
                     .single();
                     
                 if (error) {
-                    // Si no existe el perfil, crearlo
                     if (error.code === 'PGRST116') {
                         console.log('Creando perfil automático (retry)...');
                         const { data: userData } = await supabaseClient.auth.getUser();
@@ -968,7 +1052,6 @@
             }
         }
         
-        // Fallback final
         try {
             const { data: userData } = await supabaseClient.auth.getUser();
             if (userData?.user) {
@@ -991,40 +1074,30 @@
                 .single();
                 
             if (error) {
-                // Si el error es "no se encontraron registros", crear el perfil
                 if (error.code === 'PGRST116') {
                     console.log('Perfil no encontrado, creando uno automáticamente...');
                     const { data: userData } = await supabaseClient.auth.getUser();
                     const email = userData.user.email || 'usuario@email.com';
                     const nombre = email.split('@')[0] || 'Usuario';
                     
-                    // Crear perfil automáticamente
                     const { error: insertError } = await supabaseClient
                         .from('perfiles')
-                        .insert([{ 
-                            id: userId, 
-                            nombre: nombre, 
-                            ciudad: 'No especificada', 
-                            email: email 
-                        }]);
+                        .insert([{ id: userId, nombre, ciudad: 'No especificada', email }]);
                         
                     if (insertError) {
                         console.error('Error creando perfil automático:', insertError);
-                        // Fallback: mostrar email
                         userNameDisplay.textContent = nombre;
                         userEmailDisplay.textContent = email;
                         showApp();
                         return;
                     }
                     
-                    // Cargar el perfil recién creado
                     userNameDisplay.textContent = nombre;
                     userEmailDisplay.textContent = 'No especificada';
                     showApp();
                     return;
                 }
                 
-                // Si es otro error, mostrar email como fallback
                 const { data: userData } = await supabaseClient.auth.getUser();
                 userNameDisplay.textContent = userData.user.email?.split('@')[0] || 'Usuario';
                 userEmailDisplay.textContent = userData.user.email || '';
@@ -1039,7 +1112,6 @@
             }
         } catch (error) {
             console.error('Error cargando perfil:', error);
-            // Fallback: mostrar email
             try {
                 const { data: userData } = await supabaseClient.auth.getUser();
                 userNameDisplay.textContent = userData.user.email?.split('@')[0] || 'Usuario';
@@ -1057,6 +1129,7 @@
         if (typeof cargarCatalogoEmpresas === 'function') {
             cargarCatalogoEmpresas();
         }
+        cargarContadorNotificaciones();
     }
 
     function showAuth() {
@@ -1089,7 +1162,7 @@
     })();
 
     // ========================================================================
-    // CÓDIGO DE TU APLICACIÓN
+    // CÓDIGO DE LA APLICACIÓN PRINCIPAL
     // ========================================================================
 
     const toggleBtn = document.getElementById('toggleExplicativo');
@@ -1543,9 +1616,8 @@
         limpiarSeleccionEmpresa();
     });
 
-
     // ============================================================
-    // GESTIÓN DE NOTIFICACIONES (VERSIÓN CON SELECTOR MÚLTIPLE)
+    // GESTIÓN DE NOTIFICACIONES - CONFIGURACIÓN
     // ============================================================
         
     const modalNotificaciones = document.getElementById('modalNotificaciones');
@@ -1556,30 +1628,32 @@
     const mensajePreferencias = document.getElementById('mensajePreferencias');
     const contadorSeleccion = document.getElementById('contadorSeleccion');
     
-    let empresasSeleccionadas = []; // Array con los tickers seleccionados
-    let catalogoCompletoEmpresas = []; // Para guardar todas las empresas
+    let empresasSeleccionadas = [];
+    let catalogoCompletoEmpresas = [];
     
-    // Abrir modal al hacer clic en la campana
-    notificationBell.addEventListener('click', async () => {
+    // Abrir modal de configuración
+    notificationBell.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        // Si el modal de lista está abierto, cerrarlo
+        if (modalListaNotificaciones.style.display === 'flex') {
+            modalListaNotificaciones.style.display = 'none';
+        }
         await cargarPreferenciasUsuario();
         await cargarListaEmpresas();
         actualizarContador();
         modalNotificaciones.style.display = 'flex';
     });
     
-    // Cerrar modal
     btnCerrarModal.addEventListener('click', () => {
         modalNotificaciones.style.display = 'none';
     });
     
-    // Clic fuera del modal para cerrar
     modalNotificaciones.addEventListener('click', (e) => {
         if (e.target === modalNotificaciones) {
             modalNotificaciones.style.display = 'none';
         }
     });
     
-    // Cargar preferencias actuales del usuario
     async function cargarPreferenciasUsuario() {
         try {
             const { data: { user } } = await supabaseClient.auth.getUser();
@@ -1600,7 +1674,6 @@
         }
     }
     
-    // Cargar lista de empresas en el selector
     async function cargarListaEmpresas() {
         try {
             const { data, error } = await supabaseClient
@@ -1610,7 +1683,6 @@
                 
             if (error) throw error;
             
-            // Eliminar duplicados
             const empresasUnicas = [];
             const tickersVistos = new Set();
             for (const item of data) {
@@ -1624,23 +1696,18 @@
             }
             catalogoCompletoEmpresas = empresasUnicas;
             
-            // Llenar el selector
             selectorEmpresas.innerHTML = '';
             for (const emp of empresasUnicas) {
                 const option = document.createElement('option');
                 option.value = emp.ticker;
                 option.textContent = `${emp.nombre} (${emp.ticker})`;
-                // Marcar como seleccionado si está en la lista
                 if (empresasSeleccionadas.includes(emp.ticker)) {
                     option.selected = true;
                 }
                 selectorEmpresas.appendChild(option);
             }
             
-            // Actualizar la vista de empresas seleccionadas
             actualizarVistaSeleccionadas();
-            
-            // Evento para detectar cambios en la selección
             selectorEmpresas.addEventListener('change', manejarCambioSeleccion);
             
         } catch (error) {
@@ -1649,16 +1716,13 @@
         }
     }
     
-    // Manejar cambio en el selector
     function manejarCambioSeleccion() {
         const selectedOptions = Array.from(selectorEmpresas.selectedOptions);
         const nuevosSeleccionados = selectedOptions.map(opt => opt.value);
         
-        // Limitar a 5
         if (nuevosSeleccionados.length > 5) {
             mensajePreferencias.textContent = '⚠️ Solo puedes seleccionar hasta 5 empresas';
             mensajePreferencias.style.color = '#dc3545';
-            // Desmarcar el último seleccionado
             const ultimo = selectorEmpresas.selectedOptions[selectorEmpresas.selectedOptions.length - 1];
             if (ultimo) ultimo.selected = false;
             return;
@@ -1670,7 +1734,6 @@
         actualizarContador();
     }
     
-    // Actualizar la vista de chips
     function actualizarVistaSeleccionadas() {
         const container = empresasSeleccionadasContainer;
         container.innerHTML = '';
@@ -1691,7 +1754,6 @@
                 <span class="eliminar" data-ticker="${ticker}">✕</span>
             `;
             
-            // Evento para eliminar del chip
             chip.querySelector('.eliminar').addEventListener('click', (e) => {
                 e.stopPropagation();
                 const tickerAEliminar = e.target.dataset.ticker;
@@ -1702,10 +1764,8 @@
         }
     }
     
-    // Eliminar una empresa seleccionada
     function eliminarEmpresaSeleccionada(ticker) {
         empresasSeleccionadas = empresasSeleccionadas.filter(t => t !== ticker);
-        // Actualizar el selector
         for (const option of selectorEmpresas.options) {
             if (option.value === ticker) {
                 option.selected = false;
@@ -1716,14 +1776,12 @@
         mensajePreferencias.textContent = '';
     }
     
-    // Actualizar contador
     function actualizarContador() {
         const count = empresasSeleccionadas.length;
         contadorSeleccion.textContent = `${count} de 5 seleccionadas`;
         contadorSeleccion.style.color = count >= 5 ? '#dc3545' : '#1e4668';
     }
     
-    // Guardar preferencias
     btnGuardarPreferencias.addEventListener('click', async () => {
         try {
             const { data: { user } } = await supabaseClient.auth.getUser();
@@ -1739,7 +1797,6 @@
                 return;
             }
             
-            // Verificar si ya existe registro
             const { data: existente, error: checkError } = await supabaseClient
                 .from('preferencias_notificaciones')
                 .select('id')
@@ -1779,11 +1836,166 @@
         }
     });
     
-    // Cargar contador de notificaciones no leídas
-    async function cargarContadorNotificaciones() {
+    // ============================================================
+    // GESTIÓN DE NOTIFICACIONES - LISTA
+    // ============================================================
+    
+    const modalListaNotificaciones = document.getElementById('modalListaNotificaciones');
+    const listaNotificacionesContainer = document.getElementById('listaNotificacionesContainer');
+    const btnCerrarListaNotificaciones = document.getElementById('btnCerrarListaNotificaciones');
+    const btnMarcarTodasLeidas = document.getElementById('btnMarcarTodasLeidas');
+    
+    // Abrir lista de notificaciones (doble clic en campana o clic largo)
+    // Para no interferir con la configuración, usamos un gesto diferente
+    // Como la campana ya abre configuración, añadimos un doble clic para la lista
+    notificationBell.addEventListener('dblclick', async () => {
+        if (modalNotificaciones.style.display === 'flex') {
+            modalNotificaciones.style.display = 'none';
+        }
+        await cargarListaNotificaciones();
+        modalListaNotificaciones.style.display = 'flex';
+    });
+    
+    // También podemos abrir la lista desde el contador (haciendo clic en el badge)
+    // Pero mejor: el botón "Ver notificaciones" dentro del modal de configuración
+    // Lo añadimos dinámicamente o usamos doble clic como está
+    
+    btnCerrarListaNotificaciones.addEventListener('click', () => {
+        modalListaNotificaciones.style.display = 'none';
+    });
+    
+    modalListaNotificaciones.addEventListener('click', (e) => {
+        if (e.target === modalListaNotificaciones) {
+            modalListaNotificaciones.style.display = 'none';
+        }
+    });
+    
+    async function cargarListaNotificaciones() {
+        try {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (!user) {
+                listaNotificacionesContainer.innerHTML = '<p style="text-align:center; color:#dc3545;">❌ Usuario no autenticado</p>';
+                return;
+            }
+            
+            const { data, error } = await supabaseClient
+                .from('historial_notificaciones')
+                .select('*')
+                .eq('usuario_id', user.id)
+                .order('fecha_envio', { ascending: false });
+                
+            if (error) throw error;
+            
+            if (!data || data.length === 0) {
+                listaNotificacionesContainer.innerHTML = '<p class="sin-notificaciones">📭 No tienes notificaciones pendientes</p>';
+                return;
+            }
+            
+            const noLeidas = data.filter(n => !n.leido);
+            const leidas = data.filter(n => n.leido);
+            
+            let html = '';
+            
+            if (noLeidas.length > 0) {
+                html += `<div class="separador-notificaciones">🆕 Nuevas (${noLeidas.length})</div>`;
+                for (const notif of noLeidas) {
+                    html += crearHtmlNotificacion(notif, false);
+                }
+            }
+            
+            if (leidas.length > 0) {
+                html += `<div class="separador-notificaciones">📖 Leídas (${leidas.length})</div>`;
+                for (const notif of leidas) {
+                    html += crearHtmlNotificacion(notif, true);
+                }
+            }
+            
+            listaNotificacionesContainer.innerHTML = html;
+            
+            document.querySelectorAll('.btn-marcar-leida').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    const id = btn.dataset.id;
+                    await marcarNotificacionLeida(id);
+                    await cargarListaNotificaciones();
+                    await cargarContadorNotificaciones();
+                });
+            });
+            
+        } catch (error) {
+            console.error('Error cargando notificaciones:', error);
+            listaNotificacionesContainer.innerHTML = '<p style="text-align:center; color:#dc3545;">❌ Error cargando notificaciones</p>';
+        }
+    }
+    
+    function crearHtmlNotificacion(notif, esLeida) {
+        const tipoClass = notif.tipo_alerta === 'oportunidad' ? 'tipo-oportunidad' :
+                          notif.tipo_alerta === 'peligro' ? 'tipo-peligro' : 'tipo-rebote';
+        const fecha = new Date(notif.fecha_envio).toLocaleString('es-ES');
+        const emoji = notif.tipo_alerta === 'oportunidad' ? '🟢' :
+                      notif.tipo_alerta === 'peligro' ? '🔴' : '🟡';
+        
+        return `
+            <div class="notificacion-item ${tipoClass} ${esLeida ? 'leida' : ''}">
+                <div class="mensaje">
+                    <strong>${emoji} ${notif.nombre_empresa}</strong><br>
+                    <span style="font-size:0.8rem;">${notif.mensaje}</span>
+                </div>
+                <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+                    <span class="fecha">${fecha}</span>
+                    ${!esLeida ? `<button class="btn-marcar-leida" data-id="${notif.id}">✓ Leer</button>` : ''}
+                </div>
+            </div>
+        `;
+    }
+    
+    async function marcarNotificacionLeida(id) {
+        try {
+            const { error } = await supabaseClient
+                .from('historial_notificaciones')
+                .update({ leido: true })
+                .eq('id', id);
+                
+            if (error) throw error;
+        } catch (error) {
+            console.error('Error marcando como leída:', error);
+        }
+    }
+    
+    btnMarcarTodasLeidas.addEventListener('click', async () => {
         try {
             const { data: { user } } = await supabaseClient.auth.getUser();
             if (!user) return;
+            
+            const { error } = await supabaseClient
+                .from('historial_notificaciones')
+                .update({ leido: true })
+                .eq('usuario_id', user.id)
+                .eq('leido', false);
+                
+            if (error) throw error;
+            
+            await cargarListaNotificaciones();
+            await cargarContadorNotificaciones();
+            
+        } catch (error) {
+            console.error('Error marcando todas como leídas:', error);
+            alert('❌ Error al marcar todas como leídas');
+        }
+    });
+    
+    // ============================================================
+    // CONTADOR DE NOTIFICACIONES
+    // ============================================================
+    
+    async function cargarContadorNotificaciones() {
+        try {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (!user) {
+                const badge = document.getElementById('notificationBadge');
+                badge.style.display = 'none';
+                return;
+            }
             
             const { data, error } = await supabaseClient
                 .from('historial_notificaciones')
@@ -1806,7 +2018,7 @@
         }
     }
     
-    // Cargar contador al iniciar y cada 30 segundos
+    // Inicializar contador
     cargarContadorNotificaciones();
     setInterval(cargarContadorNotificaciones, 30000);
 </script>
