@@ -2,7 +2,6 @@ name: Analizar IBEX35 nuevo
 
 on:
   schedule:
-    # Cada hora de 09:00 a 17:00 (hora España = UTC+2)
     - cron: '0 7,8,9,10,11,12,13,14,15 * * 1-5'
   workflow_dispatch:
 
@@ -28,7 +27,7 @@ jobs:
       - name: Instalar dependencias
         run: |
           python -m pip install --upgrade pip
-          pip install yfinance pandas numpy supabase
+          pip install yfinance pandas numpy supabase requests
 
       - name: Log ejecución
         run: date
@@ -47,4 +46,44 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
             -H "Content-Type: application/json" \
             -d '{}'
-                
+
+      - name: Enviar correos con Resend
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+        run: |
+          python -c "
+import os
+import requests
+from supabase import create_client
+
+supabase = create_client(os.environ['SUPABASE_URL'], os.environ['SUPABASE_KEY'])
+
+response = supabase.table('historial_notificaciones').select('*').eq('enviado_correo', False).execute()
+notificaciones = response.data
+
+if len(notificaciones) == 0:
+    print('📭 No hay correos pendientes')
+    exit(0)
+
+print(f'📧 Enviando {len(notificaciones)} correos...')
+
+for notif in notificaciones:
+    user_response = supabase.table('perfiles').select('email').eq('id', notif['usuario_id']).execute()
+    if not user_response.data:
+        continue
+    email = user_response.data[0]['email']
+    
+    r = requests.post(
+        'https://api.resend.com/emails',
+        headers={'Authorization': f'Bearer {os.environ["RESEND_API_KEY"]}', 'Content-Type': 'application/json'},
+        json={'from': 'notificaciones@resend.dev', 'to': email, 'subject': f'🔔 Alerta: {notif["nombre_empresa"]}', 'html': f'<p>{notif["mensaje"]}</p>'}
+    )
+    
+    if r.status_code == 200:
+        supabase.table('historial_notificaciones').update({'enviado_correo': True}).eq('id', notif['id']).execute()
+        print(f'✅ Enviado a {email}')
+    else:
+        print(f'❌ Error: {r.text}')
+"
