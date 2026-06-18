@@ -733,18 +733,17 @@
         authError.textContent = '';
         const email = authEmail.value.trim();
         const password = authPassword.value.trim();
-
+    
         if (!email || !password) {
             authError.textContent = 'Por favor, rellena todos los campos.';
             return;
         }
-
+    
         try {
             if (isLoginMode) {
                 // LOGIN
                 const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
                 if (error) throw error;
-                // Cargar perfil del usuario para obtener nombre y ciudad
                 await loadUserProfile(data.user.id);
             } else {
                 // REGISTRO
@@ -754,24 +753,85 @@
                     authError.textContent = 'Nombre y ciudad son obligatorios para registrarse.';
                     return;
                 }
-                const { data, error } = await supabaseClient.auth.signUp({ email, password });
+                
+                // PASO 1: Registrar el usuario
+                const { data, error } = await supabaseClient.auth.signUp({ 
+                    email, 
+                    password
+                });
+                
                 if (error) throw error;
+                
                 if (data.user) {
-                    // Crear perfil en la tabla 'perfiles' (debes crearla en Supabase)
+                    // PASO 2: Esperar un momento para que el usuario se propague
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    // PASO 3: Crear el perfil
                     const { error: profileError } = await supabaseClient
                         .from('perfiles')
-                        .insert([{ id: data.user.id, nombre, ciudad, email }]);
+                        .insert([{ 
+                            id: data.user.id, 
+                            nombre: nombre, 
+                            ciudad: ciudad, 
+                            email: email  // Usamos el email que el usuario escribió, no el de data.user
+                        }]);
+                        
                     if (profileError) {
                         console.error('Error creando perfil:', profileError);
-                        // Podríamos mostrar un error y no loguear, pero por simplicidad, continuamos
+                        // Si falla, mostramos error pero intentamos loguear igual
+                        authError.textContent = 'Error al crear el perfil. Por favor, inicia sesión.';
                     }
-                    // Cargar perfil
-                    await loadUserProfile(data.user.id);
+                    
+                    // PASO 4: Cargar el perfil (con retry si falla)
+                    await loadUserProfileWithRetry(data.user.id);
                 }
             }
         } catch (error) {
             console.error('Auth error:', error);
             authError.textContent = error.message || 'Error en la autenticación.';
+        }
+    }
+    
+    // Función con reintentos para cargar el perfil
+    async function loadUserProfileWithRetry(userId, maxRetries = 3) {
+        for (let i = 0; i < maxRetries; i++) {
+            try {
+                // Esperar un poco entre intentos
+                if (i > 0) await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                const { data, error } = await supabaseClient
+                    .from('perfiles')
+                    .select('nombre, ciudad')
+                    .eq('id', userId)
+                    .single();
+                    
+                if (error) {
+                    console.log(`Intento ${i+1} fallido:`, error.message);
+                    continue;
+                }
+                
+                if (data) {
+                    userNameDisplay.textContent = data.nombre || 'Usuario';
+                    userEmailDisplay.textContent = data.ciudad || '';
+                    showApp();
+                    return;
+                }
+            } catch (error) {
+                console.log(`Intento ${i+1} con error:`, error);
+            }
+        }
+        
+        // Si todos los intentos fallan, mostrar el email como fallback
+        try {
+            const { data: userData } = await supabaseClient.auth.getUser();
+            if (userData?.user) {
+                userNameDisplay.textContent = userData.user.email?.split('@')[0] || 'Usuario';
+                userEmailDisplay.textContent = userData.user.email || '';
+                showApp();
+            }
+        } catch {
+            authError.textContent = 'Error al cargar el perfil. Intenta iniciar sesión.';
+            showAuth();
         }
     }
 
