@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Backtesting - Análisis técnico de señales</title>
     <style>
+        /* --- ESTILOS EXISTENTES (sin cambios) --- */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
         body {
             font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, 'Roboto', sans-serif;
             background: #f0f2f5;
@@ -18,7 +18,6 @@
             padding: 20px;
             color: #1a2634;
         }
-
         .container {
             max-width: 1600px;
             margin: 0 auto;
@@ -26,7 +25,6 @@
             flex-direction: column;
             gap: 20px;
         }
-
         .titulo-principal {
             text-align: center;
             margin-bottom: 8px;
@@ -41,7 +39,6 @@
             color: #6c86a3;
             margin-top: 4px;
         }
-
         .leyenda-colores {
             display: flex;
             flex-wrap: wrap;
@@ -66,14 +63,12 @@
         .leyenda-colores .amarillo { background: #fff3cd; padding: 2px 10px; border-radius: 20px; }
         .leyenda-colores .naranja { background: #ffe2d6; padding: 2px 10px; border-radius: 20px; }
         .leyenda-colores .rojo { background: #f8d7da; padding: 2px 10px; border-radius: 20px; }
-
         .panel-principal {
             background: white;
             border-radius: 20px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             overflow: hidden;
         }
-
         .panel-principal h2 {
             padding: 18px 20px;
             font-size: 1.1rem;
@@ -81,7 +76,6 @@
             color: white;
             margin: 0;
         }
-
         .filtros-barra {
             padding: 12px 20px;
             display: flex;
@@ -123,19 +117,16 @@
             margin-right: 8px;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-
         .tabla-empresas-wrapper {
             overflow-x: auto;
             max-height: 550px;
             overflow-y: auto;
         }
-
         .tabla-empresas {
             width: 100%;
             border-collapse: collapse;
             font-size: 0.75rem;
         }
-
         .tabla-empresas th {
             background: #f8f9fa;
             padding: 12px 10px;
@@ -147,22 +138,18 @@
             top: 0;
             z-index: 10;
         }
-
         .tabla-empresas td {
             padding: 12px 10px;
             border-bottom: 1px solid #e9ecef;
             cursor: pointer;
         }
-
         .tabla-empresas tr:hover td {
             background: #f0f7ff;
         }
-
         .tabla-empresas tr.seleccionada td {
             background: #e3f2fd;
             border-left: 3px solid #2c7da0;
         }
-
         .tabla-empresas tr.exclusion {
             background-color: #f8d7da;
         }
@@ -172,17 +159,14 @@
         .tabla-empresas tr.interes-alcista-3 {
             background-color: #c8e6d9;
         }
-        
         .positivo {
             color: #1e7e34;
             font-weight: 600;
         }
-
         .negativo {
             color: #dc3545;
             font-weight: 600;
         }
-
         .seccion-detalle {
             background: white;
             border-radius: 20px;
@@ -190,11 +174,9 @@
             overflow: hidden;
             display: none;
         }
-
         .seccion-detalle.visible {
             display: block;
         }
-
         .detalle-header {
             padding: 16px 20px;
             background: #2c7da0;
@@ -223,7 +205,6 @@
         .cerrar-detalle:hover {
             background: rgba(255,255,255,0.4);
         }
-
         .grafico-fijo {
             width: 100%;
             height: 400px;
@@ -236,7 +217,6 @@
             height: 100%;
             position: relative;
         }
-
         .historial-completo {
             padding: 0 16px 16px 16px;
         }
@@ -286,7 +266,6 @@
             padding: 2px 4px;
             display: inline-block;
         }
-
         .patron-7 { background-color: #d4edda; }
         .patron-3 { background-color: #b9f6ca; }
         .patron-6 { background-color: #f4ff81; }
@@ -295,7 +274,6 @@
         .patron-4 { background-color: #fff3cd; }
         .patron-5 { background-color: #ffe2d6; }
         .patron-exclusion { background-color: #f8d7da; }
-
         .patron-tooltip {
             position: relative;
             cursor: help;
@@ -336,7 +314,6 @@
             visibility: visible;
             opacity: 1;
         }
-
         .simulador {
             padding: 16px 20px;
             background: #f8f9fa;
@@ -395,7 +372,6 @@
             color: #6c86a3;
             margin-top: 4px;
         }
-
         .panel-explicativo {
             background: white;
             border-radius: 16px;
@@ -439,13 +415,136 @@
             padding: 40px;
             color: #6c86a3;
         }
-
         @media (max-width: 900px) {
             body { padding: 12px; }
             .grafico-fijo { height: 280px; }
             .tabla-empresas th, .tabla-empresas td { padding: 8px 6px; font-size: 0.65rem; }
             .simulador { flex-direction: column; align-items: stretch; }
             .resultado-sim { text-align: left; }
+        }
+
+        /* --- NUEVOS ESTILOS PARA AUTENTICACIÓN Y BARRA DE USUARIO --- */
+        #authContainer {
+            max-width: 400px;
+            margin: 40px auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            padding: 30px 25px;
+        }
+        #authContainer h2 {
+            text-align: center;
+            color: #1e4668;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .auth-form input {
+            padding: 12px 16px;
+            border-radius: 40px;
+            border: 1px solid #cfdfed;
+            font-size: 0.9rem;
+            font-family: inherit;
+        }
+        .auth-form button {
+            padding: 12px;
+            border-radius: 40px;
+            border: none;
+            background: #1e4668;
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .auth-form button:hover {
+            background: #2c7da0;
+        }
+        .auth-form .toggle-link {
+            text-align: center;
+            color: #2c7da0;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .auth-form .toggle-link:hover {
+            text-decoration: underline;
+        }
+        .auth-error {
+            color: #dc3545;
+            font-size: 0.8rem;
+            text-align: center;
+            min-height: 20px;
+        }
+
+        #appContainer {
+            display: none;
+        }
+        #appContainer.visible {
+            display: block;
+        }
+
+        .user-bar {
+            background: white;
+            border-radius: 40px;
+            padding: 8px 20px 8px 25px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 0.85rem;
+            color: #1e4668;
+        }
+        .user-info .user-name {
+            font-weight: 700;
+        }
+        .user-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .logout-btn {
+            background: #f8d7da;
+            border: none;
+            padding: 6px 18px;
+            border-radius: 40px;
+            color: #721c24;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .logout-btn:hover {
+            background: #f5c6cb;
+        }
+        .notification-bell {
+            position: relative;
+            font-size: 1.3rem;
+            cursor: pointer;
+            color: #6c86a3;
+        }
+        .notification-bell .badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 0.6rem;
+            font-weight: 700;
+            min-width: 18px;
+            text-align: center;
         }
     </style>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-LVV061GCPF"></script>
@@ -460,96 +559,303 @@
 </head>
 <body>
 <div class="container">
-    <div class="panel-principal">
-        <h2>📋 ANÁLISIS DE EMPRESAS <span style="font-size: 0.6rem; font-weight: normal;">Escribe para buscar instantáneamente</span></h2>
-        <div class="filtros-barra">
-            <input type="text" id="filtroEmpresa" placeholder="🔍 Buscar por nombre o ticker (ej: Telefónica, SAN, BBVA)...">
-            <select id="filtroOportunidad">
-                <option value="todas">🏢 Todas las empresas</option>
-                <option value="oportunidad">🟢 Empresas oportunidad</option>
-                <option value="posible">🟡 Empresas con posible oportunidad</option>
-                <option value="exito">⭐ Casos de éxito</option>
-                <option value="riesgo">⚠️ Empresas en riesgo (PW > 40)</option>
-            </select>
-        </div>
-        <div class="tabla-empresas-wrapper">
-            <table class="tabla-empresas" id="tablaEmpresas">
-                <thead>
-                    <tr><th>Empresa</th><th>Precio</th><th>Fecha</th><th>Últ. patrón</th><th>Precio patrón</th><th>Rentabilidad</th><th>PW</th></tr>
-                </thead>
-                <tbody id="empresasBody">
-                    <tr><td colspan="7" class="mensaje-inicial">🔍 Empieza a escribir para buscar empresas...</span></span></tr>
-                </tbody>
-            </table>
-        </div>
+
+    <!-- CONTENEDOR DE AUTENTICACIÓN -->
+    <div id="authContainer">
+        <h2>🔐 Acceso</h2>
+        <div id="authError" class="auth-error"></div>
+        <form id="authForm" class="auth-form">
+            <input type="email" id="authEmail" placeholder="Correo electrónico" required>
+            <input type="password" id="authPassword" placeholder="Contraseña" required>
+            <input type="text" id="authNombre" placeholder="Tu nombre (solo para registro)" style="display:none;">
+            <input type="text" id="authCiudad" placeholder="Tu ciudad (solo para registro)" style="display:none;">
+            <button type="submit" id="authSubmitBtn">Iniciar sesión</button>
+            <span class="toggle-link" id="authToggleLink">¿No tienes cuenta? Regístrate</span>
+        </form>
     </div>
 
-    <div id="seccionDetalle" class="seccion-detalle">
-        <div class="detalle-header">
-            <h3 id="detalleTituloEmpresa">📊 Detalle de la empresa</h3>
-            <button class="cerrar-detalle" id="cerrarDetalleBtn">✕ Cerrar detalle</button>
-        </div>
-        <div class="grafico-fijo">
-            <div id="graficaContainer">
-                <canvas id="graficaCanvas" style="width:100%; height:100%;"></canvas>
+    <!-- CONTENEDOR DE LA APLICACIÓN (solo visible tras login) -->
+    <div id="appContainer">
+        <!-- BARRA DE USUARIO -->
+        <div class="user-bar">
+            <div class="user-info">
+                <span>👋</span>
+                <span class="user-name" id="userNameDisplay">Usuario</span>
+                <span style="font-size:0.7rem; color:#8ba0bc;" id="userEmailDisplay"></span>
+            </div>
+            <div class="user-actions">
+                <span class="notification-bell" id="notificationBell">
+                    🔔
+                    <span class="badge" id="notificationBadge" style="display:none;">0</span>
+                </span>
+                <button class="logout-btn" id="logoutBtn">Cerrar sesión</button>
             </div>
         </div>
-        <div class="historial-completo">
-            <h4>📜 Historial completo de señales <span style="font-size:0.6rem;">(desplázate para ver más registros)</span></h4>
-            <div class="historial-wrapper" id="historialScrollWrapper">
-                <table class="tabla-historial" id="tablaHistorial">
+
+        <!-- TU APLICACIÓN EXISTENTE (SIN MODIFICAR) -->
+        <div class="panel-principal">
+            <h2>📋 ANÁLISIS DE EMPRESAS <span style="font-size: 0.6rem; font-weight: normal;">Escribe para buscar instantáneamente</span></h2>
+            <div class="filtros-barra">
+                <input type="text" id="filtroEmpresa" placeholder="🔍 Buscar por nombre o ticker (ej: Telefónica, SAN, BBVA)...">
+                <select id="filtroOportunidad">
+                    <option value="todas">🏢 Todas las empresas</option>
+                    <option value="oportunidad">🟢 Empresas oportunidad</option>
+                    <option value="posible">🟡 Empresas con posible oportunidad</option>
+                    <option value="exito">⭐ Casos de éxito</option>
+                    <option value="riesgo">⚠️ Empresas en riesgo (PW > 40)</option>
+                </select>
+            </div>
+            <div class="tabla-empresas-wrapper">
+                <table class="tabla-empresas" id="tablaEmpresas">
                     <thead>
-                        <tr><th>Fecha</th><th>Precio</th><th>Patrón</th><th>PW 4h</th><th>PW diario</th><th>Pendiente</th><th>Soportes</th><th>Resistencias</th></tr>
+                        <tr><th>Empresa</th><th>Precio</th><th>Fecha</th><th>Últ. patrón</th><th>Precio patrón</th><th>Rentabilidad</th><th>PW</th></tr>
                     </thead>
-                    <tbody id="historialBody">
-                        <tr><td colspan="8" class="sin-datos">Selecciona una empresa de la tabla</span></span></td>
+                    <tbody id="empresasBody">
+                        <tr><td colspan="7" class="mensaje-inicial">🔍 Empieza a escribir para buscar empresas...</span></span></tr>
                     </tbody>
                 </table>
             </div>
-            <div class="simulador" id="simuladorPanel">
-                <div class="simulador-info">
-                    <div>📌 Punto de entrada: <span id="compraSeleccionada">---</span></div>
-                    <div>📌 Punto de salida: <span id="ventaSeleccionada">---</span></div>
-                    <div class="acciones-info" id="accionesInfo">---</div>
+        </div>
+
+        <div id="seccionDetalle" class="seccion-detalle">
+            <div class="detalle-header">
+                <h3 id="detalleTituloEmpresa">📊 Detalle de la empresa</h3>
+                <button class="cerrar-detalle" id="cerrarDetalleBtn">✕ Cerrar detalle</button>
+            </div>
+            <div class="grafico-fijo">
+                <div id="graficaContainer">
+                    <canvas id="graficaCanvas" style="width:100%; height:100%;"></canvas>
                 </div>
-                <div class="simulador-capital">
-                    <label>💰 Capital simulado</label>
-                    <input type="number" id="capitalInput" value="10000" step="1000">
-                    <span>€</span>
+            </div>
+            <div class="historial-completo">
+                <h4>📜 Historial completo de señales <span style="font-size:0.6rem;">(desplázate para ver más registros)</span></h4>
+                <div class="historial-wrapper" id="historialScrollWrapper">
+                    <table class="tabla-historial" id="tablaHistorial">
+                        <thead>
+                            <tr><th>Fecha</th><th>Precio</th><th>Patrón</th><th>PW 4h</th><th>PW diario</th><th>Pendiente</th><th>Soportes</th><th>Resistencias</th></tr>
+                        </thead>
+                        <tbody id="historialBody">
+                            <tr><td colspan="8" class="sin-datos">Selecciona una empresa de la tabla</span></span></tr>
+                        </tbody>
+                    </table>
                 </div>
-                <button class="btn-calcular" id="btnCalcular">📈 Calcular resultado</button>
-                <div class="resultado-sim" id="resultadoSimulacion"></div>
+                <div class="simulador" id="simuladorPanel">
+                    <div class="simulador-info">
+                        <div>📌 Punto de entrada: <span id="compraSeleccionada">---</span></div>
+                        <div>📌 Punto de salida: <span id="ventaSeleccionada">---</span></div>
+                        <div class="acciones-info" id="accionesInfo">---</div>
+                    </div>
+                    <div class="simulador-capital">
+                        <label>💰 Capital simulado</label>
+                        <input type="number" id="capitalInput" value="10000" step="1000">
+                        <span>€</span>
+                    </div>
+                    <button class="btn-calcular" id="btnCalcular">📈 Calcular resultado</button>
+                    <div class="resultado-sim" id="resultadoSimulacion"></div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="panel-explicativo">
-        <div class="explicativo-header" id="toggleExplicativo">
-            <h4 style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 12px; flex-wrap: wrap;">
-                <span>📘 GUÍA COMPLETA DEL SISTEMA</span>
-                <span style="font-size: 0.55rem; font-weight: normal; color: #8ba0bc;">⚠️ Herramienta educativa · Patrones estadísticos, no recomendaciones</span>
-            </h4>
-            <span class="toggle-icon" id="toggleIcon">▼</span>
-        </div>
-        <div class="explicativo-contenido" id="explicativoContenido">
-            <p><strong>Filtros disponibles:</strong> 
-                • <strong>Todas las empresas:</strong> Muestra el listado completo.
-                • <strong>Empresas oportunidad:</strong> Empresas con patrón tipo 7 (señal fuerte).
-                • <strong>Empresas con posible oportunidad:</strong> Empresas con patrón tipo 3 (rebote).
-                • <strong>Casos de éxito:</strong> Empresas con rentabilidad actual superior al 2%.
-                • <strong>Empresas en riesgo (PW > 40):</strong> Empresas que tienen el Price Wave por encima de 40.
-            </p>
-            <p><strong>Simulación:</strong> Dentro del historial, haz clic en un precio (entrada) y luego en otro más reciente (salida). Ajusta el capital y calcula el resultado con comisiones simuladas.</p>
-            <div class="grid-explicativo">
-                <div class="item-explicativo"><strong>🎯 PW</strong><span>Oscila -100 a +100. <-40 sobreventa, >+40 sobrecompra.</span></div>
-                <div class="item-explicativo"><strong>🟢 Patrones</strong><span>Tipo 7 (fuerte), 3 (rebote), 6 (cambio), 4 (consolidación), 5 (agotamiento).</span></div>
-                <div class="item-explicativo"><strong>🔴 Exclusión</strong><span>PW > +50 y pendiente negativa → fondo rojo.</span></div>
+        <div class="panel-explicativo">
+            <div class="explicativo-header" id="toggleExplicativo">
+                <h4 style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 12px; flex-wrap: wrap;">
+                    <span>📘 GUÍA COMPLETA DEL SISTEMA</span>
+                    <span style="font-size: 0.55rem; font-weight: normal; color: #8ba0bc;">⚠️ Herramienta educativa · Patrones estadísticos, no recomendaciones</span>
+                </h4>
+                <span class="toggle-icon" id="toggleIcon">▼</span>
+            </div>
+            <div class="explicativo-contenido" id="explicativoContenido">
+                <p><strong>Filtros disponibles:</strong> 
+                    • <strong>Todas las empresas:</strong> Muestra el listado completo.
+                    • <strong>Empresas oportunidad:</strong> Empresas con patrón tipo 7 (señal fuerte).
+                    • <strong>Empresas con posible oportunidad:</strong> Empresas con patrón tipo 3 (rebote).
+                    • <strong>Casos de éxito:</strong> Empresas con rentabilidad actual superior al 2%.
+                    • <strong>Empresas en riesgo (PW > 40):</strong> Empresas que tienen el Price Wave por encima de 40.
+                </p>
+                <p><strong>Simulación:</strong> Dentro del historial, haz clic en un precio (entrada) y luego en otro más reciente (salida). Ajusta el capital y calcula el resultado con comisiones simuladas.</p>
+                <div class="grid-explicativo">
+                    <div class="item-explicativo"><strong>🎯 PW</strong><span>Oscila -100 a +100. <-40 sobreventa, >+40 sobrecompra.</span></div>
+                    <div class="item-explicativo"><strong>🟢 Patrones</strong><span>Tipo 7 (fuerte), 3 (rebote), 6 (cambio), 4 (consolidación), 5 (agotamiento).</span></div>
+                    <div class="item-explicativo"><strong>🔴 Exclusión</strong><span>PW > +50 y pendiente negativa → fondo rojo.</span></div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
+    // --- INICIALIZACIÓN DE SUPABASE ---
+    const SUPABASE_URL = "https://klwcletpqqsabtdanldx.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtsd2NsZXRwcXFzYWJ0ZGFubGR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4MDg2NTEsImV4cCI6MjA5MjM4NDY1MX0.nbs0tYbFOL-I8qIkgB7Ub_jcOwHTdzg0EcAp1DS6sCU";
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // --- ELEMENTOS DEL DOM PARA AUTENTICACIÓN ---
+    const authContainer = document.getElementById('authContainer');
+    const appContainer = document.getElementById('appContainer');
+    const authForm = document.getElementById('authForm');
+    const authEmail = document.getElementById('authEmail');
+    const authPassword = document.getElementById('authPassword');
+    const authNombre = document.getElementById('authNombre');
+    const authCiudad = document.getElementById('authCiudad');
+    const authSubmitBtn = document.getElementById('authSubmitBtn');
+    const authToggleLink = document.getElementById('authToggleLink');
+    const authError = document.getElementById('authError');
+    const userNameDisplay = document.getElementById('userNameDisplay');
+    const userEmailDisplay = document.getElementById('userEmailDisplay');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const notificationBell = document.getElementById('notificationBell');
+
+    let isLoginMode = true;
+
+    // --- FUNCIONES DE AUTENTICACIÓN ---
+    function setAuthMode(mode) {
+        isLoginMode = (mode === 'login');
+        if (isLoginMode) {
+            authSubmitBtn.textContent = 'Iniciar sesión';
+            authToggleLink.textContent = '¿No tienes cuenta? Regístrate';
+            authNombre.style.display = 'none';
+            authCiudad.style.display = 'none';
+            authNombre.required = false;
+            authCiudad.required = false;
+        } else {
+            authSubmitBtn.textContent = 'Registrarse';
+            authToggleLink.textContent = '¿Ya tienes cuenta? Inicia sesión';
+            authNombre.style.display = 'block';
+            authCiudad.style.display = 'block';
+            authNombre.required = true;
+            authCiudad.required = true;
+        }
+        authError.textContent = '';
+    }
+
+    async function handleAuthSubmit(e) {
+        e.preventDefault();
+        authError.textContent = '';
+        const email = authEmail.value.trim();
+        const password = authPassword.value.trim();
+
+        if (!email || !password) {
+            authError.textContent = 'Por favor, rellena todos los campos.';
+            return;
+        }
+
+        try {
+            if (isLoginMode) {
+                // LOGIN
+                const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+                // Cargar perfil del usuario para obtener nombre y ciudad
+                await loadUserProfile(data.user.id);
+            } else {
+                // REGISTRO
+                const nombre = authNombre.value.trim();
+                const ciudad = authCiudad.value.trim();
+                if (!nombre || !ciudad) {
+                    authError.textContent = 'Nombre y ciudad son obligatorios para registrarse.';
+                    return;
+                }
+                const { data, error } = await supabaseClient.auth.signUp({ email, password });
+                if (error) throw error;
+                if (data.user) {
+                    // Crear perfil en la tabla 'perfiles' (debes crearla en Supabase)
+                    const { error: profileError } = await supabaseClient
+                        .from('perfiles')
+                        .insert([{ id: data.user.id, nombre, ciudad, email }]);
+                    if (profileError) {
+                        console.error('Error creando perfil:', profileError);
+                        // Podríamos mostrar un error y no loguear, pero por simplicidad, continuamos
+                    }
+                    // Cargar perfil
+                    await loadUserProfile(data.user.id);
+                }
+            }
+        } catch (error) {
+            console.error('Auth error:', error);
+            authError.textContent = error.message || 'Error en la autenticación.';
+        }
+    }
+
+    async function loadUserProfile(userId) {
+        try {
+            const { data, error } = await supabaseClient
+                .from('perfiles')
+                .select('nombre, ciudad')
+                .eq('id', userId)
+                .single();
+            if (error) {
+                // Si no existe perfil, usar email como nombre
+                const { data: userData } = await supabaseClient.auth.getUser();
+                userNameDisplay.textContent = userData.user.email.split('@')[0];
+                userEmailDisplay.textContent = userData.user.email;
+                showApp();
+                return;
+            }
+            if (data) {
+                userNameDisplay.textContent = data.nombre || 'Usuario';
+                userEmailDisplay.textContent = data.ciudad || '';
+                showApp();
+            }
+        } catch (error) {
+            console.error('Error cargando perfil:', error);
+            // Fallback: mostrar email
+            const { data: userData } = await supabaseClient.auth.getUser();
+            userNameDisplay.textContent = userData.user.email.split('@')[0];
+            userEmailDisplay.textContent = userData.user.email;
+            showApp();
+        }
+    }
+
+    function showApp() {
+        authContainer.style.display = 'none';
+        appContainer.classList.add('visible');
+        // Cargar la aplicación principal (se ejecuta al final del script)
+        if (typeof cargarCatalogoEmpresas === 'function') {
+            cargarCatalogoEmpresas();
+        }
+    }
+
+    function showAuth() {
+        authContainer.style.display = 'block';
+        appContainer.classList.remove('visible');
+        setAuthMode('login');
+    }
+
+    async function handleLogout() {
+        await supabaseClient.auth.signOut();
+        showAuth();
+        // Limpiar selección de empresa si la hay
+        if (typeof limpiarSeleccionEmpresa === 'function') {
+            limpiarSeleccionEmpresa();
+        }
+    }
+
+    // --- EVENT LISTENERS DE AUTENTICACIÓN ---
+    authForm.addEventListener('submit', handleAuthSubmit);
+    authToggleLink.addEventListener('click', () => {
+        setAuthMode(isLoginMode ? 'register' : 'login');
+    });
+    logoutBtn.addEventListener('click', handleLogout);
+
+    // --- VERIFICAR SESIÓN AL CARGAR ---
+    (async function checkSession() {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session) {
+            await loadUserProfile(session.user.id);
+        } else {
+            showAuth();
+        }
+    })();
+
+    // --- EL RESTO DEL CÓDIGO DE TU APLICACIÓN (SIN CAMBIOS SIGNIFICATIVOS) ---
+    // ... (todo el código de análisis técnico, gráficos, etc. que ya tenías)
+
+    // NOTA: Para que funcione, debes crear la tabla 'perfiles' en Supabase con:
+    // id (uuid, primary key, references auth.users), nombre (text), ciudad (text), email (text)
+
+    // ========================================================================
+    // CÓDIGO DE TU APLICACIÓN (casi sin cambios, solo adaptado para que funciones con el login)
+    // ========================================================================
+
     const toggleBtn = document.getElementById('toggleExplicativo');
     const contenido = document.getElementById('explicativoContenido');
     const icon = document.getElementById('toggleIcon');
@@ -557,10 +863,6 @@
         contenido.classList.toggle('abierto');
         icon.textContent = contenido.classList.contains('abierto') ? '▲' : '▼';
     });
-
-    const SUPABASE_URL = "https://klwcletpqqsabtdanldx.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imtsd2NsZXRwcXFzYWJ0ZGFubGR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4MDg2NTEsImV4cCI6MjA5MjM4NDY1MX0.nbs0tYbFOL-I8qIkgB7Ub_jcOwHTdzg0EcAp1DS6sCU";
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const PATRONES_INTERES = [1, 2, 3, 6, 7];
     const CONDICION_EXCLUSION = (pwDiario, pendiente) => pwDiario !== null && pendiente !== null && pwDiario > 50 && pendiente < 0;
@@ -679,19 +981,16 @@
         return null;
     }
 
-    // Función para limpiar la selección de empresa y cerrar el detalle
     function limpiarSeleccionEmpresa() {
         tickerSeleccionado = null;
         const detalleDiv = document.getElementById('seccionDetalle');
         detalleDiv.classList.remove('visible');
-        // Limpiar también la selección de precios en el historial
         entradaSeleccionada = null;
         salidaSeleccionada = null;
         document.getElementById('compraSeleccionada').innerHTML = '---';
         document.getElementById('ventaSeleccionada').innerHTML = '---';
         document.getElementById('resultadoSimulacion').innerHTML = '';
         document.getElementById('accionesInfo').innerHTML = 'Selecciona primero un punto de entrada';
-        // Quitar clase seleccionada de todas las filas
         document.querySelectorAll('#empresasBody tr').forEach(row => {
             row.classList.remove('seleccionada');
         });
@@ -703,17 +1002,14 @@
         
         let empresasBase = [];
         
-        // Si el filtro no es "todas", limpiamos el texto del buscador para que no interfiera
         if (filtro !== 'todas') {
             const inputBusqueda = document.getElementById('filtroEmpresa');
             if (inputBusqueda.value !== '') {
                 inputBusqueda.value = '';
             }
-            // Limpiar selección de empresa al cambiar el filtro
             limpiarSeleccionEmpresa();
         }
         
-        // Obtener el texto nuevamente por si lo hemos limpiado
         const textoFinal = document.getElementById('filtroEmpresa').value.toLowerCase().trim();
         
         if (!textoFinal && filtro === 'todas') {
@@ -726,17 +1022,14 @@
         } else {
             let filtradasPorTexto = catalogoEmpresas;
             
-            // Solo filtrar por texto si hay texto y el filtro es "todas"
             if (textoFinal && filtro === 'todas') {
                 filtradasPorTexto = catalogoEmpresas.filter(emp => 
                     emp.nombre.toLowerCase().includes(textoFinal) || 
                     emp.ticker.toLowerCase().includes(textoFinal)
                 );
             } else if (!textoFinal && filtro !== 'todas') {
-                // Si hay un filtro activo y no hay texto, tomamos todas las empresas del catálogo
                 filtradasPorTexto = catalogoEmpresas;
             } else if (textoFinal && filtro !== 'todas') {
-                // Esto no debería pasar porque limpiamos el texto, pero por seguridad
                 filtradasPorTexto = catalogoEmpresas;
             }
             
@@ -772,7 +1065,7 @@
     function renderizarTablaEmpresas(empresas) {
         const tbody = document.getElementById('empresasBody');
         if (!empresas.length) { 
-            tbody.innerHTML = '<tr><td colspan="7" class="mensaje-inicial">📭 No hay empresas que coincidan con los filtros</span></span><tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="mensaje-inicial">📭 No hay empresas que coincidan con los filtros</span></span></tr>';
             return; 
         }
         
@@ -990,7 +1283,6 @@
     document.getElementById('filtroEmpresa').addEventListener('input', () => {
         clearTimeout(timeoutBusqueda);
         timeoutBusqueda = setTimeout(() => {
-            // Al escribir, si hay texto, automáticamente cambiamos el filtro a "todas" para que la búsqueda tenga sentido
             const inputText = document.getElementById('filtroEmpresa').value.trim();
             if (inputText !== '') {
                 const filtroSelect = document.getElementById('filtroOportunidad');
@@ -1002,7 +1294,6 @@
         }, 300);
     });
     document.getElementById('filtroOportunidad').addEventListener('change', () => {
-        // Al cambiar el filtro, limpiamos el buscador y la selección de empresa
         const inputBusqueda = document.getElementById('filtroEmpresa');
         if (inputBusqueda.value !== '') {
             inputBusqueda.value = '';
@@ -1016,7 +1307,8 @@
         limpiarSeleccionEmpresa();
     });
 
-    cargarCatalogoEmpresas();
+    // IMPORTANTE: Ahora la carga inicial de empresas se dispara desde showApp() tras el login.
+    // No llamamos a cargarCatalogoEmpresas() aquí para que no se ejecute antes de login.
 </script>
 </body>
 </html>
