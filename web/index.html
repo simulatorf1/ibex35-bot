@@ -886,6 +886,23 @@
                     .single();
                     
                 if (error) {
+                    // Si no existe el perfil, crearlo
+                    if (error.code === 'PGRST116') {
+                        console.log('Creando perfil automático (retry)...');
+                        const { data: userData } = await supabaseClient.auth.getUser();
+                        const email = userData.user.email || 'usuario@email.com';
+                        const nombre = email.split('@')[0] || 'Usuario';
+                        
+                        await supabaseClient
+                            .from('perfiles')
+                            .insert([{ id: userId, nombre, ciudad: 'No especificada', email }]);
+                        
+                        userNameDisplay.textContent = nombre;
+                        userEmailDisplay.textContent = 'No especificada';
+                        showApp();
+                        return;
+                    }
+                    
                     console.log(`Intento ${i+1} fallido:`, error.message);
                     continue;
                 }
@@ -901,6 +918,7 @@
             }
         }
         
+        // Fallback final
         try {
             const { data: userData } = await supabaseClient.auth.getUser();
             if (userData?.user) {
@@ -921,13 +939,49 @@
                 .select('nombre, ciudad')
                 .eq('id', userId)
                 .single();
+                
             if (error) {
+                // Si el error es "no se encontraron registros", crear el perfil
+                if (error.code === 'PGRST116') {
+                    console.log('Perfil no encontrado, creando uno automáticamente...');
+                    const { data: userData } = await supabaseClient.auth.getUser();
+                    const email = userData.user.email || 'usuario@email.com';
+                    const nombre = email.split('@')[0] || 'Usuario';
+                    
+                    // Crear perfil automáticamente
+                    const { error: insertError } = await supabaseClient
+                        .from('perfiles')
+                        .insert([{ 
+                            id: userId, 
+                            nombre: nombre, 
+                            ciudad: 'No especificada', 
+                            email: email 
+                        }]);
+                        
+                    if (insertError) {
+                        console.error('Error creando perfil automático:', insertError);
+                        // Fallback: mostrar email
+                        userNameDisplay.textContent = nombre;
+                        userEmailDisplay.textContent = email;
+                        showApp();
+                        return;
+                    }
+                    
+                    // Cargar el perfil recién creado
+                    userNameDisplay.textContent = nombre;
+                    userEmailDisplay.textContent = 'No especificada';
+                    showApp();
+                    return;
+                }
+                
+                // Si es otro error, mostrar email como fallback
                 const { data: userData } = await supabaseClient.auth.getUser();
-                userNameDisplay.textContent = userData.user.email.split('@')[0];
-                userEmailDisplay.textContent = userData.user.email;
+                userNameDisplay.textContent = userData.user.email?.split('@')[0] || 'Usuario';
+                userEmailDisplay.textContent = userData.user.email || '';
                 showApp();
                 return;
             }
+            
             if (data) {
                 userNameDisplay.textContent = data.nombre || 'Usuario';
                 userEmailDisplay.textContent = data.ciudad || '';
@@ -935,10 +989,15 @@
             }
         } catch (error) {
             console.error('Error cargando perfil:', error);
-            const { data: userData } = await supabaseClient.auth.getUser();
-            userNameDisplay.textContent = userData.user.email.split('@')[0];
-            userEmailDisplay.textContent = userData.user.email;
-            showApp();
+            // Fallback: mostrar email
+            try {
+                const { data: userData } = await supabaseClient.auth.getUser();
+                userNameDisplay.textContent = userData.user.email?.split('@')[0] || 'Usuario';
+                userEmailDisplay.textContent = userData.user.email || '';
+                showApp();
+            } catch {
+                showAuth();
+            }
         }
     }
 
