@@ -1369,6 +1369,220 @@
 
     // IMPORTANTE: Ahora la carga inicial de empresas se dispara desde showApp() tras el login.
     // No llamamos a cargarCatalogoEmpresas() aquí para que no se ejecute antes de login.
+    // ============================================================
+    // GESTIÓN DE NOTIFICACIONES
+    // ============================================================
+    
+    const modalNotificaciones = document.getElementById('modalNotificaciones');
+    const empresasSeleccionables = document.getElementById('empresasSeleccionables');
+    const btnGuardarPreferencias = document.getElementById('btnGuardarPreferencias');
+    const btnCerrarModal = document.getElementById('btnCerrarModal');
+    const mensajePreferencias = document.getElementById('mensajePreferencias');
+    const notificationBell = document.getElementById('notificationBell');
+    
+    let empresasSeleccionadas = [];
+    
+    // Abrir modal al hacer clic en la campana
+    notificationBell.addEventListener('click', async () => {
+        await cargarPreferenciasUsuario();
+        await cargarListaEmpresas();
+        modalNotificaciones.style.display = 'flex';
+    });
+    
+    // Cerrar modal
+    btnCerrarModal.addEventListener('click', () => {
+        modalNotificaciones.style.display = 'none';
+    });
+    
+    // Cargar preferencias actuales del usuario
+    async function cargarPreferenciasUsuario() {
+        try {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (!user) return;
+            
+            const { data, error } = await supabaseClient
+                .from('preferencias_notificaciones')
+                .select('empresas_seleccionadas')
+                .eq('usuario_id', user.id)
+                .single();
+                
+            if (error && error.code !== 'PGRST116') throw error;
+            
+            empresasSeleccionadas = data?.empresas_seleccionadas || [];
+        } catch (error) {
+            console.error('Error cargando preferencias:', error);
+            empresasSeleccionadas = [];
+        }
+    }
+    
+    // Cargar lista de empresas para seleccionar
+    async function cargarListaEmpresas() {
+        try {
+            const { data, error } = await supabaseClient
+                .from('recomendaciones_ibex')
+                .select('ticker, nombre_empresa')
+                .order('nombre_empresa');
+                
+            if (error) throw error;
+            
+            // Eliminar duplicados
+            const empresasUnicas = [];
+            const tickersVistos = new Set();
+            for (const item of data) {
+                if (!tickersVistos.has(item.ticker)) {
+                    tickersVistos.add(item.ticker);
+                    empresasUnicas.push(item);
+                }
+            }
+            
+            empresasSeleccionables.innerHTML = '';
+            for (const emp of empresasUnicas) {
+                const isSelected = empresasSeleccionadas.includes(emp.ticker);
+                const div = document.createElement('div');
+                div.style.cssText = `
+                    padding: 6px 14px;
+                    border-radius: 20px;
+                    border: 2px solid ${isSelected ? '#1e7e34' : '#cfdfed'};
+                    background: ${isSelected ? '#d4edda' : 'white'};
+                    cursor: pointer;
+                    font-size: 0.8rem;
+                    transition: 0.2s;
+                    ${empresasSeleccionadas.length >= 5 && !isSelected ? 'opacity:0.5; pointer-events:none;' : ''}
+                `;
+                div.textContent = `${emp.nombre_empresa} (${emp.ticker})`;
+                div.dataset.ticker = emp.ticker;
+                
+                div.addEventListener('click', () => {
+                    toggleEmpresaSeleccionada(emp.ticker, div);
+                });
+                
+                empresasSeleccionables.appendChild(div);
+            }
+        } catch (error) {
+            console.error('Error cargando empresas:', error);
+            empresasSeleccionables.innerHTML = '<p style="color:red;">Error cargando empresas</p>';
+        }
+    }
+    
+    function toggleEmpresaSeleccionada(ticker, elemento) {
+        const index = empresasSeleccionadas.indexOf(ticker);
+        if (index > -1) {
+            empresasSeleccionadas.splice(index, 1);
+            elemento.style.border = '2px solid #cfdfed';
+            elemento.style.background = 'white';
+        } else {
+            if (empresasSeleccionadas.length >= 5) {
+                mensajePreferencias.textContent = '⚠️ Solo puedes seleccionar hasta 5 empresas';
+                mensajePreferencias.style.color = '#dc3545';
+                return;
+            }
+            empresasSeleccionadas.push(ticker);
+            elemento.style.border = '2px solid #1e7e34';
+            elemento.style.background = '#d4edda';
+        }
+        mensajePreferencias.textContent = '';
+        
+        // Actualizar opacidad de elementos no seleccionados
+        document.querySelectorAll('#empresasSeleccionables div').forEach(el => {
+            const tickerEl = el.dataset.ticker;
+            if (!empresasSeleccionadas.includes(tickerEl)) {
+                el.style.opacity = empresasSeleccionadas.length >= 5 ? '0.5' : '1';
+                el.style.pointerEvents = empresasSeleccionadas.length >= 5 ? 'none' : 'auto';
+            }
+        });
+    }
+    
+    // Guardar preferencias
+    btnGuardarPreferencias.addEventListener('click', async () => {
+        try {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (!user) {
+                mensajePreferencias.textContent = '❌ Usuario no autenticado';
+                mensajePreferencias.style.color = '#dc3545';
+                return;
+            }
+            
+            // Verificar si ya existe registro
+            const { data: existente, error: checkError } = await supabaseClient
+                .from('preferencias_notificaciones')
+                .select('id')
+                .eq('usuario_id', user.id)
+                .single();
+                
+            let result;
+            if (existente) {
+                // Actualizar
+                result = await supabaseClient
+                    .from('preferencias_notificaciones')
+                    .update({ empresas_seleccionadas: empresasSeleccionadas, updated_at: new Date() })
+                    .eq('usuario_id', user.id);
+            } else {
+                // Insertar
+                result = await supabaseClient
+                    .from('preferencias_notificaciones')
+                    .insert({ usuario_id: user.id, empresas_seleccionadas: empresasSeleccionadas });
+            }
+            
+            if (result.error) throw result.error;
+            
+            mensajePreferencias.textContent = '✅ Preferencias guardadas correctamente';
+            mensajePreferencias.style.color = '#1e7e34';
+            setTimeout(() => {
+                modalNotificaciones.style.display = 'none';
+            }, 1500);
+            
+        } catch (error) {
+            console.error('Error guardando preferencias:', error);
+            mensajePreferencias.textContent = '❌ Error guardando preferencias: ' + error.message;
+            mensajePreferencias.style.color = '#dc3545';
+        }
+    });
+    
+    // Cargar contador de notificaciones no leídas
+    async function cargarContadorNotificaciones() {
+        try {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (!user) return;
+            
+            const { data, error } = await supabaseClient
+                .from('historial_notificaciones')
+                .select('id', { count: 'exact', head: true })
+                .eq('usuario_id', user.id)
+                .eq('leido', false);
+                
+            if (error) throw error;
+            
+            const badge = document.getElementById('notificationBadge');
+            const count = data?.length || 0;
+            if (count > 0) {
+                badge.textContent = count;
+                badge.style.display = 'inline';
+            } else {
+                badge.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Error cargando contador:', error);
+        }
+    }
+    
+    // Cargar contador al iniciar y cada 30 segundos
+    cargarContadorNotificaciones();
+    setInterval(cargarContadorNotificaciones, 30000);
+
+    
 </script>
+<!-- Modal de preferencias de notificaciones -->
+<div id="modalNotificaciones" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; justify-content:center; align-items:center;">
+    <div style="background:white; border-radius:20px; padding:30px; max-width:500px; width:90%; max-height:80vh; overflow-y:auto;">
+        <h3 style="color:#1e4668; margin-bottom:20px;">🔔 Configurar notificaciones</h3>
+        <p style="font-size:0.85rem; color:#6c86a3; margin-bottom:15px;">Selecciona hasta 5 empresas para recibir alertas cuando den señales (P7, P3 o estén en peligro).</p>
+        <div id="empresasSeleccionables" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px;"></div>
+        <div style="display:flex; gap:10px; justify-content:flex-end;">
+            <button id="btnGuardarPreferencias" style="background:#1e7e34; color:white; border:none; padding:10px 20px; border-radius:40px; cursor:pointer; font-weight:600;">Guardar preferencias</button>
+            <button id="btnCerrarModal" style="background:#f8d7da; color:#721c24; border:none; padding:10px 20px; border-radius:40px; cursor:pointer; font-weight:600;">Cerrar</button>
+        </div>
+        <div id="mensajePreferencias" style="margin-top:10px; font-size:0.85rem; text-align:center;"></div>
+    </div>
+</div>    
 </body>
 </html>
