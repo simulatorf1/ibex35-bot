@@ -47,4 +47,10 @@ jobs:
             -H "Content-Type: application/json" \
             -d '{}'
 
-
+      - name: Enviar correos pendientes
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+        run: |
+          python enviar_correos.py
