@@ -423,95 +423,6 @@
             .resultado-sim { text-align: left; }
         }
 
-        /* --- ESTILOS PARA SELECTOR MÚLTIPLE --- */
-        #selectorEmpresas option {
-            padding: 8px 12px;
-            cursor: pointer;
-        }
-        #selectorEmpresas option:checked {
-            background: #1e4668;
-            color: white;
-        }
-        #selectorEmpresas option:hover {
-            background: #e3f2fd;
-        }
-
-        /* --- ESTILOS PARA CHIPS DE EMPRESAS SELECCIONADAS --- */
-        .empresa-chip-seleccionada {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 12px;
-            background: #d4edda;
-            border: 1px solid #1e7e34;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            color: #1e4668;
-        }
-        .empresa-chip-seleccionada .eliminar {
-            cursor: pointer;
-            color: #dc3545;
-            font-weight: 700;
-            font-size: 0.8rem;
-            margin-left: 4px;
-        }
-        .empresa-chip-seleccionada .eliminar:hover {
-            color: #a71d2a;
-        }
-
-        /* --- ESTILOS PARA NOTIFICACIONES --- */
-        .notificacion-item {
-            padding: 12px 16px;
-            border-radius: 12px;
-            margin-bottom: 10px;
-            border-left: 4px solid #1e4668;
-            background: #f8f9fa;
-            cursor: default;
-            transition: 0.2s;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .notificacion-item:hover {
-            background: #e9ecef;
-        }
-        .notificacion-item .mensaje {
-            flex: 1;
-            font-size: 0.85rem;
-        }
-        .notificacion-item .fecha {
-            font-size: 0.65rem;
-            color: #6c86a3;
-            margin-left: 10px;
-            white-space: nowrap;
-        }
-        .notificacion-item .tipo-oportunidad {
-            border-left-color: #1e7e34;
-        }
-        .notificacion-item .tipo-peligro {
-            border-left-color: #dc3545;
-        }
-        .notificacion-item .tipo-rebote {
-            border-left-color: #ffc107;
-        }
-        .notificacion-item .btn-marcar-leida {
-            background: #1e4668;
-            color: white;
-            border: none;
-            padding: 2px 12px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 0.65rem;
-            transition: 0.2s;
-        }
-        .notificacion-item .btn-marcar-leida:hover {
-            background: #2c7da0;
-        }
-        .notificacion-item.leida {
-            opacity: 0.5;
-            border-left-color: #6c86a3;
-        }
-
         /* --- ESTILOS PARA AUTENTICACIÓN Y BARRA DE USUARIO --- */
         #authContainer {
             max-width: 400px;
@@ -621,6 +532,10 @@
             font-size: 1.3rem;
             cursor: pointer;
             color: #6c86a3;
+            transition: 0.2s;
+        }
+        .notification-bell:hover {
+            color: #1e4668;
         }
         .notification-bell .badge {
             position: absolute;
@@ -635,8 +550,22 @@
             min-width: 18px;
             text-align: center;
         }
+        .settings-btn {
+            background: none;
+            border: none;
+            font-size: 1.1rem;
+            cursor: pointer;
+            color: #6c86a3;
+            transition: 0.2s;
+            padding: 4px 8px;
+            border-radius: 20px;
+        }
+        .settings-btn:hover {
+            background: #e9ecef;
+            color: #1e4668;
+        }
 
-        /* --- ESTILOS DE MODALES --- */
+        /* --- ESTILOS PARA MODALES --- */
         #modalNotificaciones, #modalListaNotificaciones {
             display: none;
             position: fixed;
@@ -708,6 +637,19 @@
         .btn-marcar-todas:hover {
             background: #2c7da0;
         }
+        .btn-configurar {
+            background: #e9ecef;
+            color: #1e4668;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        .btn-configurar:hover {
+            background: #dee2e6;
+        }
         #mensajePreferencias {
             margin-top: 10px;
             font-size: 0.85rem;
@@ -726,6 +668,11 @@
         .modal-header h3 {
             margin: 0;
         }
+        .modal-header-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
         .sin-notificaciones {
             text-align: center;
             color: #8ba0bc;
@@ -737,6 +684,146 @@
             font-size: 0.85rem;
             border-bottom: 1px solid #e9ecef;
             padding-bottom: 8px;
+        }
+
+        /* --- ESTILOS PARA NOTIFICACIONES --- */
+        .notificacion-item {
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            border-left: 4px solid #1e4668;
+            background: #f8f9fa;
+            cursor: default;
+            transition: 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .notificacion-item:hover {
+            background: #e9ecef;
+        }
+        .notificacion-item .mensaje {
+            flex: 1;
+            font-size: 0.85rem;
+        }
+        .notificacion-item .fecha {
+            font-size: 0.65rem;
+            color: #6c86a3;
+            margin-left: 10px;
+            white-space: nowrap;
+        }
+        .notificacion-item .tipo-oportunidad {
+            border-left-color: #1e7e34;
+        }
+        .notificacion-item .tipo-peligro {
+            border-left-color: #dc3545;
+        }
+        .notificacion-item .tipo-rebote {
+            border-left-color: #ffc107;
+        }
+        .notificacion-item .btn-marcar-leida {
+            background: #1e4668;
+            color: white;
+            border: none;
+            padding: 2px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.65rem;
+            transition: 0.2s;
+        }
+        .notificacion-item .btn-marcar-leida:hover {
+            background: #2c7da0;
+        }
+        .notificacion-item.leida {
+            opacity: 0.5;
+            border-left-color: #6c86a3;
+        }
+
+        /* --- ESTILOS PARA SELECTOR DE EMPRESAS (móvil friendly) --- */
+        .empresa-checkbox-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            padding: 4px;
+        }
+        @media (max-width: 600px) {
+            .empresa-checkbox-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .empresa-checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.8rem;
+        }
+        .empresa-checkbox-item:hover {
+            background: #e9ecef;
+        }
+        .empresa-checkbox-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            flex-shrink: 0;
+            accent-color: #1e7e34;
+        }
+        .empresa-checkbox-item.seleccionada {
+            background: #d4edda;
+            border-color: #1e7e34;
+        }
+        .empresa-checkbox-item label {
+            cursor: pointer;
+            flex: 1;
+        }
+        .empresa-chip-seleccionada {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            background: #d4edda;
+            border: 1px solid #1e7e34;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            color: #1e4668;
+        }
+        .empresa-chip-seleccionada .eliminar {
+            cursor: pointer;
+            color: #dc3545;
+            font-weight: 700;
+            font-size: 0.8rem;
+            margin-left: 4px;
+        }
+        .empresa-chip-seleccionada .eliminar:hover {
+            color: #a71d2a;
+        }
+
+        /* Empresas seleccionadas en la barra */
+        .mis-empresas {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 4px;
+        }
+        .mis-empresas .tag {
+            background: #e3f2fd;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.6rem;
+            color: #1e4668;
+            font-weight: 600;
+        }
+        .mis-empresas .tag-empty {
+            color: #8ba0bc;
+            font-size: 0.6rem;
         }
     </style>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-LVV061GCPF"></script>
@@ -766,20 +853,26 @@
         </form>
     </div>
 
-    <!-- CONTENEDOR DE LA APLICACIÓN (solo visible tras login) -->
+    <!-- CONTENEDOR DE LA APLICACIÓN -->
     <div id="appContainer">
         <!-- BARRA DE USUARIO -->
         <div class="user-bar">
             <div class="user-info">
                 <span>👋</span>
-                <span class="user-name" id="userNameDisplay">Usuario</span>
-                <span style="font-size:0.7rem; color:#8ba0bc;" id="userEmailDisplay"></span>
+                <div>
+                    <span class="user-name" id="userNameDisplay">Usuario</span>
+                    <span style="font-size:0.7rem; color:#8ba0bc; display:block;" id="userEmailDisplay"></span>
+                    <div class="mis-empresas" id="misEmpresasTags">
+                        <span class="tag-empty">⚙️ Configura tus empresas</span>
+                    </div>
+                </div>
             </div>
             <div class="user-actions">
                 <span class="notification-bell" id="notificationBell">
                     🔔
                     <span class="badge" id="notificationBadge" style="display:none;">0</span>
                 </span>
+                <button class="settings-btn" id="settingsBtn" title="Configurar empresas">⚙️</button>
                 <button class="logout-btn" id="logoutBtn">Cerrar sesión</button>
             </div>
         </div>
@@ -874,36 +967,15 @@
         </div>
     </div>
 
-    <!-- MODAL DE CONFIGURACIÓN DE NOTIFICACIONES -->
-    <div id="modalNotificaciones">
-        <div class="modal-content">
-            <h3>🔔 Configurar notificaciones</h3>
-            <p style="font-size:0.85rem; color:#6c86a3; margin-bottom:15px;">
-                Selecciona hasta 5 empresas para recibir alertas cuando den señales (P7, P3 o estén en peligro).
-                <br><span style="font-size:0.75rem; color:#dc3545;" id="contadorSeleccion">0 de 5 seleccionadas</span>
-            </p>
-            <div style="margin-bottom:15px;">
-                <select id="selectorEmpresas" multiple style="width:100%; height:200px; padding:10px; border-radius:10px; border:1px solid #cfdfed; font-size:0.85rem; font-family:inherit;">
-                </select>
-                <p style="font-size:0.7rem; color:#6c86a3; margin-top:5px;">Mantén presionada la tecla Ctrl (Windows) o Cmd (Mac) para seleccionar múltiples empresas</p>
-            </div>
-            <div id="empresasSeleccionadasContainer" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:15px; min-height:30px; padding:8px; background:#f8f9fa; border-radius:10px; border:1px dashed #cfdfed;">
-                <span style="font-size:0.75rem; color:#8ba0bc;">Las empresas seleccionadas aparecerán aquí</span>
-            </div>
-            <div class="modal-buttons">
-                <button class="btn-guardar" id="btnGuardarPreferencias">💾 Guardar preferencias</button>
-                <button class="btn-cerrar-modal" id="btnCerrarModal">✕ Cerrar</button>
-            </div>
-            <div id="mensajePreferencias" style="margin-top:10px; font-size:0.85rem; text-align:center;"></div>
-        </div>
-    </div>
-
     <!-- MODAL DE LISTA DE NOTIFICACIONES -->
     <div id="modalListaNotificaciones">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>🔔 Mis notificaciones</h3>
-                <button class="btn-cerrar-modal" id="btnCerrarListaNotificaciones">✕ Cerrar</button>
+                <div class="modal-header-actions">
+                    <button class="btn-configurar" id="btnAbrirConfiguracion">⚙️ Configurar</button>
+                    <button class="btn-cerrar-modal" id="btnCerrarListaNotificaciones">✕</button>
+                </div>
             </div>
             <div id="listaNotificacionesContainer">
                 <p class="sin-notificaciones">📭 No tienes notificaciones pendientes</p>
@@ -911,6 +983,31 @@
             <div style="margin-top:15px; text-align:center;">
                 <button class="btn-marcar-todas" id="btnMarcarTodasLeidas">✅ Marcar todas como leídas</button>
             </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE CONFIGURACIÓN DE NOTIFICACIONES -->
+    <div id="modalNotificaciones">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>⚙️ Configurar empresas</h3>
+                <button class="btn-cerrar-modal" id="btnCerrarModal">✕</button>
+            </div>
+            <p style="font-size:0.85rem; color:#6c86a3; margin-bottom:15px;">
+                Selecciona hasta 5 empresas para recibir alertas cuando den señales.
+                <br><span style="font-size:0.75rem; color:#1e4668; font-weight:600;" id="contadorSeleccion">0 de 5 seleccionadas</span>
+            </p>
+            <div id="empresasCheckboxContainer" class="empresa-checkbox-grid">
+                <!-- Aquí se cargarán los checkboxes -->
+            </div>
+            <div id="empresasSeleccionadasContainer" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:15px; min-height:30px; padding:8px; background:#f8f9fa; border-radius:10px; border:1px dashed #cfdfed;">
+                <span style="font-size:0.75rem; color:#8ba0bc;">📭 No has seleccionado ninguna empresa</span>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-guardar" id="btnGuardarPreferencias">💾 Guardar preferencias</button>
+                <button class="btn-cerrar-modal" id="btnCerrarModal2">✕ Cerrar</button>
+            </div>
+            <div id="mensajePreferencias" style="margin-top:10px; font-size:0.85rem; text-align:center;"></div>
         </div>
     </div>
 
@@ -937,6 +1034,7 @@
     const userEmailDisplay = document.getElementById('userEmailDisplay');
     const logoutBtn = document.getElementById('logoutBtn');
     const notificationBell = document.getElementById('notificationBell');
+    const settingsBtn = document.getElementById('settingsBtn');
 
     let isLoginMode = true;
 
@@ -1130,6 +1228,7 @@
             cargarCatalogoEmpresas();
         }
         cargarContadorNotificaciones();
+        cargarMisEmpresas();
     }
 
     function showAuth() {
@@ -1621,30 +1720,44 @@
     // ============================================================
         
     const modalNotificaciones = document.getElementById('modalNotificaciones');
-    const selectorEmpresas = document.getElementById('selectorEmpresas');
+    const empresasCheckboxContainer = document.getElementById('empresasCheckboxContainer');
     const empresasSeleccionadasContainer = document.getElementById('empresasSeleccionadasContainer');
     const btnGuardarPreferencias = document.getElementById('btnGuardarPreferencias');
     const btnCerrarModal = document.getElementById('btnCerrarModal');
+    const btnCerrarModal2 = document.getElementById('btnCerrarModal2');
     const mensajePreferencias = document.getElementById('mensajePreferencias');
     const contadorSeleccion = document.getElementById('contadorSeleccion');
+    const btnAbrirConfiguracion = document.getElementById('btnAbrirConfiguracion');
     
     let empresasSeleccionadas = [];
     let catalogoCompletoEmpresas = [];
+    let checkboxElements = [];
     
-    // Abrir modal de configuración
-    notificationBell.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        // Si el modal de lista está abierto, cerrarlo
+    // Abrir modal de configuración desde el botón de ajustes
+    settingsBtn.addEventListener('click', async () => {
+        await cargarPreferenciasUsuario();
+        await cargarListaEmpresasCheckboxes();
+        actualizarContador();
         if (modalListaNotificaciones.style.display === 'flex') {
             modalListaNotificaciones.style.display = 'none';
         }
+        modalNotificaciones.style.display = 'flex';
+    });
+    
+    // Abrir configuración desde el botón dentro de la lista
+    btnAbrirConfiguracion.addEventListener('click', async () => {
+        modalListaNotificaciones.style.display = 'none';
         await cargarPreferenciasUsuario();
-        await cargarListaEmpresas();
+        await cargarListaEmpresasCheckboxes();
         actualizarContador();
         modalNotificaciones.style.display = 'flex';
     });
     
+    // Cerrar modales
     btnCerrarModal.addEventListener('click', () => {
+        modalNotificaciones.style.display = 'none';
+    });
+    btnCerrarModal2.addEventListener('click', () => {
         modalNotificaciones.style.display = 'none';
     });
     
@@ -1674,7 +1787,7 @@
         }
     }
     
-    async function cargarListaEmpresas() {
+    async function cargarListaEmpresasCheckboxes() {
         try {
             const { data, error } = await supabaseClient
                 .from('recomendaciones_ibex')
@@ -1696,45 +1809,67 @@
             }
             catalogoCompletoEmpresas = empresasUnicas;
             
-            selectorEmpresas.innerHTML = '';
+            // Crear checkboxes
+            empresasCheckboxContainer.innerHTML = '';
+            checkboxElements = [];
             for (const emp of empresasUnicas) {
-                const option = document.createElement('option');
-                option.value = emp.ticker;
-                option.textContent = `${emp.nombre} (${emp.ticker})`;
-                if (empresasSeleccionadas.includes(emp.ticker)) {
-                    option.selected = true;
-                }
-                selectorEmpresas.appendChild(option);
+                const isSelected = empresasSeleccionadas.includes(emp.ticker);
+                const div = document.createElement('div');
+                div.className = `empresa-checkbox-item ${isSelected ? 'seleccionada' : ''}`;
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.value = emp.ticker;
+                checkbox.id = `emp_${emp.ticker}`;
+                checkbox.checked = isSelected;
+                
+                const label = document.createElement('label');
+                label.htmlFor = `emp_${emp.ticker}`;
+                label.textContent = `${emp.nombre} (${emp.ticker})`;
+                
+                div.appendChild(checkbox);
+                div.appendChild(label);
+                
+                checkbox.addEventListener('change', (e) => {
+                    manejarCambioCheckbox(emp.ticker, checkbox.checked, div);
+                });
+                
+                empresasCheckboxContainer.appendChild(div);
+                checkboxElements.push({ checkbox, div, ticker: emp.ticker });
             }
             
-            actualizarVistaSeleccionadas();
-            selectorEmpresas.addEventListener('change', manejarCambioSeleccion);
+            actualizarVistaSeleccionadasCheckboxes();
+            actualizarContador();
             
         } catch (error) {
             console.error('Error cargando empresas:', error);
-            selectorEmpresas.innerHTML = '<option value="">Error cargando empresas</option>';
+            empresasCheckboxContainer.innerHTML = '<p style="color:red;">Error cargando empresas</p>';
         }
     }
     
-    function manejarCambioSeleccion() {
-        const selectedOptions = Array.from(selectorEmpresas.selectedOptions);
-        const nuevosSeleccionados = selectedOptions.map(opt => opt.value);
-        
-        if (nuevosSeleccionados.length > 5) {
-            mensajePreferencias.textContent = '⚠️ Solo puedes seleccionar hasta 5 empresas';
-            mensajePreferencias.style.color = '#dc3545';
-            const ultimo = selectorEmpresas.selectedOptions[selectorEmpresas.selectedOptions.length - 1];
-            if (ultimo) ultimo.selected = false;
-            return;
+    function manejarCambioCheckbox(ticker, checked, div) {
+        if (checked) {
+            if (empresasSeleccionadas.length >= 5) {
+                // Desmarcar y mostrar mensaje
+                const checkbox = div.querySelector('input[type="checkbox"]');
+                checkbox.checked = false;
+                div.classList.remove('seleccionada');
+                mensajePreferencias.textContent = '⚠️ Solo puedes seleccionar hasta 5 empresas';
+                mensajePreferencias.style.color = '#dc3545';
+                return;
+            }
+            empresasSeleccionadas.push(ticker);
+            div.classList.add('seleccionada');
+        } else {
+            empresasSeleccionadas = empresasSeleccionadas.filter(t => t !== ticker);
+            div.classList.remove('seleccionada');
         }
-        
         mensajePreferencias.textContent = '';
-        empresasSeleccionadas = nuevosSeleccionados;
-        actualizarVistaSeleccionadas();
+        actualizarVistaSeleccionadasCheckboxes();
         actualizarContador();
     }
     
-    function actualizarVistaSeleccionadas() {
+    function actualizarVistaSeleccionadasCheckboxes() {
         const container = empresasSeleccionadasContainer;
         container.innerHTML = '';
         
@@ -1757,21 +1892,25 @@
             chip.querySelector('.eliminar').addEventListener('click', (e) => {
                 e.stopPropagation();
                 const tickerAEliminar = e.target.dataset.ticker;
-                eliminarEmpresaSeleccionada(tickerAEliminar);
+                eliminarEmpresaSeleccionadaCheckbox(tickerAEliminar);
             });
             
             container.appendChild(chip);
         }
     }
     
-    function eliminarEmpresaSeleccionada(ticker) {
+    function eliminarEmpresaSeleccionadaCheckbox(ticker) {
         empresasSeleccionadas = empresasSeleccionadas.filter(t => t !== ticker);
-        for (const option of selectorEmpresas.options) {
-            if (option.value === ticker) {
-                option.selected = false;
+        
+        // Actualizar checkboxes
+        for (const item of checkboxElements) {
+            if (item.ticker === ticker) {
+                item.checkbox.checked = false;
+                item.div.classList.remove('seleccionada');
             }
         }
-        actualizarVistaSeleccionadas();
+        
+        actualizarVistaSeleccionadasCheckboxes();
         actualizarContador();
         mensajePreferencias.textContent = '';
     }
@@ -1825,6 +1964,7 @@
             
             mensajePreferencias.textContent = '✅ Preferencias guardadas correctamente';
             mensajePreferencias.style.color = '#1e7e34';
+            cargarMisEmpresas();
             setTimeout(() => {
                 modalNotificaciones.style.display = 'none';
             }, 1500);
@@ -1835,7 +1975,59 @@
             mensajePreferencias.style.color = '#dc3545';
         }
     });
+
+    // ============================================================
+    // MIS EMPRESAS (mostrar en barra)
+    // ============================================================
     
+    async function cargarMisEmpresas() {
+        try {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (!user) {
+                document.getElementById('misEmpresasTags').innerHTML = '<span class="tag-empty">⚙️ Configura tus empresas</span>';
+                return;
+            }
+            
+            const { data, error } = await supabaseClient
+                .from('preferencias_notificaciones')
+                .select('empresas_seleccionadas')
+                .eq('usuario_id', user.id)
+                .single();
+                
+            if (error && error.code !== 'PGRST116') throw error;
+            
+            const seleccionadas = data?.empresas_seleccionadas || [];
+            const container = document.getElementById('misEmpresasTags');
+            
+            if (seleccionadas.length === 0) {
+                container.innerHTML = '<span class="tag-empty">⚙️ Configura tus empresas</span>';
+                return;
+            }
+            
+            // Obtener nombres
+            const { data: empresasData } = await supabaseClient
+                .from('recomendaciones_ibex')
+                .select('ticker, nombre_empresa')
+                .in('ticker', seleccionadas)
+                .range(0, 99999);
+                
+            const nombresMap = {};
+            for (const item of empresasData || []) {
+                nombresMap[item.ticker] = item.nombre_empresa || item.ticker;
+            }
+            
+            let html = '';
+            for (const ticker of seleccionadas) {
+                const nombre = nombresMap[ticker] || ticker;
+                html += `<span class="tag">${nombre}</span>`;
+            }
+            container.innerHTML = html;
+            
+        } catch (error) {
+            console.error('Error cargando mis empresas:', error);
+        }
+    }
+
     // ============================================================
     // GESTIÓN DE NOTIFICACIONES - LISTA
     // ============================================================
@@ -1845,20 +2037,14 @@
     const btnCerrarListaNotificaciones = document.getElementById('btnCerrarListaNotificaciones');
     const btnMarcarTodasLeidas = document.getElementById('btnMarcarTodasLeidas');
     
-    // Abrir lista de notificaciones (doble clic en campana o clic largo)
-    // Para no interferir con la configuración, usamos un gesto diferente
-    // Como la campana ya abre configuración, añadimos un doble clic para la lista
-    notificationBell.addEventListener('dblclick', async () => {
+    // Un clic en la campana → abre lista de notificaciones
+    notificationBell.addEventListener('click', async () => {
         if (modalNotificaciones.style.display === 'flex') {
             modalNotificaciones.style.display = 'none';
         }
         await cargarListaNotificaciones();
         modalListaNotificaciones.style.display = 'flex';
     });
-    
-    // También podemos abrir la lista desde el contador (haciendo clic en el badge)
-    // Pero mejor: el botón "Ver notificaciones" dentro del modal de configuración
-    // Lo añadimos dinámicamente o usamos doble clic como está
     
     btnCerrarListaNotificaciones.addEventListener('click', () => {
         modalListaNotificaciones.style.display = 'none';
@@ -1983,7 +2169,7 @@
             alert('❌ Error al marcar todas como leídas');
         }
     });
-    
+
     // ============================================================
     // CONTADOR DE NOTIFICACIONES
     // ============================================================
@@ -2010,15 +2196,18 @@
             if (count > 0) {
                 badge.textContent = count;
                 badge.style.display = 'inline';
+                // Poner la campana en modo "activa"
+                notificationBell.style.color = '#dc3545';
             } else {
                 badge.style.display = 'none';
+                notificationBell.style.color = '#6c86a3';
             }
         } catch (error) {
             console.error('Error cargando contador:', error);
         }
     }
     
-    // Inicializar contador
+    // Inicializar contador y actualizar cada 30 segundos
     cargarContadorNotificaciones();
     setInterval(cargarContadorNotificaciones, 30000);
 </script>
