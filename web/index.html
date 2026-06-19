@@ -1411,14 +1411,16 @@
         isLoginMode = (mode === 'login');
         if (isLoginMode) {
             authSubmitBtn.textContent = 'Iniciar sesión';
-            authToggleLink.textContent = '¿No tienes cuenta? Regístrate gratis';
-            registerFields.style.display = 'none';
+            authToggleLink.textContent = '¿No tienes cuenta? Regístrate';
+            authNombre.style.display = 'none';
+            authCiudad.style.display = 'none';
             authNombre.required = false;
             authCiudad.required = false;
         } else {
             authSubmitBtn.textContent = 'Registrarse';
             authToggleLink.textContent = '¿Ya tienes cuenta? Inicia sesión';
-            registerFields.style.display = 'flex';
+            authNombre.style.display = 'block';
+            authCiudad.style.display = 'block';
             authNombre.required = true;
             authCiudad.required = true;
         }
@@ -1448,28 +1450,23 @@
                     authError.textContent = 'Nombre y ciudad son obligatorios para registrarse.';
                     return;
                 }
-    
-                // 🔽 ESTA ES LA LÍNEA QUE HAY QUE CAMBIAR 🔽
-                const { data, error } = await supabaseClient.auth.signUp({ email, password });
                 
+                const { data, error } = await supabaseClient.auth.signUp({ email, password });
                 if (error) throw error;
                 
                 if (data.user) {
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    await new Promise(resolve => setTimeout(resolve, 500));
                     
                     const { error: profileError } = await supabaseClient
                         .from('perfiles')
-                        .insert([{ 
-                            id: data.user.id, 
-                            nombre: nombre, 
-                            ciudad: ciudad 
-                        }]);
-    
+                        .insert([{ id: data.user.id, nombre, ciudad, email }]);
+                        
                     if (profileError) {
                         console.error('Error creando perfil:', profileError);
+                        authError.textContent = 'Error al crear el perfil. Por favor, inicia sesión.';
                     }
                     
-                    await loadUserProfile(data.user.id);
+                    await loadUserProfileWithRetry(data.user.id);
                 }
             }
         } catch (error) {
@@ -1496,10 +1493,9 @@
                         const email = userData.user.email || 'usuario@email.com';
                         const nombre = email.split('@')[0] || 'Usuario';
                         
-                        // SOLO insertar nombre y ciudad, sin email
                         await supabaseClient
                             .from('perfiles')
-                            .insert([{ id: userId, nombre, ciudad: 'No especificada' }]);
+                            .insert([{ id: userId, nombre, ciudad: 'No especificada', email }]);
                         
                         userNameDisplay.textContent = nombre;
                         userEmailDisplay.textContent = 'No especificada';
@@ -1534,7 +1530,7 @@
             showAuth();
         }
     }
-    
+
     async function loadUserProfile(userId) {
         try {
             const { data, error } = await supabaseClient
@@ -1550,10 +1546,9 @@
                     const email = userData.user.email || 'usuario@email.com';
                     const nombre = email.split('@')[0] || 'Usuario';
                     
-                    // SOLO insertar nombre y ciudad, sin email
                     const { error: insertError } = await supabaseClient
                         .from('perfiles')
-                        .insert([{ id: userId, nombre, ciudad: 'No especificada' }]);
+                        .insert([{ id: userId, nombre, ciudad: 'No especificada', email }]);
                         
                     if (insertError) {
                         console.error('Error creando perfil automático:', insertError);
@@ -1605,7 +1600,7 @@
     }
 
     function showAuth() {
-        authContainer.style.display = 'flex';
+        authContainer.style.display = 'block';
         appContainer.classList.remove('visible');
         setAuthMode('login');
     }
