@@ -1200,8 +1200,8 @@
                         <input type="password" id="authPassword" placeholder="Contraseña" required>
                         
                         <div class="auth-form-row" style="display:none;" id="registerFields">
-                            <input type="text" id="authNombre" placeholder="Tu nombre" required>
-                            <input type="text" id="authCiudad" placeholder="Tu ciudad" required>
+                            <input type="text" id="authNombre" placeholder="Tu nombre" style="display:none;">
+                            <input type="text" id="authCiudad" placeholder="Tu ciudad" style="display:none;">
                         </div>
                         
                         <button type="submit" id="authSubmitBtn">Iniciar sesión</button>
@@ -1421,8 +1421,8 @@
             authToggleLink.textContent = '¿Ya tienes cuenta? Inicia sesión';
             authNombre.style.display = 'block';
             authCiudad.style.display = 'block';
-            authNombre.required = true;
-            authCiudad.required = true;
+            authNombre.required = true;  // ← SE AÑADE EL REQUIRED AQUÍ
+            authCiudad.required = true;  // ← SE AÑADE EL REQUIRED AQUÍ
         }
         authError.textContent = '';
     }
