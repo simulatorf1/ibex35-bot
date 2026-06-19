@@ -1449,16 +1449,14 @@
                     return;
                 }
     
-                // 1. PRIMERO registrar al usuario
+                // 🔽 ESTA ES LA LÍNEA QUE HAY QUE CAMBIAR 🔽
                 const { data, error } = await supabaseClient.auth.signUp({ email, password });
                 
                 if (error) throw error;
                 
                 if (data.user) {
-                    // 2. ESPERAR un momento para que Supabase procese el usuario
                     await new Promise(resolve => setTimeout(resolve, 1000));
                     
-                    // 3. Crear el perfil SOLO si el usuario ya existe en auth
                     const { error: profileError } = await supabaseClient
                         .from('perfiles')
                         .insert([{ 
@@ -1469,10 +1467,8 @@
     
                     if (profileError) {
                         console.error('Error creando perfil:', profileError);
-                        // No mostramos error al usuario porque ya se registró
                     }
                     
-                    // 4. Cargar el perfil
                     await loadUserProfile(data.user.id);
                 }
             }
