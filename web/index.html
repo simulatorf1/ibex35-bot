@@ -1200,8 +1200,8 @@
                         <input type="password" id="authPassword" placeholder="Contraseña" required>
                         
                         <div class="auth-form-row" style="display:none;" id="registerFields">
-                            <input type="text" id="authNombre" placeholder="Tu nombre" style="display:none;">
-                            <input type="text" id="authCiudad" placeholder="Tu ciudad" style="display:none;">
+                            <input type="text" id="authNombre" placeholder="Tu nombre">
+                            <input type="text" id="authCiudad" placeholder="Tu ciudad">
                         </div>
                         
                         <button type="submit" id="authSubmitBtn">Iniciar sesión</button>
@@ -1412,17 +1412,15 @@
         if (isLoginMode) {
             authSubmitBtn.textContent = 'Iniciar sesión';
             authToggleLink.textContent = '¿No tienes cuenta? Regístrate';
-            authNombre.style.display = 'none';
-            authCiudad.style.display = 'none';
+            registerFields.style.display = 'none';  // ← ESTO
             authNombre.required = false;
             authCiudad.required = false;
         } else {
             authSubmitBtn.textContent = 'Registrarse';
             authToggleLink.textContent = '¿Ya tienes cuenta? Inicia sesión';
-            authNombre.style.display = 'block';
-            authCiudad.style.display = 'block';
-            authNombre.required = true;  // ← SE AÑADE EL REQUIRED AQUÍ
-            authCiudad.required = true;  // ← SE AÑADE EL REQUIRED AQUÍ
+            registerFields.style.display = 'flex';  // ← ESTO
+            authNombre.required = true;
+            authCiudad.required = true;
         }
         authError.textContent = '';
     }
@@ -1459,7 +1457,7 @@
                     
                     const { error: profileError } = await supabaseClient
                         .from('perfiles')
-                        .insert([{ id: data.user.id, nombre, ciudad, email }]);
+                        .insert([{ id: data.user.id, nombre, ciudad }]);
                         
                     if (profileError) {
                         console.error('Error creando perfil:', profileError);
@@ -1495,7 +1493,7 @@
                         
                         await supabaseClient
                             .from('perfiles')
-                            .insert([{ id: userId, nombre, ciudad: 'No especificada', email }]);
+                            .insert([{ id: userId, nombre, ciudad: 'No especificada' }]);
                         
                         userNameDisplay.textContent = nombre;
                         userEmailDisplay.textContent = 'No especificada';
@@ -1548,7 +1546,7 @@
                     
                     const { error: insertError } = await supabaseClient
                         .from('perfiles')
-                        .insert([{ id: userId, nombre, ciudad: 'No especificada', email }]);
+                        .insert([{ id: userId, nombre, ciudad: 'No especificada' }]);
                         
                     if (insertError) {
                         console.error('Error creando perfil automático:', insertError);
