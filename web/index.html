@@ -1450,16 +1450,7 @@
                 }
     
                 // 1. PRIMERO registrar al usuario
-                const { data, error } = await supabaseClient.auth.signUp({ 
-                    email, 
-                    password,
-                    options: {
-                        data: {
-                            nombre: nombre,
-                            ciudad: ciudad
-                        }
-                    }
-                });
+                const { data, error } = await supabaseClient.auth.signUp({ email, password });
                 
                 if (error) throw error;
                 
