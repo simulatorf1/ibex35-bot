@@ -423,23 +423,12 @@
             .resultado-sim { text-align: left; }
         }
 
-        /* --- ESTILOS MEJORADOS PARA AUTENTICACIÓN (más profesional) --- */
-        #authContainer {
-            max-width: 480px;
-            margin: 60px auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 24px;
-            box-shadow: 0 20px 60px rgba(0, 20, 40, 0.25);
-            padding: 40px 35px;
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            position: relative;
-            z-index: 2;
-        }
-        /* Fondo profesional de trading con degradado y patrón */
+        /* --- ESTILOS PARA AUTENTICACIÓN - LANDING PAGE COMPLETA --- */
         body:has(#authContainer) {
             background: linear-gradient(145deg, #0a1a2f 0%, #1a3a5c 40%, #1e4668 70%, #2c7da0 100%);
             min-height: 100vh;
+            padding: 0;
+            margin: 0;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -447,7 +436,8 @@
         body:has(#authContainer) .container {
             width: 100%;
             max-width: 100%;
-            padding: 20px;
+            padding: 0;
+            margin: 0;
         }
         body:has(#authContainer)::before {
             content: '';
@@ -463,54 +453,166 @@
             z-index: 0;
             pointer-events: none;
         }
-        #authContainer h2 {
-            text-align: center;
-            color: #1e4668;
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 6px;
-            letter-spacing: -0.5px;
-        }
-        #authContainer .subtitle {
-            text-align: center;
-            color: #4a627a;
-            font-size: 0.85rem;
-            margin-bottom: 28px;
-            line-height: 1.5;
-            font-weight: 400;
-        }
-        #authContainer .subtitle strong {
-            color: #1e4668;
-            font-weight: 600;
-        }
-        #authContainer .benefits {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-bottom: 24px;
-            background: #f0f7fc;
-            padding: 14px 18px;
-            border-radius: 14px;
-            border-left: 4px solid #2c7da0;
-        }
-        #authContainer .benefits p {
-            font-size: 0.8rem;
-            color: #1a3a5c;
+
+        #authContainer {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            min-height: 100vh;
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin: 0;
-            line-height: 1.4;
+            justify-content: center;
+            padding: 40px 20px;
         }
-        #authContainer .benefits .emoji {
-            font-size: 1rem;
+
+        .auth-hero {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            max-width: 1400px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(20px);
+            border-radius: 40px;
+            padding: 60px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
+        }
+
+        .auth-content {
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+            color: white;
+        }
+
+        .auth-brand h1 {
+            font-size: 3.2rem;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #ffffff 0%, #8fc1e0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .auth-brand .tagline {
+            font-size: 1.1rem;
+            opacity: 0.85;
+            font-weight: 300;
+            letter-spacing: 1px;
+            -webkit-text-fill-color: rgba(255,255,255,0.85);
+        }
+
+        .auth-features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 8px;
+        }
+
+        .feature-card {
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 18px 20px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            transition: 0.3s;
+        }
+        .feature-card:hover {
+            background: rgba(255, 255, 255, 0.14);
+            transform: translateY(-2px);
+        }
+
+        .feature-icon {
+            font-size: 1.8rem;
             flex-shrink: 0;
+            line-height: 1;
         }
+
+        .feature-card h3 {
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: white;
+        }
+
+        .feature-card p {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            line-height: 1.5;
+            color: rgba(255, 255, 255, 0.85);
+            margin: 0;
+        }
+
+        .auth-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            display: block;
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #6cb4e4;
+            line-height: 1.2;
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            opacity: 0.75;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* --- FORMULARIO --- */
+        .auth-form-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-form-container {
+            background: white;
+            border-radius: 28px;
+            padding: 40px 36px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .auth-form-container h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #1e4668;
+            margin-bottom: 4px;
+            text-align: center;
+        }
+
+        .auth-subtitle {
+            text-align: center;
+            color: #6c86a3;
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+        }
+
         .auth-form {
             display: flex;
             flex-direction: column;
             gap: 14px;
         }
+
         .auth-form input {
             padding: 14px 18px;
             border-radius: 40px;
@@ -520,11 +622,21 @@
             transition: 0.2s;
             background: white;
             outline: none;
+            width: 100%;
         }
         .auth-form input:focus {
             border-color: #2c7da0;
             box-shadow: 0 0 0 3px rgba(44, 125, 160, 0.15);
         }
+
+        .auth-form-row {
+            display: flex;
+            gap: 10px;
+        }
+        .auth-form-row input {
+            flex: 1;
+        }
+
         .auth-form button {
             padding: 14px;
             border-radius: 40px;
@@ -537,63 +649,128 @@
             transition: 0.25s;
             box-shadow: 0 4px 12px rgba(30, 70, 104, 0.3);
             margin-top: 4px;
+            width: 100%;
         }
         .auth-form button:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(30, 70, 104, 0.4);
         }
-        .auth-form button:active {
-            transform: translateY(0);
-        }
-        .auth-form .toggle-link {
+
+        .auth-toggle {
             text-align: center;
+            margin-top: 4px;
+        }
+        .auth-toggle .toggle-link {
             color: #2c7da0;
             cursor: pointer;
             font-size: 0.85rem;
             font-weight: 500;
-            padding: 6px 0;
             transition: 0.2s;
+            display: inline-block;
+            padding: 4px 0;
         }
-        .auth-form .toggle-link:hover {
+        .auth-toggle .toggle-link:hover {
             color: #1e4668;
             text-decoration: underline;
         }
+
         .auth-error {
             color: #dc3545;
             font-size: 0.8rem;
             text-align: center;
             min-height: 22px;
-            margin-top: 4px;
+            margin-bottom: 4px;
         }
-        .auth-form .form-row {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
+
+        .auth-footer {
+            margin-top: 20px;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+            padding-top: 16px;
         }
-        .auth-form .form-row input {
-            flex: 1;
-            min-width: 120px;
+        .auth-footer p {
+            font-size: 0.7rem;
+            color: #8ba0bc;
+            margin: 4px 0;
         }
-        @media (max-width: 480px) {
+        .auth-footer .auth-meta {
+            color: #6c86a3;
+            font-size: 0.7rem;
+        }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 1100px) {
+            .auth-hero {
+                grid-template-columns: 1fr;
+                gap: 40px;
+                padding: 40px 30px;
+                border-radius: 28px;
+            }
+            .auth-brand h1 {
+                font-size: 2.8rem;
+            }
+            .auth-features {
+                grid-template-columns: 1fr 1fr;
+            }
+            .auth-stats {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .auth-form-container {
+                max-width: 100%;
+                padding: 32px 24px;
+            }
+        }
+
+        @media (max-width: 600px) {
             #authContainer {
-                margin: 30px 10px;
-                padding: 28px 20px;
+                padding: 20px 12px;
             }
-            #authContainer h2 {
-                font-size: 1.5rem;
+            .auth-hero {
+                padding: 28px 18px;
+                border-radius: 20px;
+                gap: 28px;
             }
-            #authContainer .subtitle {
-                font-size: 0.78rem;
+            .auth-brand h1 {
+                font-size: 2rem;
+            }
+            .auth-brand .tagline {
+                font-size: 0.9rem;
+            }
+            .auth-features {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            .feature-card {
+                padding: 14px 16px;
+            }
+            .feature-card h3 {
+                font-size: 0.85rem;
+            }
+            .feature-card p {
+                font-size: 0.75rem;
+            }
+            .auth-stats {
+                grid-template-columns: 1fr;
+                gap: 8px;
+                padding: 16px;
+            }
+            .stat-number {
+                font-size: 1.4rem;
+            }
+            .auth-form-container {
+                padding: 24px 16px;
+                border-radius: 20px;
+            }
+            .auth-form-container h2 {
+                font-size: 1.3rem;
             }
             .auth-form input {
                 padding: 12px 14px;
                 font-size: 0.85rem;
             }
-            #authContainer .benefits p {
-                font-size: 0.75rem;
-            }
-            .auth-form .form-row input {
-                min-width: 100%;
+            .auth-form-row {
+                flex-direction: column;
+                gap: 10px;
             }
         }
 
@@ -956,28 +1133,91 @@
 <body>
 <div class="container">
 
-    <!-- CONTENEDOR DE AUTENTICACIÓN (mejorado) -->
+    <!-- CONTENEDOR DE AUTENTICACIÓN - LANDING PAGE COMPLETA -->
     <div id="authContainer">
-        <h2>📈 Backtesting</h2>
-        <div class="subtitle">
-            <strong>Análisis técnico de señales de trading</strong><br>
-            Basado en <strong>Price Wave (PW)</strong> y patrones estadísticos
+        <div class="auth-hero">
+            <div class="auth-content">
+                <div class="auth-brand">
+                    <h1>📈 Backtesting</h1>
+                    <p class="tagline">Análisis técnico de señales de trading</p>
+                </div>
+
+                <div class="auth-features">
+                    <div class="feature-card">
+                        <span class="feature-icon">🎯</span>
+                        <div>
+                            <h3>Detección inteligente</h3>
+                            <p>Identifica oportunidades de compra y riesgos de sobrecompra en tiempo real con el indicador Price Wave (PW).</p>
+                        </div>
+                    </div>
+                    <div class="feature-card">
+                        <span class="feature-icon">📊</span>
+                        <div>
+                            <h3>Gráficos interactivos</h3>
+                            <p>Visualiza señales visuales (P7, sobrecompra) en gráficos dinámicos que facilitan tu análisis técnico.</p>
+                        </div>
+                    </div>
+                    <div class="feature-card">
+                        <span class="feature-icon">🧪</span>
+                        <div>
+                            <h3>Simulador realista</h3>
+                            <p>Prueba tus estrategias con capital virtual y comisiones realistas antes de invertir dinero real.</p>
+                        </div>
+                    </div>
+                    <div class="feature-card">
+                        <span class="feature-icon">🔔</span>
+                        <div>
+                            <h3>Alertas personalizadas</h3>
+                            <p>Recibe notificaciones en tiempo real cuando tus empresas seleccionadas generen señales de trading.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="auth-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">35+</span>
+                        <span class="stat-label">Empresas del IBEX 35 analizadas</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">24/7</span>
+                        <span class="stat-label">Actualización continua de datos</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">100%</span>
+                        <span class="stat-label">Gratuito y sin compromiso</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="auth-form-wrapper">
+                <div class="auth-form-container">
+                    <h2>Accede a tu cuenta</h2>
+                    <p class="auth-subtitle">O regístrate gratis para empezar a analizar</p>
+                    
+                    <div id="authError" class="auth-error"></div>
+                    <form id="authForm" class="auth-form">
+                        <input type="email" id="authEmail" placeholder="Correo electrónico" required>
+                        <input type="password" id="authPassword" placeholder="Contraseña" required>
+                        
+                        <div class="auth-form-row" style="display:none;" id="registerFields">
+                            <input type="text" id="authNombre" placeholder="Tu nombre" required>
+                            <input type="text" id="authCiudad" placeholder="Tu ciudad" required>
+                        </div>
+                        
+                        <button type="submit" id="authSubmitBtn">Iniciar sesión</button>
+                        
+                        <div class="auth-toggle">
+                            <span class="toggle-link" id="authToggleLink">¿No tienes cuenta? Regístrate gratis</span>
+                        </div>
+                    </form>
+                    
+                    <div class="auth-footer">
+                        <p>Al registrarte aceptas nuestros términos y condiciones.</p>
+                        <p class="auth-meta">🔒 Tus datos están seguros y nunca los compartiremos.</p>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="benefits">
-            <p><span class="emoji">🎯</span> Detecta <strong>oportunidades de compra</strong> y <strong>riesgos de sobrecompra</strong> en tiempo real</p>
-            <p><span class="emoji">📊</span> Visualiza gráficos interactivos con <strong>señales visuales</strong> (P7, sobrecompra)</p>
-            <p><span class="emoji">🧪</span> Simula operaciones con <strong>capital virtual</strong> y comisiones realistas</p>
-            <p><span class="emoji">🔔</span> Recibe <strong>alertas personalizadas</strong> en tu teléfono o correo</p>
-        </div>
-        <div id="authError" class="auth-error"></div>
-        <form id="authForm" class="auth-form">
-            <input type="email" id="authEmail" placeholder="Correo electrónico" required>
-            <input type="password" id="authPassword" placeholder="Contraseña" required>
-            <input type="text" id="authNombre" placeholder="Tu nombre (solo para registro)" style="display:none;">
-            <input type="text" id="authCiudad" placeholder="Tu ciudad (solo para registro)" style="display:none;">
-            <button type="submit" id="authSubmitBtn">Iniciar sesión</button>
-            <span class="toggle-link" id="authToggleLink">¿No tienes cuenta? Regístrate</span>
-        </form>
     </div>
 
     <!-- CONTENEDOR DE LA APLICACIÓN -->
@@ -1162,6 +1402,7 @@
     const logoutBtn = document.getElementById('logoutBtn');
     const notificationBell = document.getElementById('notificationBell');
     const settingsBtn = document.getElementById('settingsBtn');
+    const registerFields = document.getElementById('registerFields');
 
     let isLoginMode = true;
 
@@ -1170,16 +1411,14 @@
         isLoginMode = (mode === 'login');
         if (isLoginMode) {
             authSubmitBtn.textContent = 'Iniciar sesión';
-            authToggleLink.textContent = '¿No tienes cuenta? Regístrate';
-            authNombre.style.display = 'none';
-            authCiudad.style.display = 'none';
+            authToggleLink.textContent = '¿No tienes cuenta? Regístrate gratis';
+            registerFields.style.display = 'none';
             authNombre.required = false;
             authCiudad.required = false;
         } else {
             authSubmitBtn.textContent = 'Registrarse';
             authToggleLink.textContent = '¿Ya tienes cuenta? Inicia sesión';
-            authNombre.style.display = 'block';
-            authCiudad.style.display = 'block';
+            registerFields.style.display = 'flex';
             authNombre.required = true;
             authCiudad.required = true;
         }
@@ -1359,7 +1598,7 @@
     }
 
     function showAuth() {
-        authContainer.style.display = 'block';
+        authContainer.style.display = 'flex';
         appContainer.classList.remove('visible');
         setAuthMode('login');
     }
@@ -2343,13 +2582,11 @@
     setInterval(cargarContadorNotificaciones, 15000);
     
     // También actualizar al hacer clic en la campana
-    const originalBellClick = notificationBell._listeners ? null : null;
     notificationBell.addEventListener('click', async () => {
         setTimeout(cargarContadorNotificaciones, 500);
     });
     
     // Actualizar después de guardar preferencias
-    const originalGuardar = btnGuardarPreferencias._listeners ? null : null;
     btnGuardarPreferencias.addEventListener('click', () => {
         setTimeout(cargarContadorNotificaciones, 1000);
     });
