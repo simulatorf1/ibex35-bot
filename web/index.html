@@ -1317,19 +1317,122 @@
                 <span class="toggle-icon" id="toggleIcon">▼</span>
             </div>
             <div class="explicativo-contenido" id="explicativoContenido">
-                <p><strong>Filtros disponibles:</strong> 
-                    • <strong>Todas las empresas:</strong> Muestra el listado completo.
-                    • <strong>Empresas oportunidad:</strong> Empresas con patrón tipo 7 (señal fuerte).
-                    • <strong>Empresas con posible oportunidad:</strong> Empresas con patrón tipo 3 (rebote).
-                    • <strong>Casos de éxito:</strong> Empresas con rentabilidad actual superior al 2%.
-                    • <strong>Empresas en riesgo (PW > 40):</strong> Empresas que tienen el Price Wave por encima de 40.
-                </p>
-                <p><strong>Simulación:</strong> Dentro del historial, haz clic en un precio (entrada) y luego en otro más reciente (salida). Ajusta el capital y calcula el resultado con comisiones simuladas.</p>
-                <div class="grid-explicativo">
-                    <div class="item-explicativo"><strong>🎯 PW</strong><span>Oscila -100 a +100. <-40 sobreventa, >+40 sobrecompra.</span></div>
-                    <div class="item-explicativo"><strong>🟢 Patrones</strong><span>Tipo 7 (fuerte), 3 (rebote), 6 (cambio), 4 (consolidación), 5 (agotamiento).</span></div>
-                    <div class="item-explicativo"><strong>🔴 Exclusión</strong><span>PW > +50 y pendiente negativa → fondo rojo.</span></div>
+                
+                <!-- AVISO LEGAL DESTACADO -->
+                <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px;">
+                    <p style="font-size: 0.75rem; color: #856404; margin: 0; font-weight: 600;">
+                        ⚠️ <strong>Aviso importante:</strong> Esta herramienta es exclusivamente educativa y de análisis técnico. 
+                        Los datos, señales y patrones mostrados <strong>no constituyen en ningún caso una recomendación de compra, 
+                        venta o mantenimiento</strong> de activos financieros. Cualquier decisión de inversión es responsabilidad 
+                        exclusiva del usuario. Consulta siempre con un asesor financiero cualificado.
+                    </p>
                 </div>
+        
+                <!-- INTRODUCCIÓN -->
+                <p style="font-size: 0.8rem; color: #1a2634; line-height: 1.6; margin-bottom: 16px;">
+                    <strong>¡Bienvenido a Backtesting!</strong> Esta plataforma te permite analizar señales de trading basadas en el 
+                    indicador <strong>Price Wave (PW)</strong> y patrones estadísticos. A continuación te explicamos cómo funciona 
+                    cada sección para que puedas sacarle el máximo partido.
+                </p>
+        
+                <!-- FILTROS Y BÚSQUEDA -->
+                <h4 style="color: #1e4668; font-size: 0.9rem; margin: 16px 0 8px 0;">🔍 Filtros y búsqueda de empresas</h4>
+                <p style="font-size: 0.75rem; color: #4a627a; line-height: 1.5; margin-bottom: 8px;">
+                    En la tabla principal puedes buscar empresas por <strong>nombre o ticker</strong> (ej: Telefónica, SAN, BBVA). 
+                    Además, dispones de filtros rápidos para encontrar lo que necesitas:
+                </p>
+                <ul style="font-size: 0.75rem; color: #4a627a; line-height: 1.8; margin-left: 20px; margin-bottom: 12px;">
+                    <li><strong>🏢 Todas las empresas:</strong> Muestra el listado completo del IBEX 35.</li>
+                    <li><strong>🟢 Empresas oportunidad:</strong> Empresas con patrón tipo 7 (señal fuerte de compra).</li>
+                    <li><strong>🟡 Empresas con posible oportunidad:</strong> Empresas con patrón tipo 3 (rebote a corto plazo).</li>
+                    <li><strong>⭐ Casos de éxito:</strong> Empresas con rentabilidad actual superior al 2%.</li>
+                    <li><strong>⚠️ Empresas en riesgo (PW > 40):</strong> Empresas que tienen el Price Wave por encima de 40.</li>
+                </ul>
+        
+                <!-- PATRONES Y PW -->
+                <h4 style="color: #1e4668; font-size: 0.9rem; margin: 16px 0 8px 0;">🎯 ¿Qué es el Price Wave (PW) y los patrones?</h4>
+                <p style="font-size: 0.75rem; color: #4a627a; line-height: 1.5; margin-bottom: 8px;">
+                    El <strong>Price Wave (PW)</strong> es un indicador que oscila entre <strong>-100 y +100</strong>. 
+                    Valores por debajo de <strong>-40</strong> indican <span style="color: #1e7e34; font-weight: 600;">sobreventa</span> 
+                    (posible oportunidad de compra), mientras que valores por encima de <strong>+40</strong> indican 
+                    <span style="color: #dc3545; font-weight: 600;">sobrecompra</span> (posible riesgo de caída).
+                </p>
+                <ul style="font-size: 0.75rem; color: #4a627a; line-height: 1.8; margin-left: 20px; margin-bottom: 12px;">
+                    <li><strong>🔷 Patrón tipo 7:</strong> Pre-señal fuerte de compra (muy relevante).</li>
+                    <li><strong>⚫ Patrón tipo 3:</strong> Rebote a corto plazo.</li>
+                    <li><strong>🟢 Patrón tipo 6:</strong> Señal de interés directa.</li>
+                    <li><strong>⚪ Patrón tipo 4:</strong> Fase de consolidación.</li>
+                    <li><strong>🔴 Patrón tipo 5:</strong> Agotamiento alcista.</li>
+                    <li><strong>🔴 Exclusión:</strong> PW > +50 y pendiente negativa → fondo rojo (riesgo alto).</li>
+                </ul>
+        
+                <!-- GRÁFICO INTERACTIVO -->
+                <h4 style="color: #1e4668; font-size: 0.9rem; margin: 16px 0 8px 0;">📊 Gráfico interactivo</h4>
+                <p style="font-size: 0.75rem; color: #4a627a; line-height: 1.5; margin-bottom: 12px;">
+                    Al hacer clic en una empresa, se muestra su <strong>gráfico de precios</strong> con señales visuales:
+                </p>
+                <ul style="font-size: 0.75rem; color: #4a627a; line-height: 1.8; margin-left: 20px; margin-bottom: 12px;">
+                    <li><strong>🔵 P7 (Mínimo):</strong> Marca los puntos donde se ha detectado el patrón tipo 7.</li>
+                    <li><strong>🔴 Sobrecompra (Pend. Negativa):</strong> PW > +40 con tendencia a la baja.</li>
+                    <li><strong>🟠 Sobrecompra (Pend. Positiva):</strong> PW > +40 con tendencia al alza.</li>
+                </ul>
+        
+                <!-- SIMULADOR -->
+                <h4 style="color: #1e4668; font-size: 0.9rem; margin: 16px 0 8px 0;">🧪 Simulador de inversión</h4>
+                <p style="font-size: 0.75rem; color: #4a627a; line-height: 1.5; margin-bottom: 8px;">
+                    El simulador te permite <strong>probar estrategias con capital virtual</strong> y comisiones realistas:
+                </p>
+                <ol style="font-size: 0.75rem; color: #4a627a; line-height: 1.8; margin-left: 20px; margin-bottom: 12px;">
+                    <li><strong>Selecciona un punto de entrada:</strong> Haz clic en cualquier precio del historial.</li>
+                    <li><strong>Selecciona un punto de salida:</strong> Haz clic en un precio más reciente (fila superior).</li>
+                    <li><strong>Ajusta el capital:</strong> Introduce el importe que quieres simular.</li>
+                    <li><strong>Calcula el resultado:</strong> Pulsa el botón para ver el rendimiento con comisiones.</li>
+                </ol>
+                <p style="font-size: 0.7rem; color: #6c86a3; font-style: italic; margin-bottom: 12px;">
+                    💡 Las comisiones simuladas son: <strong>11€ fijos + 0,4%</strong> del importe de la operación.
+                </p>
+        
+                <!-- NOTIFICACIONES -->
+                <h4 style="color: #1e4668; font-size: 0.9rem; margin: 16px 0 8px 0;">🔔 Sistema de notificaciones</h4>
+                <p style="font-size: 0.75rem; color: #4a627a; line-height: 1.5; margin-bottom: 8px;">
+                    El sistema te avisa cuando tus empresas seleccionadas generan señales de trading:
+                </p>
+                <ul style="font-size: 0.75rem; color: #4a627a; line-height: 1.8; margin-left: 20px; margin-bottom: 12px;">
+                    <li><strong>🟢 Oportunidad:</strong> Se detecta un patrón tipo 7 o 3 en una de tus empresas.</li>
+                    <li><strong>🔴 Peligro:</strong> El PW supera +50 en una de tus empresas.</li>
+                    <li><strong>🟡 Rebote:</strong> Se detecta un patrón tipo 6 en una de tus empresas.</li>
+                </ul>
+                <p style="font-size: 0.75rem; color: #4a627a; line-height: 1.5; margin-bottom: 8px;">
+                    <strong>¿Cómo configurarlo?</strong>
+                </p>
+                <ol style="font-size: 0.75rem; color: #4a627a; line-height: 1.8; margin-left: 20px; margin-bottom: 12px;">
+                    <li>Haz clic en el icono <strong>⚙️</strong> de la barra superior.</li>
+                    <li>Selecciona hasta <strong>5 empresas</strong> de tu interés.</li>
+                    <li>Guarda los cambios.</li>
+                    <li>Cuando una empresa genere una señal, recibirás una <strong>🔔 notificación</strong> en la campanita.</li>
+                </ol>
+                <p style="font-size: 0.7rem; color: #6c86a3; font-style: italic; margin-bottom: 12px;">
+                    💡 Las notificaciones son <strong>locales</strong> y se guardan en tu perfil. Puedes marcarlas como leídas individualmente o todas a la vez.
+                </p>
+        
+                <!-- COLUMNISTA DE COLORES -->
+                <h4 style="color: #1e4668; font-size: 0.9rem; margin: 16px 0 8px 0;">🎨 Colores y su significado</h4>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;">
+                    <span style="background: #d4edda; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; color: #155724;">🟢 Fila verde: Patrón 7 (oportunidad)</span>
+                    <span style="background: #c8e6d9; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; color: #155724;">🟢 Fila verde claro: Patrón 3 (rebote)</span>
+                    <span style="background: #f8d7da; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; color: #721c24;">🔴 Fila roja: Exclusión (riesgo)</span>
+                    <span style="background: #e3f2fd; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; color: #1e4668;">🔵 Fila azul: Empresa seleccionada</span>
+                    <span style="background: #ffc107; padding: 4px 12px; border-radius: 20px; font-size: 0.7rem; color: #856404;">🟡 Precio seleccionado: Entrada o salida</span>
+                </div>
+        
+                <!-- RESUMEN FINAL -->
+                <div style="background: #e8f4fd; border-left: 4px solid #2c7da0; padding: 12px 16px; border-radius: 8px; margin-top: 12px;">
+                    <p style="font-size: 0.75rem; color: #1a2634; margin: 0; font-weight: 500;">
+                        💡 <strong>Consejo:</strong> Empieza explorando los filtros, selecciona una empresa, analiza su gráfico 
+                        y prueba el simulador con capital virtual. ¡Así aprenderás sin riesgos!
+                    </p>
+                </div>
+        
             </div>
         </div>
     </div>
