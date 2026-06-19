@@ -1457,7 +1457,7 @@
                     
                     const { error: profileError } = await supabaseClient
                         .from('perfiles')
-                        .insert([{ id: data.user.id, nombre, ciudad, email }]);
+                        .insert([{ id: data.user.id, nombre, ciudad }]);
                         
                     if (profileError) {
                         console.error('Error creando perfil:', profileError);
@@ -1493,7 +1493,7 @@
                         
                         await supabaseClient
                             .from('perfiles')
-                            .insert([{ id: userId, nombre, ciudad: 'No especificada', email }]);
+                            .insert([{ id: userId, nombre, ciudad: 'No especificada' }]);
                         
                         userNameDisplay.textContent = nombre;
                         userEmailDisplay.textContent = 'No especificada';
@@ -1546,7 +1546,7 @@
                     
                     const { error: insertError } = await supabaseClient
                         .from('perfiles')
-                        .insert([{ id: userId, nombre, ciudad: 'No especificada', email }]);
+                        .insert([{ id: userId, nombre, ciudad: 'No especificada' }]);
                         
                     if (insertError) {
                         console.error('Error creando perfil automático:', insertError);
