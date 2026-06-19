@@ -505,6 +505,27 @@
             -webkit-text-fill-color: rgba(255,255,255,0.85);
         }
 
+        /* --- BADGE GRATIS --- */
+        .gratis-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            font-weight: 800;
+            font-size: 0.9rem;
+            padding: 4px 18px;
+            border-radius: 40px;
+            margin-top: 6px;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+            animation: gratisPulse 2s ease-in-out infinite;
+            -webkit-text-fill-color: white;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        }
+        @keyframes gratisPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 4px 25px rgba(40, 167, 69, 0.6); }
+        }
+
         .auth-features {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -598,6 +619,20 @@
             color: #1e4668;
             margin-bottom: 4px;
             text-align: center;
+        }
+
+        .auth-form-container .gratis-badge-form {
+            display: inline-block;
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            font-weight: 700;
+            font-size: 0.75rem;
+            padding: 3px 16px;
+            border-radius: 40px;
+            margin: 0 auto 12px auto;
+            text-align: center;
+            letter-spacing: 0.5px;
+            -webkit-text-fill-color: white;
         }
 
         .auth-subtitle {
@@ -771,6 +806,10 @@
             .auth-form-row {
                 flex-direction: column;
                 gap: 10px;
+            }
+            .gratis-badge {
+                font-size: 0.75rem;
+                padding: 3px 14px;
             }
         }
 
@@ -1119,6 +1158,238 @@
             color: #8ba0bc;
             font-size: 0.6rem;
         }
+
+        /* --- ESTILOS DEL TUTORIAL --- */
+        .tutorial-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: tutorialFadeIn 0.4s ease;
+        }
+        .tutorial-overlay.activo {
+            display: flex;
+        }
+        @keyframes tutorialFadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        
+        .tutorial-card {
+            background: white;
+            border-radius: 28px;
+            max-width: 540px;
+            width: 100%;
+            padding: 32px 30px 28px;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+            position: relative;
+            animation: tutorialSlideUp 0.5s ease;
+        }
+        @keyframes tutorialSlideUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .tutorial-pasos {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+        .tutorial-paso-indicador {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #cfdfed;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+        .tutorial-paso-indicador.activo {
+            background: #2c7da0;
+            transform: scale(1.2);
+            width: 28px;
+            border-radius: 6px;
+        }
+        .tutorial-paso-indicador.completado {
+            background: #1e7e34;
+        }
+        
+        .tutorial-icono {
+            font-size: 2.8rem;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        .tutorial-titulo {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1e4668;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        .tutorial-descripcion {
+            font-size: 0.9rem;
+            color: #4a627a;
+            line-height: 1.6;
+            text-align: center;
+            margin-bottom: 6px;
+        }
+        .tutorial-descripcion strong {
+            color: #1e4668;
+        }
+        .tutorial-descripcion .destacar {
+            background: #d4edda;
+            padding: 1px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+            color: #1e7e34;
+        }
+        .tutorial-descripcion .destacar-rojo {
+            background: #f8d7da;
+            padding: 1px 8px;
+            border-radius: 12px;
+            font-weight: 600;
+            color: #dc3545;
+        }
+        
+        .tutorial-botones {
+            display: flex;
+            gap: 12px;
+            margin-top: 22px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .tutorial-btn {
+            padding: 12px 28px;
+            border-radius: 40px;
+            border: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.25s;
+        }
+        .tutorial-btn-primary {
+            background: linear-gradient(135deg, #1e4668, #2c7da0);
+            color: white;
+            box-shadow: 0 4px 16px rgba(30, 70, 104, 0.3);
+        }
+        .tutorial-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(30, 70, 104, 0.4);
+        }
+        .tutorial-btn-secondary {
+            background: #e9ecef;
+            color: #4a627a;
+        }
+        .tutorial-btn-secondary:hover {
+            background: #dee2e6;
+        }
+        .tutorial-btn-outline {
+            background: transparent;
+            color: #6c86a3;
+            border: 1.5px solid #cfdfed;
+        }
+        .tutorial-btn-outline:hover {
+            background: #f8f9fa;
+        }
+        
+        .tutorial-saltar {
+            text-align: center;
+            margin-top: 14px;
+        }
+        .tutorial-saltar button {
+            background: none;
+            border: none;
+            color: #8ba0bc;
+            font-size: 0.75rem;
+            cursor: pointer;
+            text-decoration: underline dotted;
+            padding: 4px 12px;
+        }
+        .tutorial-saltar button:hover {
+            color: #6c86a3;
+        }
+        
+        /* Responsive móvil tutorial */
+        @media (max-width: 600px) {
+            .tutorial-card {
+                padding: 24px 18px 20px;
+                border-radius: 20px;
+                max-width: 100%;
+                margin: 10px;
+            }
+            .tutorial-icono {
+                font-size: 2.2rem;
+            }
+            .tutorial-titulo {
+                font-size: 1.1rem;
+            }
+            .tutorial-descripcion {
+                font-size: 0.8rem;
+            }
+            .tutorial-btn {
+                padding: 10px 20px;
+                font-size: 0.8rem;
+                width: 100%;
+            }
+            .tutorial-botones {
+                flex-direction: column;
+                gap: 8px;
+            }
+            .tutorial-pasos {
+                gap: 6px;
+            }
+            .tutorial-paso-indicador {
+                width: 8px;
+                height: 8px;
+            }
+            .tutorial-paso-indicador.activo {
+                width: 22px;
+            }
+        }
+        
+        /* Efecto intermitente en la campana (siempre) */
+        .notification-bell.tutorial-parpadeo {
+            animation: bellPulse 2s ease-in-out infinite;
+        }
+        @keyframes bellPulse {
+            0%, 100% { transform: scale(1); color: #6c86a3; }
+            25% { transform: scale(1.25) rotate(-8deg); color: #ffc107; }
+            50% { transform: scale(1); color: #6c86a3; }
+            75% { transform: scale(1.25) rotate(8deg); color: #ffc107; }
+        }
+        .notification-bell.tutorial-parpadeo-urgente {
+            animation: bellPulseUrgent 1.2s ease-in-out infinite;
+        }
+        @keyframes bellPulseUrgent {
+            0%, 100% { transform: scale(1); color: #dc3545; }
+            30% { transform: scale(1.4) rotate(-12deg); color: #ff6b6b; }
+            60% { transform: scale(1); color: #dc3545; }
+            85% { transform: scale(1.3) rotate(12deg); color: #ff6b6b; }
+        }
+        
+        /* Destacar elementos durante el tutorial */
+        .tutorial-highlight {
+            box-shadow: 0 0 0 4px #ffc107, 0 0 20px rgba(255, 193, 7, 0.4);
+            border-radius: 12px;
+            transition: 0.3s;
+            position: relative;
+            z-index: 100;
+        }
+        .tutorial-highlight-pulse {
+            animation: highlightPulse 1.5s ease-in-out infinite;
+        }
+        @keyframes highlightPulse {
+            0%, 100% { box-shadow: 0 0 0 4px #ffc107, 0 0 20px rgba(255, 193, 7, 0.3); }
+            50% { box-shadow: 0 0 0 8px #ffc107, 0 0 40px rgba(255, 193, 7, 0.5); }
+        }
     </style>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-LVV061GCPF"></script>
     <script>
@@ -1140,6 +1411,10 @@
                 <div class="auth-brand">
                     <h1>📈 Backtesting</h1>
                     <p class="tagline">Análisis técnico de señales de trading</p>
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-top: 4px;">
+                        <span class="gratis-badge">🎉 100% GRATIS</span>
+                        <span class="gratis-badge" style="background: linear-gradient(135deg, #fd7e14, #ffc107); box-shadow: 0 4px 15px rgba(253, 126, 20, 0.4);">🚀 SIN COSTES OCULTOS</span>
+                    </div>
                 </div>
 
                 <div class="auth-features">
@@ -1183,16 +1458,19 @@
                         <span class="stat-label">Actualización continua de datos</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-number">100%</span>
-                        <span class="stat-label">Gratuito y sin compromiso</span>
+                        <span class="stat-number" style="color: #28a745;">100%</span>
+                        <span class="stat-label" style="color: rgba(255,255,255,0.9); font-weight: 600;">GRATUITO</span>
                     </div>
                 </div>
             </div>
 
             <div class="auth-form-wrapper">
                 <div class="auth-form-container">
-                    <h2>Accede a tu cuenta</h2>
-                    <p class="auth-subtitle">O regístrate gratis para empezar a analizar</p>
+                    <div style="text-align: center;">
+                        <span class="gratis-badge-form">🎯 100% GRATIS</span>
+                    </div>
+                    <h2 id="authFormTitle">Accede a tu cuenta</h2>
+                    <p class="auth-subtitle" id="authFormSubtitle">O regístrate gratis para empezar a analizar</p>
                     
                     <div id="authError" class="auth-error"></div>
                     <form id="authForm" class="auth-form">
@@ -1207,12 +1485,13 @@
                         <button type="submit" id="authSubmitBtn">Iniciar sesión</button>
                         
                         <div class="auth-toggle">
-                            <span class="toggle-link" id="authToggleLink">¿No tienes cuenta? Regístrate gratis</span>
+                            <span class="toggle-link" id="authToggleLink">¿No tienes cuenta? <strong>Regístrate gratis</strong></span>
                         </div>
                     </form>
                     
                     <div class="auth-footer">
-                        <p>Al registrarte aceptas nuestros términos y condiciones.Esta herramienta es puramente educativa. Los patrones, señales y simulaciones aquí mostrados tienen como objetivo el aprendizaje y el backtesting. No constituyen asesoramiento financiero ni recomendaciones de inversión. Opera siempre con responsabilidad y consulta a un profesional cualificado.</p>
+                        <p style="font-size: 0.75rem; background: #d4edda; padding: 6px 12px; border-radius: 12px; color: #155724; font-weight: 600;">✅ Completamente gratuito · Sin tarjetas · Sin compromiso</p>
+                        <p>Al registrarte aceptas nuestros términos y condiciones. Esta herramienta es puramente educativa. Los patrones, señales y simulaciones aquí mostrados tienen como objetivo el aprendizaje y el backtesting. No constituyen asesoramiento financiero ni recomendaciones de inversión. Opera siempre con responsabilidad y consulta a un profesional cualificado.</p>
                         <p class="auth-meta">🔒 Tus datos están seguros y nunca los compartiremos.</p>
                     </div>
                 </div>
@@ -1481,6 +1760,31 @@
         </div>
     </div>
 
+    <!-- ============================================================ -->
+    <!-- TUTORIAL DE ONBOARDING                                        -->
+    <!-- ============================================================ -->
+    <div class="tutorial-overlay" id="tutorialOverlay">
+        <div class="tutorial-card">
+            <div class="tutorial-pasos" id="tutorialPasos">
+                <span class="tutorial-paso-indicador activo" data-paso="0"></span>
+                <span class="tutorial-paso-indicador" data-paso="1"></span>
+                <span class="tutorial-paso-indicador" data-paso="2"></span>
+                <span class="tutorial-paso-indicador" data-paso="3"></span>
+            </div>
+            <div class="tutorial-icono" id="tutorialIcono">🚀</div>
+            <div class="tutorial-titulo" id="tutorialTitulo">¡Bienvenido a Backtesting!</div>
+            <div class="tutorial-descripcion" id="tutorialDescripcion">
+                Descubre cómo funciona la plataforma en <strong>4 pasos</strong>.
+            </div>
+            <div class="tutorial-botones" id="tutorialBotones">
+                <button class="tutorial-btn tutorial-btn-primary" id="tutorialBtnSiguiente">Siguiente →</button>
+            </div>
+            <div class="tutorial-saltar">
+                <button id="tutorialBtnSaltar">Saltar tutorial</button>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script>
@@ -1506,6 +1810,8 @@
     const notificationBell = document.getElementById('notificationBell');
     const settingsBtn = document.getElementById('settingsBtn');
     const registerFields = document.getElementById('registerFields');
+    const authFormTitle = document.getElementById('authFormTitle');
+    const authFormSubtitle = document.getElementById('authFormSubtitle');
 
     let isLoginMode = true;
 
@@ -1514,16 +1820,20 @@
         isLoginMode = (mode === 'login');
         if (isLoginMode) {
             authSubmitBtn.textContent = 'Iniciar sesión';
-            authToggleLink.textContent = '¿No tienes cuenta? Regístrate';
-            registerFields.style.display = 'none';  // ← ESTO
+            authToggleLink.innerHTML = '¿No tienes cuenta? <strong>Regístrate gratis</strong>';
+            registerFields.style.display = 'none';
             authNombre.required = false;
             authCiudad.required = false;
+            authFormTitle.textContent = 'Accede a tu cuenta';
+            authFormSubtitle.textContent = 'O regístrate gratis para empezar a analizar';
         } else {
-            authSubmitBtn.textContent = 'Registrarse';
-            authToggleLink.textContent = '¿Ya tienes cuenta? Inicia sesión';
-            registerFields.style.display = 'flex';  // ← ESTO
+            authSubmitBtn.textContent = 'Registrarse gratis';
+            authToggleLink.innerHTML = '¿Ya tienes cuenta? Inicia sesión';
+            registerFields.style.display = 'flex';
             authNombre.required = true;
             authCiudad.required = true;
+            authFormTitle.textContent = 'Crea tu cuenta gratis';
+            authFormSubtitle.textContent = 'Completamente gratuito · Sin tarjetas · Sin compromiso';
         }
         authError.textContent = '';
     }
@@ -1698,6 +2008,8 @@
         }
         cargarContadorNotificaciones();
         cargarMisEmpresas();
+        // Iniciar tutorial si es primera vez
+        iniciarTutorial();
     }
 
     function showAuth() {
@@ -2702,6 +3014,230 @@
     // Inicializar contador y actualizar cada 30 segundos
     cargarContadorNotificaciones();
     setInterval(cargarContadorNotificaciones, 30000);
+
+    // ================================================================
+    // TUTORIAL DE ONBOARDING
+    // ================================================================
+    (function() {
+        const TUTORIAL_KEY = 'backtesting_tutorial_visto';
+        const overlay = document.getElementById('tutorialOverlay');
+        const pasoIndicadores = document.querySelectorAll('.tutorial-paso-indicador');
+        const icono = document.getElementById('tutorialIcono');
+        const titulo = document.getElementById('tutorialTitulo');
+        const descripcion = document.getElementById('tutorialDescripcion');
+        const btnSiguiente = document.getElementById('tutorialBtnSiguiente');
+        const btnSaltar = document.getElementById('tutorialBtnSaltar');
+        const notificationBell = document.getElementById('notificationBell');
+        
+        let pasoActual = 0;
+        const totalPasos = 4;
+        
+        // Contenido de los pasos
+        const pasos = [
+            {
+                icono: '📊',
+                titulo: 'Datos actualizados varias veces al día',
+                descripcion: `La plataforma se actualiza <strong>varias veces al día</strong> con datos del IBEX 35. 
+                              Los precios, patrones y el indicador <strong>Price Wave (PW)</strong> siempre están al día. 
+                              <br><br>🔍 <strong>Busca</strong> cualquier empresa por nombre o ticker en la tabla principal.`
+            },
+            {
+                icono: '🎯',
+                titulo: 'Haz clic en una empresa y analiza',
+                descripcion: `Al hacer clic en una empresa, verás:
+                              <br>• <strong>📈 Gráfico interactivo</strong> con señales visuales (P7, sobrecompra)
+                              <br>• <strong>📜 Historial completo</strong> de todas las señales
+                              <br>• <strong>🧪 Simulador</strong> para probar compras pasadas
+                              <br><br>💡 Usa los <strong>filtros</strong> para encontrar rápidamente empresas con señales de activación.`
+            },
+            {
+                icono: '🧪',
+                titulo: 'Simula compras en el histórico',
+                descripcion: `En el historial de la empresa, <strong>haz clic en un precio</strong> para marcar el punto de entrada (🔵) 
+                              y otro precio <strong>más reciente</strong> para marcar la salida (🟠).
+                              <br><br>💰 Luego pulsa <strong>"Calcular resultado"</strong> y verás tu rentabilidad 
+                              <span class="destacar">con comisiones realistas</span> (11€ + 0,4%).
+                              <br><br>¡Ideal para hacer <strong>backtesting</strong> de tus estrategias!`
+            },
+            {
+                icono: '🔔',
+                titulo: 'Activa las notificaciones',
+                descripcion: `Haz clic en el icono <strong>⚙️ (configuración)</strong> para seleccionar hasta <strong>5 empresas</strong> 
+                              de tu interés.
+                              <br><br>Cuando una de ellas genere una señal, recibirás una <span class="destacar-rojo">🔔 notificación</span> 
+                              en la campana.
+                              <br><br>📬 <strong>No te pierdas ninguna oportunidad</strong> de compra o alerta de riesgo.`
+            }
+        ];
+        
+        // Función para mostrar un paso
+        function mostrarPaso(index) {
+            pasoActual = index;
+            const paso = pasos[index];
+            
+            icono.textContent = paso.icono;
+            titulo.textContent = paso.titulo;
+            descripcion.innerHTML = paso.descripcion;
+            
+            // Actualizar indicadores
+            pasoIndicadores.forEach((ind, i) => {
+                ind.classList.remove('activo', 'completado');
+                if (i < index) ind.classList.add('completado');
+                else if (i === index) ind.classList.add('activo');
+            });
+            
+            // Actualizar botón
+            if (index === totalPasos - 1) {
+                btnSiguiente.textContent = '🎉 ¡Entendido!';
+                btnSiguiente.className = 'tutorial-btn tutorial-btn-primary';
+            } else {
+                btnSiguiente.textContent = 'Siguiente →';
+                btnSiguiente.className = 'tutorial-btn tutorial-btn-primary';
+            }
+            
+            // Highlight visual para ciertos pasos
+            eliminarHighlights();
+            
+            if (index === 1) {
+                const tabla = document.querySelector('.panel-principal');
+                if (tabla) {
+                    tabla.classList.add('tutorial-highlight', 'tutorial-highlight-pulse');
+                }
+                const filtro = document.querySelector('.filtros-barra');
+                if (filtro) {
+                    filtro.classList.add('tutorial-highlight', 'tutorial-highlight-pulse');
+                }
+            }
+            
+            if (index === 2) {
+                const simulador = document.getElementById('simuladorPanel');
+                if (simulador) {
+                    simulador.classList.add('tutorial-highlight', 'tutorial-highlight-pulse');
+                }
+            }
+            
+            if (index === 3) {
+                const bell = document.getElementById('notificationBell');
+                if (bell) {
+                    bell.classList.add('tutorial-highlight', 'tutorial-highlight-pulse');
+                }
+                const settings = document.getElementById('settingsBtn');
+                if (settings) {
+                    settings.classList.add('tutorial-highlight', 'tutorial-highlight-pulse');
+                }
+                if (notificationBell) {
+                    notificationBell.classList.add('tutorial-parpadeo-urgente');
+                }
+            }
+        }
+        
+        function eliminarHighlights() {
+            document.querySelectorAll('.tutorial-highlight').forEach(el => {
+                el.classList.remove('tutorial-highlight', 'tutorial-highlight-pulse');
+            });
+            if (notificationBell) {
+                notificationBell.classList.remove('tutorial-parpadeo-urgente');
+                notificationBell.classList.add('tutorial-parpadeo');
+            }
+        }
+        
+        function avanzarPaso() {
+            if (pasoActual < totalPasos - 1) {
+                mostrarPaso(pasoActual + 1);
+            } else {
+                cerrarTutorial();
+            }
+        }
+        
+        function cerrarTutorial() {
+            overlay.classList.remove('activo');
+            eliminarHighlights();
+            localStorage.setItem(TUTORIAL_KEY, 'true');
+            if (notificationBell) {
+                notificationBell.classList.add('tutorial-parpadeo');
+            }
+        }
+        
+        // Eventos
+        btnSiguiente.addEventListener('click', avanzarPaso);
+        btnSaltar.addEventListener('click', cerrarTutorial);
+        
+        pasoIndicadores.forEach((ind, i) => {
+            ind.addEventListener('click', () => {
+                if (i <= pasoActual) {
+                    mostrarPaso(i);
+                }
+            });
+        });
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && overlay.classList.contains('activo')) {
+                cerrarTutorial();
+            }
+        });
+        
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                cerrarTutorial();
+            }
+        });
+        
+        // ============================================================
+        // INICIALIZACIÓN: Mostrar tutorial si es primera vez
+        // ============================================================
+        function iniciarTutorial() {
+            const yaVisto = localStorage.getItem(TUTORIAL_KEY);
+            if (!yaVisto) {
+                const checkAppVisible = setInterval(() => {
+                    if (appContainer.classList.contains('visible')) {
+                        clearInterval(checkAppVisible);
+                        setTimeout(() => {
+                            overlay.classList.add('activo');
+                            mostrarPaso(0);
+                            if (notificationBell) {
+                                notificationBell.classList.add('tutorial-parpadeo');
+                            }
+                        }, 600);
+                    }
+                }, 300);
+                
+                setTimeout(() => {
+                    clearInterval(checkAppVisible);
+                }, 10000);
+            } else {
+                if (notificationBell) {
+                    notificationBell.classList.add('tutorial-parpadeo');
+                }
+            }
+        }
+        
+        window.iniciarTutorial = iniciarTutorial;
+        
+        // ============================================================
+        // Sobrescribir showApp para incluir el tutorial
+        // ============================================================
+        const showAppOriginal = window.showApp;
+        if (showAppOriginal) {
+            window.showApp = function() {
+                showAppOriginal();
+                const yaVisto = localStorage.getItem(TUTORIAL_KEY);
+                if (!yaVisto) {
+                    setTimeout(() => {
+                        if (overlay) {
+                            overlay.classList.add('activo');
+                            mostrarPaso(0);
+                            if (notificationBell) {
+                                notificationBell.classList.add('tutorial-parpadeo');
+                            }
+                        }
+                    }, 800);
+                }
+            };
+        }
+        
+        console.log('📘 Tutorial de onboarding cargado correctamente');
+    })();
+
 </script>
 </body>
 </html>
