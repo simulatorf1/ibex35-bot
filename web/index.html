@@ -1448,23 +1448,41 @@
                     authError.textContent = 'Nombre y ciudad son obligatorios para registrarse.';
                     return;
                 }
+    
+                // 1. PRIMERO registrar al usuario
+                const { data, error } = await supabaseClient.auth.signUp({ 
+                    email, 
+                    password,
+                    options: {
+                        data: {
+                            nombre: nombre,
+                            ciudad: ciudad
+                        }
+                    }
+                });
                 
-                const { data, error } = await supabaseClient.auth.signUp({ email, password });
                 if (error) throw error;
                 
                 if (data.user) {
-                    await new Promise(resolve => setTimeout(resolve, 500));
+                    // 2. ESPERAR un momento para que Supabase procese el usuario
+                    await new Promise(resolve => setTimeout(resolve, 1000));
                     
+                    // 3. Crear el perfil SOLO si el usuario ya existe en auth
                     const { error: profileError } = await supabaseClient
                         .from('perfiles')
-                        .insert([{ id: data.user.id, nombre, ciudad }]);
-                        
+                        .insert([{ 
+                            id: data.user.id, 
+                            nombre: nombre, 
+                            ciudad: ciudad 
+                        }]);
+    
                     if (profileError) {
                         console.error('Error creando perfil:', profileError);
-                        authError.textContent = 'Error al crear el perfil. Por favor, inicia sesión.';
+                        // No mostramos error al usuario porque ya se registró
                     }
                     
-                    await loadUserProfileWithRetry(data.user.id);
+                    // 4. Cargar el perfil
+                    await loadUserProfile(data.user.id);
                 }
             }
         } catch (error) {
@@ -1491,6 +1509,7 @@
                         const email = userData.user.email || 'usuario@email.com';
                         const nombre = email.split('@')[0] || 'Usuario';
                         
+                        // SOLO insertar nombre y ciudad, sin email
                         await supabaseClient
                             .from('perfiles')
                             .insert([{ id: userId, nombre, ciudad: 'No especificada' }]);
@@ -1528,7 +1547,7 @@
             showAuth();
         }
     }
-
+    
     async function loadUserProfile(userId) {
         try {
             const { data, error } = await supabaseClient
@@ -1544,6 +1563,7 @@
                     const email = userData.user.email || 'usuario@email.com';
                     const nombre = email.split('@')[0] || 'Usuario';
                     
+                    // SOLO insertar nombre y ciudad, sin email
                     const { error: insertError } = await supabaseClient
                         .from('perfiles')
                         .insert([{ id: userId, nombre, ciudad: 'No especificada' }]);
