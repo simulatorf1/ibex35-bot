@@ -2393,66 +2393,80 @@
     // --- CASOS DE ÉXITO (CORREGIDOS) ---
     async function cargarCasosExito() {
         try {
-            var { data, error } = await supabaseClient
+            // 1. Obtener TODAS las empresas con su rentabilidad actual
+            const { data: empresas, error } = await supabaseClient
                 .from('recomendaciones_ibex')
-                .select('ticker, nombre_empresa, precio_cierre, fecha, caso_numero')
-                .in('caso_numero', [7, 3])
-                .order('fecha', { ascending: false })
-                .limit(30);
+                .select('ticker, nombre_empresa, precio_cierre, fecha')
+                .order('fecha', { ascending: false });
             
             if (error) throw error;
             
-            var casos = [];
-            var tickersVistos = new Set();
-            
-            for (var i = 0; i < data.length; i++) {
-                var item = data[i];
-                if (tickersVistos.has(item.ticker)) continue;
-                tickersVistos.add(item.ticker);
-                
-                var { data: precioActual } = await supabaseClient
-                    .from('recomendaciones_ibex')
-                    .select('precio_cierre')
-                    .eq('ticker', item.ticker)
-                    .order('fecha', { ascending: false })
-                    .limit(1);
-                
-                var precioSalida = precioActual && precioActual.length > 0 ? precioActual[0].precio_cierre : item.precio_cierre * 1.02;
-                var rentabilidad = ((precioSalida - item.precio_cierre) / item.precio_cierre) * 100;
-                var beneficioEuros = (rentabilidad / 100) * 10000;
-                
-                casos.push({
-                    ticker: item.ticker,
-                    nombre: item.nombre_empresa,
-                    fechaEntrada: new Date(item.fecha).toLocaleDateString('es-ES'),
-                    precioEntrada: item.precio_cierre,
-                    precioSalida: precioSalida,
-                    beneficio: beneficioEuros,
-                    rentabilidad: rentabilidad
-                });
+            // 2. Obtener el último registro de cada empresa para calcular rentabilidad
+            const ultimosRegistros = {};
+            for (const item of empresas) {
+                if (!ultimosRegistros[item.ticker]) {
+                    ultimosRegistros[item.ticker] = item;
+                }
             }
             
-            casos.sort(function(a, b) { return b.beneficio - a.beneficio; });
+            // 3. Obtener el precio de entrada (patrón 7 o 3) para cada empresa
+            const { data: entradas, error: errorEntradas } = await supabaseClient
+                .from('recomendaciones_ibex')
+                .select('ticker, nombre_empresa, precio_cierre, fecha, caso_numero')
+                .in('caso_numero', [7, 3])
+                .order('fecha', { ascending: false });
             
-            var tbody = document.getElementById('casosExitoBody');
+            if (errorEntradas) throw errorEntradas;
+            
+            // 4. Calcular casos de éxito (misma lógica que tu tabla)
+            const casos = [];
+            const tickersProcesados = new Set();
+            
+            for (const entrada of entradas) {
+                if (tickersProcesados.has(entrada.ticker)) continue;
+                tickersProcesados.add(entrada.ticker);
+                
+                const precioActual = ultimosRegistros[entrada.ticker]?.precio_cierre || entrada.precio_cierre;
+                const rentabilidad = ((precioActual - entrada.precio_cierre) / entrada.precio_cierre) * 100;
+                
+                // SOLO mostrar si rentabilidad > 2% (mismo filtro que tu tabla)
+                if (rentabilidad > 2) {
+                    const beneficioEuros = (rentabilidad / 100) * 10000;
+                    
+                    casos.push({
+                        ticker: entrada.ticker,
+                        nombre: entrada.nombre_empresa,
+                        fechaEntrada: new Date(entrada.fecha).toLocaleDateString('es-ES'),
+                        precioEntrada: entrada.precio_cierre,
+                        precioSalida: precioActual,
+                        beneficio: beneficioEuros,
+                        rentabilidad: rentabilidad
+                    });
+                }
+            }
+            
+            // 5. Ordenar por beneficio (mayor primero)
+            casos.sort((a, b) => b.beneficio - a.beneficio);
+            
+            // 6. Renderizar
+            const tbody = document.getElementById('casosExitoBody');
             if (casos.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="6" class="sin-datos">No hay casos de éxito disponibles</td></tr>';
                 return;
             }
             
-            var html = '';
-            var topCasos = casos.slice(0, 5);
-            for (var j = 0; j < topCasos.length; j++) {
-                var caso = topCasos[j];
-                var claseBeneficio = caso.beneficio >= 0 ? 'beneficio' : 'beneficio negativo';
-                html += '<tr>' +
-                    '<td><strong>' + caso.nombre + '</strong><br><span style="font-size:0.6rem;color:#8ba0bc;">' + caso.ticker + '</span></td>' +
-                    '<td>' + caso.fechaEntrada + '</td>' +
-                    '<td>' + caso.precioEntrada.toFixed(2) + '€</td>' +
-                    '<td>' + caso.precioSalida.toFixed(2) + '€</td>' +
-                    '<td class="' + claseBeneficio + '">' + (caso.beneficio >= 0 ? '+' : '') + caso.beneficio.toFixed(2) + '€</td>' +
-                    '<td class="' + claseBeneficio + '">' + (caso.rentabilidad >= 0 ? '+' : '') + caso.rentabilidad.toFixed(2) + '%</td>' +
-                '</tr>';
+            let html = '';
+            const topCasos = casos.slice(0, 5);
+            for (const caso of topCasos) {
+                const claseBeneficio = caso.beneficio >= 0 ? 'beneficio' : 'beneficio negativo';
+                html += `<tr>
+                    <td><strong>${caso.nombre}</strong><br><span style="font-size:0.6rem;color:#8ba0bc;">${caso.ticker}</span></td>
+                    <td>${caso.fechaEntrada}</td>
+                    <td>${caso.precioEntrada.toFixed(2)}€</td>
+                    <td>${caso.precioSalida.toFixed(2)}€</td>
+                    <td class="${claseBeneficio}">${caso.beneficio >= 0 ? '+' : ''}${caso.beneficio.toFixed(2)}€</td>
+                    <td class="${claseBeneficio}">${caso.rentabilidad >= 0 ? '+' : ''}${caso.rentabilidad.toFixed(2)}%</td>
+                </tr>`;
             }
             tbody.innerHTML = html;
             
