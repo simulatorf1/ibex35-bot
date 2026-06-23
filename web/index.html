@@ -2393,70 +2393,72 @@
     // --- CASOS DE ÉXITO (CORREGIDOS) ---
     async function cargarCasosExito() {
         try {
-            // 1. Obtener TODAS las empresas con su rentabilidad actual
-            const { data: empresas, error } = await supabaseClient
+            // 1. Obtener TODOS los datos de todas las empresas
+            const { data, error } = await supabaseClient
                 .from('recomendaciones_ibex')
-                .select('ticker, nombre_empresa, precio_cierre, fecha')
+                .select('ticker, nombre_empresa, precio_cierre, fecha, caso_numero, smi_diario, pendiente_diaria')
                 .order('fecha', { ascending: false });
             
             if (error) throw error;
             
-            // 2. Obtener el último registro de cada empresa para calcular rentabilidad
-            const ultimosRegistros = {};
-            for (const item of empresas) {
-                if (!ultimosRegistros[item.ticker]) {
-                    ultimosRegistros[item.ticker] = item;
+            // 2. Procesar cada empresa IGUAL que en la tabla principal
+            const empresasMap = new Map();
+            for (const item of data) {
+                if (!empresasMap.has(item.ticker)) {
+                    empresasMap.set(item.ticker, {
+                        ticker: item.ticker,
+                        nombre: item.nombre_empresa || item.ticker,
+                        registros: [item]
+                    });
+                } else {
+                    empresasMap.get(item.ticker).registros.push(item);
                 }
             }
             
-            // 3. Obtener el precio de entrada (patrón 7 o 3) para cada empresa
-            const { data: entradas, error: errorEntradas } = await supabaseClient
-                .from('recomendaciones_ibex')
-                .select('ticker, nombre_empresa, precio_cierre, fecha, caso_numero')
-                .in('caso_numero', [7, 3])
-                .order('fecha', { ascending: false });
+            // 3. Calcular subida para cada empresa (MISMA LÓGICA)
+            const casosExito = [];
             
-            if (errorEntradas) throw errorEntradas;
-            
-            // 4. Calcular casos de éxito (misma lógica que tu tabla)
-            const casos = [];
-            const tickersProcesados = new Set();
-            
-            for (const entrada of entradas) {
-                if (tickersProcesados.has(entrada.ticker)) continue;
-                tickersProcesados.add(entrada.ticker);
+            for (const [ticker, emp] of empresasMap) {
+                // Ordenar registros por fecha (ascendente para calcular patrones)
+                const registros = emp.registros.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+                const ultimo = registros[registros.length - 1];
                 
-                const precioActual = ultimosRegistros[entrada.ticker]?.precio_cierre || entrada.precio_cierre;
-                const rentabilidad = ((precioActual - entrada.precio_cierre) / entrada.precio_cierre) * 100;
+                // Calcular el último patrón (usa la misma función que tu tabla)
+                const tieneInteres = PATRONES_INTERES.includes(ultimo.caso_numero);
+                const ultimoPatronInfo = calcularUltimoPatron(registros, tieneInteres);
                 
-                // SOLO mostrar si rentabilidad > 2% (mismo filtro que tu tabla)
-                if (rentabilidad > 2) {
-                    const beneficioEuros = (rentabilidad / 100) * 10000;
-                    
-                    casos.push({
-                        ticker: entrada.ticker,
-                        nombre: entrada.nombre_empresa,
-                        fechaEntrada: new Date(entrada.fecha).toLocaleDateString('es-ES'),
-                        precioEntrada: entrada.precio_cierre,
-                        precioSalida: precioActual,
+                let subida = null;
+                if (ultimoPatronInfo && ultimoPatronInfo.precioPatron && ultimo.precio_cierre) {
+                    subida = ((ultimo.precio_cierre - ultimoPatronInfo.precioPatron) / ultimoPatronInfo.precioPatron) * 100;
+                }
+                
+                // APLICAR EL MISMO FILTRO QUE USAS EN "CASOS DE ÉXITO"
+                if (subida !== null && subida > 2) {
+                    const beneficioEuros = (subida / 100) * 10000;
+                    casosExito.push({
+                        ticker: ticker,
+                        nombre: emp.nombre,
+                        fechaEntrada: ultimoPatronInfo ? new Date(ultimoPatronInfo.fecha).toLocaleDateString('es-ES') : '---',
+                        precioEntrada: ultimoPatronInfo ? ultimoPatronInfo.precioPatron : 0,
+                        precioSalida: ultimo.precio_cierre,
                         beneficio: beneficioEuros,
-                        rentabilidad: rentabilidad
+                        rentabilidad: subida
                     });
                 }
             }
             
-            // 5. Ordenar por beneficio (mayor primero)
-            casos.sort((a, b) => b.beneficio - a.beneficio);
+            // 4. Ordenar por beneficio (mayor a menor)
+            casosExito.sort((a, b) => b.beneficio - a.beneficio);
             
-            // 6. Renderizar
+            // 5. Renderizar (máximo 10 casos)
             const tbody = document.getElementById('casosExitoBody');
-            if (casos.length === 0) {
+            if (casosExito.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="6" class="sin-datos">No hay casos de éxito disponibles</td></tr>';
                 return;
             }
             
             let html = '';
-            const topCasos = casos.slice(0, 5);
+            const topCasos = casosExito.slice(0, 10);
             for (const caso of topCasos) {
                 const claseBeneficio = caso.beneficio >= 0 ? 'beneficio' : 'beneficio negativo';
                 html += `<tr>
@@ -2475,6 +2477,7 @@
             document.getElementById('casosExitoBody').innerHTML = '<tr><td colspan="6" class="sin-datos">Error al cargar casos de éxito</td></tr>';
         }
     }
+
 
     // --- RESTO DE FUNCIONES ---
     async function cargarDatosCompletos(ticker) {
