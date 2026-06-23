@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Backtesting - Análisis técnico de señales</title>
     <style>
-        /* --- ESTILOS EXISTENTES (sin cambios) --- */
+        /* --- ESTILOS EXISTENTES --- */
         * {
             margin: 0;
             padding: 0;
@@ -505,7 +505,6 @@
             -webkit-text-fill-color: rgba(255,255,255,0.85);
         }
 
-        /* --- BADGE GRATIS --- */
         .gratis-badge {
             display: inline-block;
             background: linear-gradient(135deg, #28a745, #20c997);
@@ -597,7 +596,6 @@
             color: rgba(255, 255, 255, 0.8);
         }
 
-        /* --- FORMULARIO --- */
         .auth-form-wrapper {
             display: flex;
             align-items: center;
@@ -733,7 +731,6 @@
             font-size: 0.7rem;
         }
 
-        /* --- RESPONSIVE --- */
         @media (max-width: 1100px) {
             .auth-hero {
                 grid-template-columns: 1fr;
@@ -1159,7 +1156,120 @@
             font-size: 0.6rem;
         }
 
-        /* --- ESTILOS DEL TUTORIAL --- */
+        /* --- DEMO BANNER PARPADEANTE --- */
+        .demo-banner {
+            background: linear-gradient(135deg, #dc3545, #ff6b6b);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(220, 53, 69, 0.4);
+            animation: bannerPulse 2s ease-in-out infinite;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+        @keyframes bannerPulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 4px 20px rgba(220, 53, 69, 0.4); }
+            50% { transform: scale(1.01); box-shadow: 0 4px 40px rgba(220, 53, 69, 0.7); }
+        }
+        .demo-banner .demo-text {
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+        .demo-banner .demo-text strong {
+            font-weight: 800;
+            text-decoration: underline;
+        }
+        .demo-banner .demo-text .icono-grande {
+            font-size: 1.8rem;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        .demo-banner .demo-btn {
+            background: white;
+            color: #dc3545;
+            border: none;
+            padding: 10px 28px;
+            border-radius: 40px;
+            font-weight: 800;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.2s;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .demo-banner .demo-btn:hover {
+            transform: scale(1.05);
+            background: #fff8f8;
+        }
+
+        .demo-banner .demo-btn-registro {
+            background: #28a745;
+            color: white;
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+        }
+        .demo-banner .demo-btn-registro:hover {
+            background: #34ce57;
+        }
+
+        /* --- CASOS DE ÉXITO --- */
+        .casos-exito {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+            border: 1px solid #e9ecef;
+            margin-bottom: 20px;
+        }
+        .casos-exito .header {
+            background: #d4edda;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .casos-exito .header h3 {
+            font-size: 0.9rem;
+            color: #1e7e34;
+            margin: 0;
+        }
+        .casos-exito .header span {
+            font-size: 0.7rem;
+            color: #155724;
+        }
+        .casos-exito table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.75rem;
+        }
+        .casos-exito th {
+            background: #f8f9fa;
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #1e4668;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .casos-exito td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #f0f2f5;
+        }
+        .casos-exito .beneficio {
+            font-weight: 700;
+            color: #1e7e34;
+        }
+        .casos-exito .beneficio.negativo {
+            color: #dc3545;
+        }
+
+        /* --- TUTORIAL --- */
         .tutorial-overlay {
             position: fixed;
             top: 0;
@@ -1317,7 +1427,6 @@
             color: #6c86a3;
         }
         
-        /* Responsive móvil tutorial */
         @media (max-width: 600px) {
             .tutorial-card {
                 padding: 24px 18px 20px;
@@ -1355,7 +1464,6 @@
             }
         }
         
-        /* Efecto intermitente en la campana (siempre) */
         .notification-bell.tutorial-parpadeo {
             animation: bellPulse 2s ease-in-out infinite;
         }
@@ -1375,7 +1483,6 @@
             85% { transform: scale(1.3) rotate(12deg); color: #ff6b6b; }
         }
         
-        /* Destacar elementos durante el tutorial */
         .tutorial-highlight {
             box-shadow: 0 0 0 4px #ffc107, 0 0 20px rgba(255, 193, 7, 0.4);
             border-radius: 12px;
@@ -1391,53 +1498,7 @@
             50% { box-shadow: 0 0 0 8px #ffc107, 0 0 40px rgba(255, 193, 7, 0.5); }
         }
 
-        /* --- NUEVOS ESTILOS PARA DEMO Y CASOS DE ÉXITO --- */
-        .demo-banner {
-            background: linear-gradient(135deg, #1e4668, #2c7da0);
-            color: white;
-            padding: 16px 24px;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 16px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 16px rgba(30, 70, 104, 0.3);
-        }
-        .demo-banner .demo-text {
-            font-size: 0.85rem;
-            font-weight: 400;
-        }
-        .demo-banner .demo-text strong {
-            font-weight: 700;
-            color: #ffc107;
-        }
-        .demo-banner .demo-btn {
-            background: #ffc107;
-            color: #1e4668;
-            border: none;
-            padding: 8px 24px;
-            border-radius: 40px;
-            font-weight: 700;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: 0.2s;
-            text-decoration: none;
-            display: inline-block;
-        }
-        .demo-banner .demo-btn:hover {
-            transform: scale(1.05);
-            background: #ffca2c;
-        }
-        .demo-banner .demo-btn-registro {
-            background: #28a745;
-            color: white;
-        }
-        .demo-banner .demo-btn-registro:hover {
-            background: #34ce57;
-        }
-
+        /* --- USUARIOS ACTIVOS --- */
         .usuarios-activos {
             background: white;
             border-radius: 16px;
@@ -1495,113 +1556,6 @@
             font-weight: 800;
             color: #28a745;
             font-size: 1.1rem;
-        }
-
-        .casos-exito {
-            background: white;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-            border: 1px solid #e9ecef;
-            margin-bottom: 20px;
-        }
-        .casos-exito .header {
-            background: #d4edda;
-            padding: 12px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .casos-exito .header h3 {
-            font-size: 0.9rem;
-            color: #1e7e34;
-            margin: 0;
-        }
-        .casos-exito .header span {
-            font-size: 0.7rem;
-            color: #155724;
-        }
-        .casos-exito table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.75rem;
-        }
-        .casos-exito th {
-            background: #f8f9fa;
-            padding: 10px 12px;
-            text-align: left;
-            font-weight: 600;
-            color: #1e4668;
-            border-bottom: 2px solid #e9ecef;
-        }
-        .casos-exito td {
-            padding: 10px 12px;
-            border-bottom: 1px solid #f0f2f5;
-        }
-        .casos-exito .beneficio {
-            font-weight: 700;
-            color: #1e7e34;
-        }
-        .casos-exito .beneficio.negativo {
-            color: #dc3545;
-        }
-
-        .demo-bloqueado {
-            opacity: 0.6;
-            pointer-events: none;
-            position: relative;
-        }
-        .demo-bloqueado::after {
-            content: '🔒 Regístrate para ver más';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(30, 70, 104, 0.9);
-            color: white;
-            padding: 8px 20px;
-            border-radius: 40px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            z-index: 10;
-            backdrop-filter: blur(4px);
-        }
-
-        .bloqueo-simulador {
-            position: relative;
-        }
-        .bloqueo-simulador .bloqueo-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255,255,255,0.7);
-            backdrop-filter: blur(2px);
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 5;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .bloqueo-simulador .bloqueo-overlay span {
-            font-size: 0.8rem;
-            color: #1e4668;
-            font-weight: 600;
-        }
-        .bloqueo-simulador .bloqueo-overlay .btn-registro {
-            background: #1e4668;
-            color: white;
-            border: none;
-            padding: 6px 20px;
-            border-radius: 40px;
-            font-weight: 600;
-            font-size: 0.75rem;
-            cursor: pointer;
         }
     </style>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-LVV061GCPF"></script>
@@ -1722,7 +1676,7 @@
                     <span class="user-name" id="userNameDisplay">Demo</span>
                     <span style="font-size:0.7rem; color:#8ba0bc; display:block;" id="userEmailDisplay">Modo invitado</span>
                     <div class="mis-empresas" id="misEmpresasTags">
-                        <span class="tag-empty">⚙️ Configura tus empresas</span>
+                        <span class="tag-empty">🔒 Registro para configurar</span>
                     </div>
                 </div>
             </div>
@@ -1732,17 +1686,18 @@
                     <span class="badge" id="notificationBadge" style="display:none;">0</span>
                 </span>
                 <button class="settings-btn" id="settingsBtn" title="Configurar empresas">⚙️</button>
+                <button class="logout-btn" id="btnMostrarLogin" style="background:#1e4668; color:white;">🔐 Registrarse</button>
                 <button class="logout-btn" id="logoutBtn" style="display:none;">Cerrar sesión</button>
-                <button class="logout-btn" id="btnMostrarLogin" style="background:#1e4668; color:white;">🔐 Acceder</button>
             </div>
         </div>
 
-        <!-- BANNER DEMO -->
+        <!-- BANNER DEMO PARPADEANTE -->
         <div class="demo-banner" id="demoBanner">
             <div class="demo-text">
-                <span style="font-size:1.2rem;">👀</span> Estás viendo una <strong>demo</strong> con datos reales del IBEX35.
-                <span style="display:inline-block; background:rgba(255,255,255,0.15); padding:2px 12px; border-radius:40px; margin-left:8px; font-size:0.7rem;">
-                    ⚡ 2 de 35 empresas visibles
+                <span class="icono-grande">🔓</span>
+                <strong>DEMO LIMITADA</strong> — Estás viendo <strong>5 empresas</strong> de 35. 
+                <span style="display:inline-block; background:rgba(255,255,255,0.2); padding:2px 14px; border-radius:40px; margin-left:8px; font-size:0.75rem;">
+                    ⚡ Solo registrados ven todas
                 </span>
             </div>
             <div>
@@ -1768,7 +1723,7 @@
 
         <!-- APLICACIÓN PRINCIPAL -->
         <div class="panel-principal">
-            <h2>📋 ANÁLISIS DE EMPRESAS <span style="font-size: 0.6rem; font-weight: normal;">Escribe para buscar instantáneamente</span></h2>
+            <h2>📋 ANÁLISIS DE EMPRESAS <span style="font-size: 0.6rem; font-weight: normal;">(Demo: 5 empresas visibles)</span></h2>
             <div class="filtros-barra">
                 <input type="text" id="filtroEmpresa" placeholder="🔍 Buscar por nombre o ticker (ej: Telefónica, SAN, BBVA)...">
                 <select id="filtroOportunidad">
@@ -1785,13 +1740,13 @@
                         <tr><th>Empresa</th><th>Precio</th><th>Fecha</th><th>Últ. patrón</th><th>Precio patrón</th><th>Rentabilidad</th><th>PW</th></tr>
                     </thead>
                     <tbody id="empresasBody">
-                        <tr><td colspan="7" class="mensaje-inicial">🔍 Empieza a escribir para buscar empresas...</td></tr>
+                        <tr><td colspan="7" class="mensaje-inicial">🔍 Cargando empresas...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <!-- CASOS DE ÉXITO (REALES) -->
+        <!-- CASOS DE ÉXITO -->
         <div class="casos-exito">
             <div class="header">
                 <h3>⭐ Casos de éxito reales</h3>
@@ -2155,12 +2110,13 @@
         }
     }
     
-    async function loadUserProfileWithRetry(userId, maxRetries = 3) {
-        for (let i = 0; i < maxRetries; i++) {
+    async function loadUserProfileWithRetry(userId, maxRetries) {
+        if (maxRetries === undefined) maxRetries = 3;
+        for (var i = 0; i < maxRetries; i++) {
             try {
-                if (i > 0) await new Promise(resolve => setTimeout(resolve, 1000));
+                if (i > 0) await new Promise(function(resolve) { setTimeout(resolve, 1000); });
                 
-                const { data, error } = await supabaseClient
+                var { data, error } = await supabaseClient
                     .from('perfiles')
                     .select('nombre, ciudad')
                     .eq('id', userId)
@@ -2169,13 +2125,13 @@
                 if (error) {
                     if (error.code === 'PGRST116') {
                         console.log('Creando perfil automático (retry)...');
-                        const { data: userData } = await supabaseClient.auth.getUser();
-                        const email = userData.user.email || 'usuario@email.com';
-                        const nombre = email.split('@')[0] || 'Usuario';
+                        var { data: userData } = await supabaseClient.auth.getUser();
+                        var email = userData.user.email || 'usuario@email.com';
+                        var nombre = email.split('@')[0] || 'Usuario';
                         
                         await supabaseClient
                             .from('perfiles')
-                            .insert([{ id: userId, nombre, ciudad: 'No especificada', email }]);
+                            .insert([{ id: userId, nombre: nombre, ciudad: 'No especificada', email: email }]);
                         
                         userNameDisplay.textContent = nombre;
                         userEmailDisplay.textContent = 'No especificada';
@@ -2184,7 +2140,7 @@
                         return;
                     }
                     
-                    console.log(`Intento ${i+1} fallido:`, error.message);
+                    console.log('Intento ' + (i+1) + ' fallido:', error.message);
                     continue;
                 }
                 
@@ -2196,19 +2152,19 @@
                     return;
                 }
             } catch (error) {
-                console.log(`Intento ${i+1} con error:`, error);
+                console.log('Intento ' + (i+1) + ' con error:', error);
             }
         }
         
         try {
-            const { data: userData } = await supabaseClient.auth.getUser();
-            if (userData?.user) {
-                userNameDisplay.textContent = userData.user.email?.split('@')[0] || 'Usuario';
+            var { data: userData } = await supabaseClient.auth.getUser();
+            if (userData && userData.user) {
+                userNameDisplay.textContent = userData.user.email.split('@')[0] || 'Usuario';
                 userEmailDisplay.textContent = userData.user.email || '';
                 esUsuarioAutenticado = true;
                 showApp(true);
             }
-        } catch {
+        } catch (e) {
             authError.textContent = 'Error al cargar el perfil. Intenta iniciar sesión.';
             showAuth();
         }
@@ -2216,7 +2172,7 @@
 
     async function loadUserProfile(userId) {
         try {
-            const { data, error } = await supabaseClient
+            var { data, error } = await supabaseClient
                 .from('perfiles')
                 .select('nombre, ciudad')
                 .eq('id', userId)
@@ -2225,13 +2181,13 @@
             if (error) {
                 if (error.code === 'PGRST116') {
                     console.log('Perfil no encontrado, creando uno automáticamente...');
-                    const { data: userData } = await supabaseClient.auth.getUser();
-                    const email = userData.user.email || 'usuario@email.com';
-                    const nombre = email.split('@')[0] || 'Usuario';
+                    var { data: userData } = await supabaseClient.auth.getUser();
+                    var email = userData.user.email || 'usuario@email.com';
+                    var nombre = email.split('@')[0] || 'Usuario';
                     
-                    const { error: insertError } = await supabaseClient
+                    var { error: insertError } = await supabaseClient
                         .from('perfiles')
-                        .insert([{ id: userId, nombre, ciudad: 'No especificada', email }]);
+                        .insert([{ id: userId, nombre: nombre, ciudad: 'No especificada', email: email }]);
                         
                     if (insertError) {
                         console.error('Error creando perfil automático:', insertError);
@@ -2249,8 +2205,8 @@
                     return;
                 }
                 
-                const { data: userData } = await supabaseClient.auth.getUser();
-                userNameDisplay.textContent = userData.user.email?.split('@')[0] || 'Usuario';
+                var { data: userData } = await supabaseClient.auth.getUser();
+                userNameDisplay.textContent = userData.user.email.split('@')[0] || 'Usuario';
                 userEmailDisplay.textContent = userData.user.email || '';
                 esUsuarioAutenticado = true;
                 showApp(true);
@@ -2266,23 +2222,23 @@
         } catch (error) {
             console.error('Error cargando perfil:', error);
             try {
-                const { data: userData } = await supabaseClient.auth.getUser();
-                userNameDisplay.textContent = userData.user.email?.split('@')[0] || 'Usuario';
+                var { data: userData } = await supabaseClient.auth.getUser();
+                userNameDisplay.textContent = userData.user.email.split('@')[0] || 'Usuario';
                 userEmailDisplay.textContent = userData.user.email || '';
                 esUsuarioAutenticado = true;
                 showApp(true);
-            } catch {
+            } catch (e) {
                 showAuth();
             }
         }
     }
 
-    function showApp(autenticado = false) {
+    function showApp(autenticado) {
+        if (autenticado === undefined) autenticado = false;
         authContainer.style.display = 'none';
         appContainer.classList.add('visible');
         esUsuarioAutenticado = autenticado;
         
-        // Actualizar UI según autenticación
         if (autenticado) {
             logoutBtn.style.display = 'inline-block';
             btnMostrarLogin.style.display = 'none';
@@ -2305,7 +2261,6 @@
         }
         cargarContadorNotificaciones();
         cargarMisEmpresas();
-        // Iniciar tutorial si es primera vez
         iniciarTutorial();
     }
 
@@ -2326,28 +2281,33 @@
 
     // --- EVENTOS ---
     authForm.addEventListener('submit', handleAuthSubmit);
-    authToggleLink.addEventListener('click', () => {
+    authToggleLink.addEventListener('click', function() {
         setAuthMode(isLoginMode ? 'register' : 'login');
     });
     logoutBtn.addEventListener('click', handleLogout);
     
-    btnMostrarLogin.addEventListener('click', () => {
+    btnMostrarLogin.addEventListener('click', function() {
         showAuth();
+        setTimeout(function() {
+            document.getElementById('authContainer').scrollIntoView({ behavior: 'smooth' });
+        }, 300);
     });
     
-    btnRegistroDesdeDemo.addEventListener('click', () => {
+    btnRegistroDesdeDemo.addEventListener('click', function() {
         showAuth();
         setAuthMode('register');
+        setTimeout(function() {
+            document.getElementById('authContainer').scrollIntoView({ behavior: 'smooth' });
+        }, 300);
     });
 
     // --- SESIÓN ---
     (async function checkSession() {
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        if (session) {
-            await loadUserProfile(session.user.id);
+        var { data } = await supabaseClient.auth.getSession();
+        if (data && data.session) {
+            await loadUserProfile(data.session.user.id);
         } else {
-            // Modo demo: mostrar app sin autenticación
-            setTimeout(() => {
+            setTimeout(function() {
                 showApp(false);
             }, 300);
         }
@@ -2357,46 +2317,48 @@
     // CÓDIGO DE LA APLICACIÓN PRINCIPAL
     // ========================================================================
 
-    const toggleBtn = document.getElementById('toggleExplicativo');
-    const contenido = document.getElementById('explicativoContenido');
-    const icon = document.getElementById('toggleIcon');
-    toggleBtn.addEventListener('click', () => {
+    var toggleBtn = document.getElementById('toggleExplicativo');
+    var contenido = document.getElementById('explicativoContenido');
+    var icon = document.getElementById('toggleIcon');
+    toggleBtn.addEventListener('click', function() {
         contenido.classList.toggle('abierto');
         icon.textContent = contenido.classList.contains('abierto') ? '▲' : '▼';
     });
 
-    const PATRONES_INTERES = [1, 2, 3, 6, 7];
-    const CONDICION_EXCLUSION = (pwDiario, pendiente) => pwDiario !== null && pendiente !== null && pwDiario > 50 && pendiente < 0;
+    var PATRONES_INTERES = [1, 2, 3, 6, 7];
+    var CONDICION_EXCLUSION = function(pwDiario, pendiente) {
+        return pwDiario !== null && pendiente !== null && pwDiario > 50 && pendiente < 0;
+    };
 
-    let catalogoEmpresas = [];
-    let datosCompletosCache = new Map();
-    let tickerSeleccionado = null;
-    let historialActual = [];
-    let entradaSeleccionada = null;
-    let salidaSeleccionada = null;
-    let filaEntradaIndex = -1;
-    let filaSalidaIndex = -1;
-    let chartInstance = null;
+    var catalogoEmpresas = [];
+    var datosCompletosCache = new Map();
+    var tickerSeleccionado = null;
+    var historialActual = [];
+    var entradaSeleccionada = null;
+    var salidaSeleccionada = null;
+    var filaEntradaIndex = -1;
+    var filaSalidaIndex = -1;
+    var chartInstance = null;
 
-    // --- DEMO: LIMITAR EMPRESAS VISIBLES ---
-    const DEMO_LIMIT = 2; // Solo 2 empresas en modo demo
+    var DEMO_LIMIT = 5;
 
     function getDescripcionPatron(patron) {
-        const descripciones = { 1: "🔴 Señal de interés con impulso alcista", 2: "🟡 Señal anticipada", 3: "⚫ Rebote corto plazo", 4: "⚪ Fase de consolidación", 5: "🔴 Agotamiento alcista", 6: "🟢 Señal de interés directa", 7: "🔷 Pre-señal" };
+        var descripciones = { 1: "🔴 Señal de interés con impulso alcista", 2: "🟡 Señal anticipada", 3: "⚫ Rebote corto plazo", 4: "⚪ Fase de consolidación", 5: "🔴 Agotamiento alcista", 6: "🟢 Señal de interés directa", 7: "🔷 Pre-señal" };
         return descripciones[patron] || "Sin patrón";
     }
 
     async function cargarCatalogoEmpresas() {
         try {
-            const { data, error } = await supabaseClient
+            var { data, error } = await supabaseClient
                 .from('recomendaciones_ibex')
                 .select('ticker, nombre_empresa')
                 .range(0, 99999);
             
             if (error) throw error;
             
-            const uniqueMap = new Map();
-            for (const item of data) {
+            var uniqueMap = new Map();
+            for (var i = 0; i < data.length; i++) {
+                var item = data[i];
                 if (!uniqueMap.has(item.ticker)) {
                     uniqueMap.set(item.ticker, {
                         ticker: item.ticker,
@@ -2404,16 +2366,21 @@
                     });
                 }
             }
-            catalogoEmpresas = Array.from(uniqueMap.values()).sort((a,b) => a.nombre.localeCompare(b.nombre));
+            catalogoEmpresas = Array.from(uniqueMap.values()).sort(function(a,b) {
+                return a.nombre.localeCompare(b.nombre);
+            });
             
-            // En modo demo, limitar a 2 empresas
             if (!esUsuarioAutenticado && catalogoEmpresas.length > DEMO_LIMIT) {
                 catalogoEmpresas = catalogoEmpresas.slice(0, DEMO_LIMIT);
             }
             
-            const tbody = document.getElementById('empresasBody');
+            var tbody = document.getElementById('empresasBody');
             if (catalogoEmpresas.length > 0) {
                 tbody.innerHTML = '<tr><td colspan="7" class="mensaje-inicial">🔍 Escribe para buscar empresas...</td></tr>';
+                // Cargar primera empresa automáticamente
+                if (catalogoEmpresas.length > 0 && !tickerSeleccionado) {
+                    seleccionarEmpresa(catalogoEmpresas[0].ticker);
+                }
             } else {
                 tbody.innerHTML = '<tr><td colspan="7" class="mensaje-inicial">❌ No se encontraron empresas</td></tr>';
             }
@@ -2423,38 +2390,36 @@
         }
     }
 
-    // --- CASOS DE ÉXITO ---
+    // --- CASOS DE ÉXITO (CORREGIDOS) ---
     async function cargarCasosExito() {
         try {
-            // Obtener casos de éxito de la base de datos
-            const { data, error } = await supabaseClient
+            var { data, error } = await supabaseClient
                 .from('recomendaciones_ibex')
                 .select('ticker, nombre_empresa, precio_cierre, fecha, caso_numero')
                 .in('caso_numero', [7, 3])
                 .order('fecha', { ascending: false })
-                .limit(20);
+                .limit(30);
             
             if (error) throw error;
             
-            // Procesar casos de éxito
-            const casos = [];
-            const tickersVistos = new Set();
+            var casos = [];
+            var tickersVistos = new Set();
             
-            for (const item of data) {
+            for (var i = 0; i < data.length; i++) {
+                var item = data[i];
                 if (tickersVistos.has(item.ticker)) continue;
                 tickersVistos.add(item.ticker);
                 
-                // Buscar precio de salida (precio actual más reciente)
-                const { data: precioActual } = await supabaseClient
+                var { data: precioActual } = await supabaseClient
                     .from('recomendaciones_ibex')
                     .select('precio_cierre')
                     .eq('ticker', item.ticker)
                     .order('fecha', { ascending: false })
                     .limit(1);
                 
-                const precioSalida = precioActual && precioActual.length > 0 ? precioActual[0].precio_cierre : item.precio_cierre * 1.05;
-                const beneficio = ((precioSalida - item.precio_cierre) / item.precio_cierre) * 100;
-                const beneficioEuros = (beneficio / 100) * 10000;
+                var precioSalida = precioActual && precioActual.length > 0 ? precioActual[0].precio_cierre : item.precio_cierre * 1.02;
+                var rentabilidad = ((precioSalida - item.precio_cierre) / item.precio_cierre) * 100;
+                var beneficioEuros = (rentabilidad / 100) * 10000;
                 
                 casos.push({
                     ticker: item.ticker,
@@ -2463,32 +2428,31 @@
                     precioEntrada: item.precio_cierre,
                     precioSalida: precioSalida,
                     beneficio: beneficioEuros,
-                    rentabilidad: beneficio
+                    rentabilidad: rentabilidad
                 });
             }
             
-            // Ordenar por beneficio (mejores primero)
-            casos.sort((a, b) => b.beneficio - a.beneficio);
+            casos.sort(function(a, b) { return b.beneficio - a.beneficio; });
             
-            // Renderizar
-            const tbody = document.getElementById('casosExitoBody');
+            var tbody = document.getElementById('casosExitoBody');
             if (casos.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="6" class="sin-datos">No hay casos de éxito disponibles</td></tr>';
                 return;
             }
             
-            let html = '';
-            const topCasos = casos.slice(0, 5);
-            for (const caso of topCasos) {
-                const claseBeneficio = caso.beneficio >= 0 ? 'beneficio' : 'beneficio negativo';
-                html += `<tr>
-                    <td><strong>${caso.nombre}</strong><br><span style="font-size:0.6rem;color:#8ba0bc;">${caso.ticker}</span></td>
-                    <td>${caso.fechaEntrada}</td>
-                    <td>${caso.precioEntrada.toFixed(2)}€</td>
-                    <td>${caso.precioSalida.toFixed(2)}€</td>
-                    <td class="${claseBeneficio}">${caso.beneficio >= 0 ? '+' : ''}${caso.beneficio.toFixed(2)}€</td>
-                    <td class="${claseBeneficio}">${caso.rentabilidad >= 0 ? '+' : ''}${caso.rentabilidad.toFixed(2)}%</td>
-                </tr>`;
+            var html = '';
+            var topCasos = casos.slice(0, 5);
+            for (var j = 0; j < topCasos.length; j++) {
+                var caso = topCasos[j];
+                var claseBeneficio = caso.beneficio >= 0 ? 'beneficio' : 'beneficio negativo';
+                html += '<tr>' +
+                    '<td><strong>' + caso.nombre + '</strong><br><span style="font-size:0.6rem;color:#8ba0bc;">' + caso.ticker + '</span></td>' +
+                    '<td>' + caso.fechaEntrada + '</td>' +
+                    '<td>' + caso.precioEntrada.toFixed(2) + '€</td>' +
+                    '<td>' + caso.precioSalida.toFixed(2) + '€</td>' +
+                    '<td class="' + claseBeneficio + '">' + (caso.beneficio >= 0 ? '+' : '') + caso.beneficio.toFixed(2) + '€</td>' +
+                    '<td class="' + claseBeneficio + '">' + (caso.rentabilidad >= 0 ? '+' : '') + caso.rentabilidad.toFixed(2) + '%</td>' +
+                '</tr>';
             }
             tbody.innerHTML = html;
             
@@ -2498,13 +2462,13 @@
         }
     }
 
-    // --- RESTO DE FUNCIONES EXISTENTES (adaptadas para demo) ---
+    // --- RESTO DE FUNCIONES ---
     async function cargarDatosCompletos(ticker) {
         if (datosCompletosCache.has(ticker)) {
             return datosCompletosCache.get(ticker);
         }
         
-        const { data, error } = await supabaseClient
+        var { data, error } = await supabaseClient
             .from('recomendaciones_ibex')
             .select('*')
             .eq('ticker', ticker)
@@ -2512,7 +2476,7 @@
         
         if (error) throw error;
         
-        const empresaCompleta = procesarRegistrosEmpresa(data, ticker);
+        var empresaCompleta = procesarRegistrosEmpresa(data, ticker);
         datosCompletosCache.set(ticker, empresaCompleta);
         return empresaCompleta;
     }
@@ -2520,48 +2484,48 @@
     function procesarRegistrosEmpresa(registros, ticker) {
         if (!registros || registros.length === 0) return null;
         
-        registros.sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
-        const ultimo = registros[registros.length - 1];
-        const nombre = ultimo.nombre_empresa || ticker;
-        const precioActual = ultimo.precio_cierre;
-        const fechaActual = ultimo.fecha;
-        const pwDiarioActual = ultimo.smi_diario;
-        const pendiente = ultimo.pendiente_diaria;
-        const tieneInteres = PATRONES_INTERES.includes(ultimo.caso_numero);
-        let ultimoPatronInfo = calcularUltimoPatron(registros, tieneInteres);
-        let subida = null;
+        registros.sort(function(a,b) { return new Date(a.fecha) - new Date(b.fecha); });
+        var ultimo = registros[registros.length - 1];
+        var nombre = ultimo.nombre_empresa || ticker;
+        var precioActual = ultimo.precio_cierre;
+        var fechaActual = ultimo.fecha;
+        var pwDiarioActual = ultimo.smi_diario;
+        var pendiente = ultimo.pendiente_diaria;
+        var tieneInteres = PATRONES_INTERES.includes(ultimo.caso_numero);
+        var ultimoPatronInfo = calcularUltimoPatron(registros, tieneInteres);
+        var subida = null;
         if (ultimoPatronInfo && ultimoPatronInfo.precioPatron && precioActual) 
             subida = ((precioActual - ultimoPatronInfo.precioPatron) / ultimoPatronInfo.precioPatron) * 100;
         
         return {
-            ticker,
-            nombre,
-            precioActual,
-            fechaActual,
-            tieneInteres,
-            ultimoPatronInfo,
-            subida,
-            pwDiarioActual,
-            pendiente,
-            registros,
+            ticker: ticker,
+            nombre: nombre,
+            precioActual: precioActual,
+            fechaActual: fechaActual,
+            tieneInteres: tieneInteres,
+            ultimoPatronInfo: ultimoPatronInfo,
+            subida: subida,
+            pwDiarioActual: pwDiarioActual,
+            pendiente: pendiente,
+            registros: registros,
             ultimoPatron: ultimo.caso_numero
         };
     }
 
     function calcularUltimoPatron(registros, tieneInteresActual) {
-        let enCiclo = false, precioMinimoCiclo = null, fechaInicioCiclo = null;
-        for (let i = registros.length - 1; i >= 0; i--) {
-            const reg = registros[i];
-            const esInteres = PATRONES_INTERES.includes(reg.caso_numero);
+        var enCiclo = false, precioMinimoCiclo = null, fechaInicioCiclo = null;
+        for (var i = registros.length - 1; i >= 0; i--) {
+            var reg = registros[i];
+            var esInteres = PATRONES_INTERES.includes(reg.caso_numero);
             if (!enCiclo && esInteres) { enCiclo = true; precioMinimoCiclo = reg.precio_cierre; fechaInicioCiclo = reg.fecha; }
             else if (enCiclo && !esInteres) { if (tieneInteresActual && i === registros.length - 1) break; enCiclo = false; break; }
             else if (enCiclo && esInteres && reg.precio_cierre < precioMinimoCiclo) { precioMinimoCiclo = reg.precio_cierre; fechaInicioCiclo = reg.fecha; }
         }
         if (enCiclo && precioMinimoCiclo !== null) return { fecha: fechaInicioCiclo, precioPatron: precioMinimoCiclo, esActual: tieneInteresActual };
-        for (let i = registros.length - 1; i >= 0; i--) {
-            if (PATRONES_INTERES.includes(registros[i].caso_numero)) {
-                let minPrecio = registros[i].precio_cierre, fechaMin = registros[i].fecha, j = i;
-                while (j >= 0 && PATRONES_INTERES.includes(registros[j].caso_numero)) { if (registros[j].precio_cierre < minPrecio) { minPrecio = registros[j].precio_cierre; fechaMin = registros[j].fecha; } j--; }
+        for (var j = registros.length - 1; j >= 0; j--) {
+            if (PATRONES_INTERES.includes(registros[j].caso_numero)) {
+                var minPrecio = registros[j].precio_cierre, fechaMin = registros[j].fecha, k = j;
+                while (k >= 0 && PATRONES_INTERES.includes(registros[k].caso_numero)) { if (registros[k].precio_cierre < minPrecio) { minPrecio = registros[k].precio_cierre; fechaMin = registros[k].fecha; } k--; }
                 return { fecha: fechaMin, precioPatron: minPrecio, esActual: false };
             }
         }
@@ -2570,7 +2534,7 @@
 
     function limpiarSeleccionEmpresa() {
         tickerSeleccionado = null;
-        const detalleDiv = document.getElementById('seccionDetalle');
+        var detalleDiv = document.getElementById('seccionDetalle');
         detalleDiv.classList.remove('visible');
         entradaSeleccionada = null;
         salidaSeleccionada = null;
@@ -2578,42 +2542,41 @@
         document.getElementById('ventaSeleccionada').innerHTML = '---';
         document.getElementById('resultadoSimulacion').innerHTML = '';
         document.getElementById('accionesInfo').innerHTML = 'Selecciona primero un punto de entrada';
-        document.querySelectorAll('#empresasBody tr').forEach(row => {
+        document.querySelectorAll('#empresasBody tr').forEach(function(row) {
             row.classList.remove('seleccionada');
         });
     }
 
     async function buscarYMostrarEmpresas() {
-        const texto = document.getElementById('filtroEmpresa').value.toLowerCase().trim();
-        const filtro = document.getElementById('filtroOportunidad').value;
+        var texto = document.getElementById('filtroEmpresa').value.toLowerCase().trim();
+        var filtro = document.getElementById('filtroOportunidad').value;
         
-        let empresasBase = [];
+        var empresasBase = [];
         
         if (filtro !== 'todas') {
-            const inputBusqueda = document.getElementById('filtroEmpresa');
+            var inputBusqueda = document.getElementById('filtroEmpresa');
             if (inputBusqueda.value !== '') {
                 inputBusqueda.value = '';
             }
             limpiarSeleccionEmpresa();
         }
         
-        const textoFinal = document.getElementById('filtroEmpresa').value.toLowerCase().trim();
+        var textoFinal = document.getElementById('filtroEmpresa').value.toLowerCase().trim();
         
         if (!textoFinal && filtro === 'todas') {
-            const tbody = document.getElementById('empresasBody');
+            var tbody = document.getElementById('empresasBody');
             tbody.innerHTML = '<tr><td colspan="7" class="cargando-texto"><div class="loading-spinner"></div> Cargando todas las empresas...</td></tr>';
             
-            const promesas = catalogoEmpresas.map(emp => cargarDatosCompletos(emp.ticker));
-            const resultados = await Promise.all(promesas);
-            empresasBase = resultados.filter(r => r !== null);
+            var promesas = catalogoEmpresas.map(function(emp) { return cargarDatosCompletos(emp.ticker); });
+            var resultados = await Promise.all(promesas);
+            empresasBase = resultados.filter(function(r) { return r !== null; });
         } else {
-            let filtradasPorTexto = catalogoEmpresas;
+            var filtradasPorTexto = catalogoEmpresas;
             
             if (textoFinal && filtro === 'todas') {
-                filtradasPorTexto = catalogoEmpresas.filter(emp => 
-                    emp.nombre.toLowerCase().includes(textoFinal) || 
-                    emp.ticker.toLowerCase().includes(textoFinal)
-                );
+                filtradasPorTexto = catalogoEmpresas.filter(function(emp) {
+                    return emp.nombre.toLowerCase().includes(textoFinal) || emp.ticker.toLowerCase().includes(textoFinal);
+                });
             } else if (!textoFinal && filtro !== 'todas') {
                 filtradasPorTexto = catalogoEmpresas;
             } else if (textoFinal && filtro !== 'todas') {
@@ -2625,88 +2588,91 @@
                 return;
             }
             
-            const tbody = document.getElementById('empresasBody');
-            tbody.innerHTML = '<tr><td colspan="7" class="cargando-texto"><div class="loading-spinner"></div> Cargando datos...</td></tr>';
+            var tbody2 = document.getElementById('empresasBody');
+            tbody2.innerHTML = '<tr><td colspan="7" class="cargando-texto"><div class="loading-spinner"></div> Cargando datos...</td></tr>';
             
-            const empresasAMostrar = filtradasPorTexto.slice(0, 50);
-            const promesas = empresasAMostrar.map(emp => cargarDatosCompletos(emp.ticker));
-            const resultados = await Promise.all(promesas);
-            empresasBase = resultados.filter(r => r !== null);
+            var empresasAMostrar = filtradasPorTexto.slice(0, 50);
+            var promesas2 = empresasAMostrar.map(function(emp) { return cargarDatosCompletos(emp.ticker); });
+            var resultados2 = await Promise.all(promesas2);
+            empresasBase = resultados2.filter(function(r) { return r !== null; });
         }
         
-        let finalEmpresas = empresasBase;
+        var finalEmpresas = empresasBase;
         
         if (filtro === 'oportunidad') {
-            finalEmpresas = empresasBase.filter(emp => emp.ultimoPatron === 7);
+            finalEmpresas = empresasBase.filter(function(emp) { return emp.ultimoPatron === 7; });
         } else if (filtro === 'posible') {
-            finalEmpresas = empresasBase.filter(emp => emp.ultimoPatron === 3);
+            finalEmpresas = empresasBase.filter(function(emp) { return emp.ultimoPatron === 3; });
         } else if (filtro === 'exito') {
-            finalEmpresas = empresasBase.filter(emp => emp.subida !== null && emp.subida > 2);
+            finalEmpresas = empresasBase.filter(function(emp) { return emp.subida !== null && emp.subida > 2; });
         } else if (filtro === 'riesgo') {
-            finalEmpresas = empresasBase.filter(emp => emp.pwDiarioActual !== null && emp.pwDiarioActual > 40);
+            finalEmpresas = empresasBase.filter(function(emp) { return emp.pwDiarioActual !== null && emp.pwDiarioActual > 40; });
         }
         
         renderizarTablaEmpresas(finalEmpresas);
     }
 
     function renderizarTablaEmpresas(empresas) {
-        const tbody = document.getElementById('empresasBody');
+        var tbody = document.getElementById('empresasBody');
         if (!empresas.length) { 
             tbody.innerHTML = '<tr><td colspan="7" class="mensaje-inicial">📭 No hay empresas que coincidan con los filtros</td></tr>';
             return; 
         }
         
-        let html = '';
-        for (const emp of empresas) {
-            const fechaUltPatron = emp.ultimoPatronInfo ? new Date(emp.ultimoPatronInfo.fecha).toLocaleDateString('es-ES') : '---';
-            const precioUltPatron = emp.ultimoPatronInfo ? emp.ultimoPatronInfo.precioPatron.toFixed(2) + '€' : '---';
-            const subidaClass = emp.subida !== null ? (emp.subida >= 0 ? 'positivo' : 'negativo') : '';
-            const subidaText = emp.subida !== null ? (emp.subida >= 0 ? '+' : '') + emp.subida.toFixed(1) + '%' : '---';
-            const pwText = emp.pwDiarioActual !== null ? emp.pwDiarioActual.toFixed(1) : '---';
-            const precioText = emp.precioActual ? emp.precioActual.toFixed(2) + '€' : '---';
-            const fechaText = emp.fechaActual ? new Date(emp.fechaActual).toLocaleString('es-ES') : '---';
-            const esExclusion = CONDICION_EXCLUSION(emp.pwDiarioActual, emp.pendiente);
-            let filaClass = '';
+        var html = '';
+        for (var i = 0; i < empresas.length; i++) {
+            var emp = empresas[i];
+            var fechaUltPatron = emp.ultimoPatronInfo ? new Date(emp.ultimoPatronInfo.fecha).toLocaleDateString('es-ES') : '---';
+            var precioUltPatron = emp.ultimoPatronInfo ? emp.ultimoPatronInfo.precioPatron.toFixed(2) + '€' : '---';
+            var subidaClass = emp.subida !== null ? (emp.subida >= 0 ? 'positivo' : 'negativo') : '';
+            var subidaText = emp.subida !== null ? (emp.subida >= 0 ? '+' : '') + emp.subida.toFixed(1) + '%' : '---';
+            var pwText = emp.pwDiarioActual !== null ? emp.pwDiarioActual.toFixed(1) : '---';
+            var precioText = emp.precioActual ? emp.precioActual.toFixed(2) + '€' : '---';
+            var fechaText = emp.fechaActual ? new Date(emp.fechaActual).toLocaleString('es-ES') : '---';
+            var esExclusion = CONDICION_EXCLUSION(emp.pwDiarioActual, emp.pendiente);
+            var filaClass = '';
             if (esExclusion) filaClass = 'exclusion';
             else if (emp.ultimoPatron === 7) filaClass = 'interes-alcista-7';
             else if (emp.ultimoPatron === 3) filaClass = 'interes-alcista-3';
-            const seleccionadaClass = tickerSeleccionado === emp.ticker ? 'seleccionada' : '';
-            html += `<tr class="${filaClass} ${seleccionadaClass}" data-ticker="${emp.ticker}" onclick="seleccionarEmpresa('${emp.ticker}')">
-                        <td><strong>${emp.nombre}</strong><br><span style="font-size:0.6rem;color:#8ba0bc;">${emp.ticker}</span></td>
-                        <td>${precioText}</td>
-                        <td style="font-size:0.7rem;">${fechaText}</td>
-                        <td style="font-size:0.7rem;">${fechaUltPatron}</td>
-                        <td>${precioUltPatron}</td>
-                        <td class="${subidaClass}">${subidaText}</td>
-                        <td>${pwText}</td>
-                      </tr>`;
+            var seleccionadaClass = tickerSeleccionado === emp.ticker ? 'seleccionada' : '';
+            html += '<tr class="' + filaClass + ' ' + seleccionadaClass + '" data-ticker="' + emp.ticker + '" onclick="seleccionarEmpresa(\'' + emp.ticker + '\')">';
+            html += '<td><strong>' + emp.nombre + '</strong><br><span style="font-size:0.6rem;color:#8ba0bc;">' + emp.ticker + '</span></td>';
+            html += '<td>' + precioText + '</td>';
+            html += '<td style="font-size:0.7rem;">' + fechaText + '</td>';
+            html += '<td style="font-size:0.7rem;">' + fechaUltPatron + '</td>';
+            html += '<td>' + precioUltPatron + '</td>';
+            html += '<td class="' + subidaClass + '">' + subidaText + '</td>';
+            html += '<td>' + pwText + '</td>';
+            html += '</tr>';
         }
         tbody.innerHTML = html;
     }
 
     function renderizarGrafico(historialCompleto) {
         if (!historialCompleto || historialCompleto.length === 0 || !document.getElementById('graficaCanvas')) return;
-        const datosOrdenados = [...historialCompleto].sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
-        const labelsCompletas = datosOrdenados.map(reg => new Date(reg.fecha).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }));
-        const precios = datosOrdenados.map(reg => reg.precio_cierre);
+        var datosOrdenados = [...historialCompleto].sort(function(a,b) { return new Date(a.fecha) - new Date(b.fecha); });
+        var labelsCompletas = datosOrdenados.map(function(reg) { return new Date(reg.fecha).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }); });
+        var precios = datosOrdenados.map(function(reg) { return reg.precio_cierre; });
         
         function encontrarMinimosP7() {
-            const minPorDia = new Map();
-            for (const reg of datosOrdenados) {
+            var minPorDia = new Map();
+            for (var i = 0; i < datosOrdenados.length; i++) {
+                var reg = datosOrdenados[i];
                 if (reg.caso_numero === 7) {
-                    const diaKey = new Date(reg.fecha).toISOString().split('T')[0];
+                    var diaKey = new Date(reg.fecha).toISOString().split('T')[0];
                     if (!minPorDia.has(diaKey) || reg.precio_cierre < minPorDia.get(diaKey).precio) {
                         minPorDia.set(diaKey, { precio: reg.precio_cierre, fecha: reg.fecha });
                     }
                 }
             }
-            return Array.from(minPorDia.values()).map(item => ({ x: new Date(item.fecha).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }), y: item.precio }));
+            return Array.from(minPorDia.values()).map(function(item) { return { x: new Date(item.fecha).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }), y: item.precio }; });
         }
         function encontrarPuntosSobrecompra() {
-            const maxPorDiaNeg = new Map(), maxPorDiaPos = new Map();
-            for (const reg of datosOrdenados) {
+            var maxPorDiaNeg = new Map(), maxPorDiaPos = new Map();
+            for (var i = 0; i < datosOrdenados.length; i++) {
+                var reg = datosOrdenados[i];
                 if (reg.smi_diario !== null && reg.pendiente_diaria !== null && reg.smi_diario > 40) {
-                    const diaKey = new Date(reg.fecha).toISOString().split('T')[0];
+                    var diaKey = new Date(reg.fecha).toISOString().split('T')[0];
                     if (reg.pendiente_diaria < 0) {
                         if (!maxPorDiaNeg.has(diaKey) || reg.precio_cierre > maxPorDiaNeg.get(diaKey).precio)
                             maxPorDiaNeg.set(diaKey, { precio: reg.precio_cierre, fecha: reg.fecha });
@@ -2716,11 +2682,11 @@
                     }
                 }
             }
-            return { rojos: Array.from(maxPorDiaNeg.values()).map(item => ({ x: new Date(item.fecha).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }), y: item.precio })), naranjas: Array.from(maxPorDiaPos.values()).map(item => ({ x: new Date(item.fecha).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }), y: item.precio })) };
+            return { rojos: Array.from(maxPorDiaNeg.values()).map(function(item) { return { x: new Date(item.fecha).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }), y: item.precio }; }), naranjas: Array.from(maxPorDiaPos.values()).map(function(item) { return { x: new Date(item.fecha).toLocaleString('es-ES', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' }), y: item.precio }; }) };
         }
-        const p7Points = encontrarMinimosP7();
-        const { rojos, naranjas } = encontrarPuntosSobrecompra();
-        const ctx = document.getElementById('graficaCanvas').getContext('2d');
+        var p7Points = encontrarMinimosP7();
+        var { rojos, naranjas } = encontrarPuntosSobrecompra();
+        var ctx = document.getElementById('graficaCanvas').getContext('2d');
         if (chartInstance) chartInstance.destroy();
         chartInstance = new Chart(ctx, {
             type: 'line',
@@ -2733,29 +2699,28 @@
                     { label: '🟠 Sobrecompra (Pend. Positiva)', data: naranjas, backgroundColor: '#cc6600', pointRadius: 8, pointStyle: 'arrow', type: 'scatter', showLine: false, order: 1 }
                 ]
             },
-            options: { responsive: true, maintainAspectRatio: false, scales: { x: { ticks: { maxRotation: 45, autoSkip: true, maxTicksLimit: 8 } } }, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => `Precio: ${ctx.parsed.y}€` } } } }
+            options: { responsive: true, maintainAspectRatio: false, scales: { x: { ticks: { maxRotation: 45, autoSkip: true, maxTicksLimit: 8 } } }, plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(ctx) { return 'Precio: ' + ctx.parsed.y + '€'; } } } } }
         });
     }
 
     window.seleccionarEmpresa = async function(ticker) {
         tickerSeleccionado = ticker;
         
-        const detalleDiv = document.getElementById('seccionDetalle');
+        var detalleDiv = document.getElementById('seccionDetalle');
         detalleDiv.classList.add('visible');
         document.getElementById('detalleTituloEmpresa').innerHTML = '📊 Cargando datos...';
         document.getElementById('historialBody').innerHTML = '<tr><td colspan="8" class="cargando-texto"><div class="loading-spinner"></div> Cargando historial...</td></tr>';
         
         try {
-            const empresaCompleta = await cargarDatosCompletos(ticker);
+            var empresaCompleta = await cargarDatosCompletos(ticker);
             if (!empresaCompleta) {
                 document.getElementById('detalleTituloEmpresa').innerHTML = '📊 Error al cargar datos';
                 return;
             }
             
-            document.getElementById('detalleTituloEmpresa').innerHTML = `📊 ${empresaCompleta.nombre} (${ticker})`;
-            historialActual = [...empresaCompleta.registros].sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+            document.getElementById('detalleTituloEmpresa').innerHTML = '📊 ' + empresaCompleta.nombre + ' (' + ticker + ')';
+            historialActual = [...empresaCompleta.registros].sort(function(a,b) { return new Date(b.fecha) - new Date(a.fecha); });
             
-            // En modo demo, limitar historial
             if (!esUsuarioAutenticado && historialActual.length > 10) {
                 historialActual = historialActual.slice(0, 10);
             }
@@ -2772,25 +2737,25 @@
             detalleDiv.scrollIntoView({ behavior: 'smooth' });
             actualizarAccionesInfo();
             
-            document.querySelectorAll('#empresasBody tr').forEach(row => { 
-                row.classList.remove('seleccionada'); 
-                if (row.getAttribute('data-ticker') === ticker) row.classList.add('seleccionada'); 
+            document.querySelectorAll('#empresasBody tr').forEach(function(row) {
+                row.classList.remove('seleccionada');
+                if (row.getAttribute('data-ticker') === ticker) row.classList.add('seleccionada');
             });
         } catch (err) {
             console.error('Error cargando empresa:', err);
-            document.getElementById('detalleTituloEmpresa').innerHTML = `📊 Error al cargar ${ticker}`;
+            document.getElementById('detalleTituloEmpresa').innerHTML = '📊 Error al cargar ' + ticker;
         }
     };
 
     function renderizarHistorialCompleto(historial) {
-        const tbody = document.getElementById('historialBody');
+        var tbody = document.getElementById('historialBody');
         if (!historial.length) { tbody.innerHTML = '<tr><td colspan="8" class="sin-datos">No hay historial</td></tr>'; return; }
-        let html = '';
-        for (let i = 0; i < historial.length; i++) {
-            const reg = historial[i];
-            const fecha = new Date(reg.fecha).toLocaleString('es-ES');
-            const precio = reg.precio_cierre ? reg.precio_cierre.toFixed(2) + '€' : '---';
-            let patronClass = '';
+        var html = '';
+        for (var i = 0; i < historial.length; i++) {
+            var reg = historial[i];
+            var fecha = new Date(reg.fecha).toLocaleString('es-ES');
+            var precio = reg.precio_cierre ? reg.precio_cierre.toFixed(2) + '€' : '---';
+            var patronClass = '';
             if (reg.caso_numero === 7) patronClass = 'patron-7';
             else if (reg.caso_numero === 3) patronClass = 'patron-3';
             else if (reg.caso_numero === 6) patronClass = 'patron-6';
@@ -2798,17 +2763,17 @@
             else if (reg.caso_numero === 2) patronClass = 'patron-2';
             else if (reg.caso_numero === 4) patronClass = 'patron-4';
             else if (reg.caso_numero === 5) patronClass = 'patron-5';
-            const esExclusion = CONDICION_EXCLUSION(reg.smi_diario, reg.pendiente_diaria);
+            var esExclusion = CONDICION_EXCLUSION(reg.smi_diario, reg.pendiente_diaria);
             if (esExclusion) patronClass = 'patron-exclusion';
-            const pw4h = reg.smi_4h !== null ? reg.smi_4h.toFixed(1) : '---';
-            const pwDiario = reg.smi_diario !== null ? reg.smi_diario.toFixed(1) : '---';
-            const pendiente = reg.pendiente_diaria !== null ? reg.pendiente_diaria.toFixed(1) : '---';
-            let soporteText = '---', resistenciaText = '---';
+            var pw4h = reg.smi_4h !== null ? reg.smi_4h.toFixed(1) : '---';
+            var pwDiario = reg.smi_diario !== null ? reg.smi_diario.toFixed(1) : '---';
+            var pendiente = reg.pendiente_diaria !== null ? reg.pendiente_diaria.toFixed(1) : '---';
+            var soporteText = '---', resistenciaText = '---';
             if (reg.soportes) soporteText = reg.soportes.split('\n')[0]?.substring(0,30) || '---';
             if (reg.resistencias) resistenciaText = reg.resistencias.split('\n')[0]?.substring(0,30) || '---';
-            const isEntrada = (entradaSeleccionada && entradaSeleccionada.idx === i);
-            const isSalida = (salidaSeleccionada && salidaSeleccionada.idx === i);
-            let precioHtml = precio;
+            var isEntrada = (entradaSeleccionada && entradaSeleccionada.idx === i);
+            var isSalida = (salidaSeleccionada && salidaSeleccionada.idx === i);
+            var precioHtml = precio;
             if (isEntrada) {
                 precioHtml = '<span class="precio-seleccionado">🔵 ' + precio + '</span>';
             } else if (isSalida) {
@@ -2837,23 +2802,23 @@
 
     function seleccionarPrecioEnHistorial(idx, precio, fecha) {
         if (entradaSeleccionada === null) {
-            entradaSeleccionada = { idx, precio, fecha };
+            entradaSeleccionada = { idx: idx, precio: precio, fecha: fecha };
             filaEntradaIndex = idx;
-            document.getElementById('compraSeleccionada').innerHTML = `${new Date(fecha).toLocaleString('es-ES')} · ${precio.toFixed(2)}€`;
+            document.getElementById('compraSeleccionada').innerHTML = new Date(fecha).toLocaleString('es-ES') + ' · ' + precio.toFixed(2) + '€';
             document.getElementById('ventaSeleccionada').innerHTML = '---';
             salidaSeleccionada = null;
             document.getElementById('resultadoSimulacion').innerHTML = '';
             actualizarAccionesInfo();
         } else if (salidaSeleccionada === null) {
             if (idx >= filaEntradaIndex) { alert('❌ El punto de salida debe ser MÁS RECIENTE (fila por encima del punto de entrada)'); return; }
-            salidaSeleccionada = { idx, precio, fecha };
+            salidaSeleccionada = { idx: idx, precio: precio, fecha: fecha };
             filaSalidaIndex = idx;
-            document.getElementById('ventaSeleccionada').innerHTML = `${new Date(fecha).toLocaleString('es-ES')} · ${precio.toFixed(2)}€`;
+            document.getElementById('ventaSeleccionada').innerHTML = new Date(fecha).toLocaleString('es-ES') + ' · ' + precio.toFixed(2) + '€';
         } else {
-            entradaSeleccionada = { idx, precio, fecha };
+            entradaSeleccionada = { idx: idx, precio: precio, fecha: fecha };
             filaEntradaIndex = idx;
             salidaSeleccionada = null;
-            document.getElementById('compraSeleccionada').innerHTML = `${new Date(fecha).toLocaleString('es-ES')} · ${precio.toFixed(2)}€`;
+            document.getElementById('compraSeleccionada').innerHTML = new Date(fecha).toLocaleString('es-ES') + ' · ' + precio.toFixed(2) + '€';
             document.getElementById('ventaSeleccionada').innerHTML = '---';
             document.getElementById('resultadoSimulacion').innerHTML = '';
             actualizarAccionesInfo();
@@ -2863,35 +2828,37 @@
 
     function actualizarAccionesInfo() {
         if (!entradaSeleccionada) { document.getElementById('accionesInfo').innerHTML = 'Selecciona primero un punto de entrada'; return; }
-        const capital = parseFloat(document.getElementById('capitalInput').value);
+        var capital = parseFloat(document.getElementById('capitalInput').value);
         if (isNaN(capital) || capital <= 0) { document.getElementById('accionesInfo').innerHTML = '⚠️ Capital inválido'; return; }
-        const precioEntrada = entradaSeleccionada.precio;
-        const acciones = Math.floor(capital / precioEntrada);
-        const inversionReal = acciones * precioEntrada;
-        document.getElementById('accionesInfo').innerHTML = `📊 ${acciones} acciones · Inversión simulada: ${inversionReal.toFixed(2)}€ (comisión: ${(11 + inversionReal * 0.004).toFixed(2)}€)`;
+        var precioEntrada = entradaSeleccionada.precio;
+        var acciones = Math.floor(capital / precioEntrada);
+        var inversionReal = acciones * precioEntrada;
+        document.getElementById('accionesInfo').innerHTML = '📊 ' + acciones + ' acciones · Inversión simulada: ' + inversionReal.toFixed(2) + '€ (comisión: ' + (11 + inversionReal * 0.004).toFixed(2) + '€)';
     }
 
     function calcularResultado() {
         if (!entradaSeleccionada || !salidaSeleccionada) { alert('❌ Punto de entrada y salida requeridos'); return; }
-        const capital = parseFloat(document.getElementById('capitalInput').value);
+        var capital = parseFloat(document.getElementById('capitalInput').value);
         if (isNaN(capital) || capital <= 0) { alert('❌ Capital inválido'); return; }
-        const precioEntrada = entradaSeleccionada.precio, precioSalida = salidaSeleccionada.precio;
-        const acciones = Math.floor(capital / precioEntrada);
-        const dineroInvertido = acciones * precioEntrada;
-        const comisionEntrada = 11 + (dineroInvertido * 0.004), comisionSalida = 11 + (precioSalida * acciones * 0.004);
-        const resultadoNeto = (precioSalida - precioEntrada) * acciones - (comisionEntrada + comisionSalida);
-        const rentabilidadPorcentaje = ((precioSalida - precioEntrada) / precioEntrada) * 100;
-        const resultadoDiv = document.getElementById('resultadoSimulacion');
-        resultadoDiv.innerHTML = `<span class="${resultadoNeto >= 0 ? 'positivo' : 'negativo'}">${resultadoNeto >= 0 ? '+' : ''}${resultadoNeto.toFixed(2)}€ (${rentabilidadPorcentaje >= 0 ? '+' : ''}${rentabilidadPorcentaje.toFixed(2)}%)</span>`;
+        var precioEntrada = entradaSeleccionada.precio, precioSalida = salidaSeleccionada.precio;
+        var acciones = Math.floor(capital / precioEntrada);
+        var dineroInvertido = acciones * precioEntrada;
+        var comisionEntrada = 11 + (dineroInvertido * 0.004), comisionSalida = 11 + (precioSalida * acciones * 0.004);
+        var resultadoNeto = (precioSalida - precioEntrada) * acciones - (comisionEntrada + comisionSalida);
+        var rentabilidadPorcentaje = ((precioSalida - precioEntrada) / precioEntrada) * 100;
+        var resultadoDiv = document.getElementById('resultadoSimulacion');
+        var clase = resultadoNeto >= 0 ? 'positivo' : 'negativo';
+        var signo = resultadoNeto >= 0 ? '+' : '';
+        resultadoDiv.innerHTML = '<span class="' + clase + '">' + signo + resultadoNeto.toFixed(2) + '€ (' + (rentabilidadPorcentaje >= 0 ? '+' : '') + rentabilidadPorcentaje.toFixed(2) + '%)</span>';
     }
 
-    let timeoutBusqueda;
-    document.getElementById('filtroEmpresa').addEventListener('input', () => {
+    var timeoutBusqueda;
+    document.getElementById('filtroEmpresa').addEventListener('input', function() {
         clearTimeout(timeoutBusqueda);
-        timeoutBusqueda = setTimeout(() => {
-            const inputText = document.getElementById('filtroEmpresa').value.trim();
+        timeoutBusqueda = setTimeout(function() {
+            var inputText = document.getElementById('filtroEmpresa').value.trim();
             if (inputText !== '') {
-                const filtroSelect = document.getElementById('filtroOportunidad');
+                var filtroSelect = document.getElementById('filtroOportunidad');
                 if (filtroSelect.value !== 'todas') {
                     filtroSelect.value = 'todas';
                 }
@@ -2899,8 +2866,8 @@
             buscarYMostrarEmpresas();
         }, 300);
     });
-    document.getElementById('filtroOportunidad').addEventListener('change', () => {
-        const inputBusqueda = document.getElementById('filtroEmpresa');
+    document.getElementById('filtroOportunidad').addEventListener('change', function() {
+        var inputBusqueda = document.getElementById('filtroEmpresa');
         if (inputBusqueda.value !== '') {
             inputBusqueda.value = '';
         }
@@ -2909,7 +2876,7 @@
     });
     document.getElementById('btnCalcular').addEventListener('click', calcularResultado);
     document.getElementById('capitalInput').addEventListener('input', actualizarAccionesInfo);
-    document.getElementById('cerrarDetalleBtn').addEventListener('click', () => {
+    document.getElementById('cerrarDetalleBtn').addEventListener('click', function() {
         limpiarSeleccionEmpresa();
     });
 
@@ -2917,25 +2884,27 @@
     // GESTIÓN DE NOTIFICACIONES - CONFIGURACIÓN
     // ============================================================
         
-    const modalNotificaciones = document.getElementById('modalNotificaciones');
-    const empresasCheckboxContainer = document.getElementById('empresasCheckboxContainer');
-    const empresasSeleccionadasContainer = document.getElementById('empresasSeleccionadasContainer');
-    const btnGuardarPreferencias = document.getElementById('btnGuardarPreferencias');
-    const btnCerrarModal = document.getElementById('btnCerrarModal');
-    const btnCerrarModal2 = document.getElementById('btnCerrarModal2');
-    const mensajePreferencias = document.getElementById('mensajePreferencias');
-    const contadorSeleccion = document.getElementById('contadorSeleccion');
-    const btnAbrirConfiguracion = document.getElementById('btnAbrirConfiguracion');
+    var modalNotificaciones = document.getElementById('modalNotificaciones');
+    var empresasCheckboxContainer = document.getElementById('empresasCheckboxContainer');
+    var empresasSeleccionadasContainer = document.getElementById('empresasSeleccionadasContainer');
+    var btnGuardarPreferencias = document.getElementById('btnGuardarPreferencias');
+    var btnCerrarModal = document.getElementById('btnCerrarModal');
+    var btnCerrarModal2 = document.getElementById('btnCerrarModal2');
+    var mensajePreferencias = document.getElementById('mensajePreferencias');
+    var contadorSeleccion = document.getElementById('contadorSeleccion');
+    var btnAbrirConfiguracion = document.getElementById('btnAbrirConfiguracion');
     
-    let empresasSeleccionadas = [];
-    let catalogoCompletoEmpresas = [];
-    let checkboxElements = [];
+    var empresasSeleccionadas = [];
+    var catalogoCompletoEmpresas = [];
+    var checkboxElements = [];
     
-    // Abrir modal de configuración desde el botón de ajustes
-    settingsBtn.addEventListener('click', async () => {
+    settingsBtn.addEventListener('click', async function() {
         if (!esUsuarioAutenticado) {
             alert('🔒 Regístrate gratis para configurar tus empresas y recibir alertas personalizadas.');
             showAuth();
+            setTimeout(function() {
+                document.getElementById('authContainer').scrollIntoView({ behavior: 'smooth' });
+            }, 300);
             return;
         }
         await cargarPreferenciasUsuario();
@@ -2947,11 +2916,13 @@
         modalNotificaciones.style.display = 'flex';
     });
     
-    // Abrir configuración desde el botón dentro de la lista
-    btnAbrirConfiguracion.addEventListener('click', async () => {
+    btnAbrirConfiguracion.addEventListener('click', async function() {
         if (!esUsuarioAutenticado) {
             alert('🔒 Regístrate gratis para configurar tus empresas y recibir alertas personalizadas.');
             showAuth();
+            setTimeout(function() {
+                document.getElementById('authContainer').scrollIntoView({ behavior: 'smooth' });
+            }, 300);
             return;
         }
         modalListaNotificaciones.style.display = 'none';
@@ -2961,15 +2932,14 @@
         modalNotificaciones.style.display = 'flex';
     });
     
-    // Cerrar modales
-    btnCerrarModal.addEventListener('click', () => {
+    btnCerrarModal.addEventListener('click', function() {
         modalNotificaciones.style.display = 'none';
     });
-    btnCerrarModal2.addEventListener('click', () => {
+    btnCerrarModal2.addEventListener('click', function() {
         modalNotificaciones.style.display = 'none';
     });
     
-    modalNotificaciones.addEventListener('click', (e) => {
+    modalNotificaciones.addEventListener('click', function(e) {
         if (e.target === modalNotificaciones) {
             modalNotificaciones.style.display = 'none';
         }
@@ -2977,10 +2947,10 @@
     
     async function cargarPreferenciasUsuario() {
         try {
-            const { data: { user } } = await supabaseClient.auth.getUser();
+            var { data: { user } } = await supabaseClient.auth.getUser();
             if (!user) return;
             
-            const { data, error } = await supabaseClient
+            var { data, error } = await supabaseClient
                 .from('preferencias_notificaciones')
                 .select('empresas_seleccionadas')
                 .eq('usuario_id', user.id)
@@ -2997,16 +2967,17 @@
     
     async function cargarListaEmpresasCheckboxes() {
         try {
-            const { data, error } = await supabaseClient
+            var { data, error } = await supabaseClient
                 .from('recomendaciones_ibex')
                 .select('ticker, nombre_empresa')
                 .range(0, 99999);
                 
             if (error) throw error;
             
-            const empresasUnicas = [];
-            const tickersVistos = new Set();
-            for (const item of data) {
+            var empresasUnicas = [];
+            var tickersVistos = new Set();
+            for (var i = 0; i < data.length; i++) {
+                var item = data[i];
                 if (!tickersVistos.has(item.ticker)) {
                     tickersVistos.add(item.ticker);
                     empresasUnicas.push({
@@ -3017,33 +2988,36 @@
             }
             catalogoCompletoEmpresas = empresasUnicas;
             
-            // Crear checkboxes
             empresasCheckboxContainer.innerHTML = '';
             checkboxElements = [];
-            for (const emp of empresasUnicas) {
-                const isSelected = empresasSeleccionadas.includes(emp.ticker);
-                const div = document.createElement('div');
-                div.className = `empresa-checkbox-item ${isSelected ? 'seleccionada' : ''}`;
+            for (var j = 0; j < empresasUnicas.length; j++) {
+                var emp = empresasUnicas[j];
+                var isSelected = empresasSeleccionadas.includes(emp.ticker);
+                var div = document.createElement('div');
+                div.className = 'empresa-checkbox-item' + (isSelected ? ' seleccionada' : '');
                 
-                const checkbox = document.createElement('input');
+                var checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
                 checkbox.value = emp.ticker;
-                checkbox.id = `emp_${emp.ticker}`;
+                checkbox.id = 'emp_' + emp.ticker;
                 checkbox.checked = isSelected;
                 
-                const label = document.createElement('label');
-                label.htmlFor = `emp_${emp.ticker}`;
-                label.textContent = `${emp.nombre} (${emp.ticker})`;
+                var label = document.createElement('label');
+                label.htmlFor = 'emp_' + emp.ticker;
+                label.textContent = emp.nombre + ' (' + emp.ticker + ')';
                 
                 div.appendChild(checkbox);
                 div.appendChild(label);
                 
-                checkbox.addEventListener('change', (e) => {
-                    manejarCambioCheckbox(emp.ticker, checkbox.checked, div);
+                checkbox.addEventListener('change', function(e) {
+                    var ticker = this.value;
+                    var checked = this.checked;
+                    var parentDiv = this.parentElement;
+                    manejarCambioCheckbox(ticker, checked, parentDiv);
                 });
                 
                 empresasCheckboxContainer.appendChild(div);
-                checkboxElements.push({ checkbox, div, ticker: emp.ticker });
+                checkboxElements.push({ checkbox: checkbox, div: div, ticker: emp.ticker });
             }
             
             actualizarVistaSeleccionadasCheckboxes();
@@ -3058,8 +3032,7 @@
     function manejarCambioCheckbox(ticker, checked, div) {
         if (checked) {
             if (empresasSeleccionadas.length >= 5) {
-                // Desmarcar y mostrar mensaje
-                const checkbox = div.querySelector('input[type="checkbox"]');
+                var checkbox = div.querySelector('input[type="checkbox"]');
                 checkbox.checked = false;
                 div.classList.remove('seleccionada');
                 mensajePreferencias.textContent = '⚠️ Solo puedes seleccionar hasta 5 empresas';
@@ -3069,7 +3042,7 @@
             empresasSeleccionadas.push(ticker);
             div.classList.add('seleccionada');
         } else {
-            empresasSeleccionadas = empresasSeleccionadas.filter(t => t !== ticker);
+            empresasSeleccionadas = empresasSeleccionadas.filter(function(t) { return t !== ticker; });
             div.classList.remove('seleccionada');
         }
         mensajePreferencias.textContent = '';
@@ -3078,7 +3051,7 @@
     }
     
     function actualizarVistaSeleccionadasCheckboxes() {
-        const container = empresasSeleccionadasContainer;
+        var container = empresasSeleccionadasContainer;
         container.innerHTML = '';
         
         if (empresasSeleccionadas.length === 0) {
@@ -3086,20 +3059,18 @@
             return;
         }
         
-        for (const ticker of empresasSeleccionadas) {
-            const empresa = catalogoCompletoEmpresas.find(e => e.ticker === ticker);
-            const nombre = empresa ? empresa.nombre : ticker;
+        for (var i = 0; i < empresasSeleccionadas.length; i++) {
+            var ticker = empresasSeleccionadas[i];
+            var empresa = catalogoCompletoEmpresas.find(function(e) { return e.ticker === ticker; });
+            var nombre = empresa ? empresa.nombre : ticker;
             
-            const chip = document.createElement('span');
+            var chip = document.createElement('span');
             chip.className = 'empresa-chip-seleccionada';
-            chip.innerHTML = `
-                ${nombre} (${ticker})
-                <span class="eliminar" data-ticker="${ticker}">✕</span>
-            `;
+            chip.innerHTML = nombre + ' (' + ticker + ') <span class="eliminar" data-ticker="' + ticker + '">✕</span>';
             
-            chip.querySelector('.eliminar').addEventListener('click', (e) => {
+            chip.querySelector('.eliminar').addEventListener('click', function(e) {
                 e.stopPropagation();
-                const tickerAEliminar = e.target.dataset.ticker;
+                var tickerAEliminar = this.dataset.ticker;
                 eliminarEmpresaSeleccionadaCheckbox(tickerAEliminar);
             });
             
@@ -3108,10 +3079,10 @@
     }
     
     function eliminarEmpresaSeleccionadaCheckbox(ticker) {
-        empresasSeleccionadas = empresasSeleccionadas.filter(t => t !== ticker);
+        empresasSeleccionadas = empresasSeleccionadas.filter(function(t) { return t !== ticker; });
         
-        // Actualizar checkboxes
-        for (const item of checkboxElements) {
+        for (var i = 0; i < checkboxElements.length; i++) {
+            var item = checkboxElements[i];
             if (item.ticker === ticker) {
                 item.checkbox.checked = false;
                 item.div.classList.remove('seleccionada');
@@ -3124,20 +3095,23 @@
     }
     
     function actualizarContador() {
-        const count = empresasSeleccionadas.length;
-        contadorSeleccion.textContent = `${count} de 5 seleccionadas`;
+        var count = empresasSeleccionadas.length;
+        contadorSeleccion.textContent = count + ' de 5 seleccionadas';
         contadorSeleccion.style.color = count >= 5 ? '#dc3545' : '#1e4668';
     }
     
-    btnGuardarPreferencias.addEventListener('click', async () => {
+    btnGuardarPreferencias.addEventListener('click', async function() {
         if (!esUsuarioAutenticado) {
             alert('🔒 Regístrate gratis para guardar tus preferencias y recibir alertas.');
             showAuth();
+            setTimeout(function() {
+                document.getElementById('authContainer').scrollIntoView({ behavior: 'smooth' });
+            }, 300);
             return;
         }
         
         try {
-            const { data: { user } } = await supabaseClient.auth.getUser();
+            var { data: { user } } = await supabaseClient.auth.getUser();
             if (!user) {
                 mensajePreferencias.textContent = '❌ Usuario no autenticado';
                 mensajePreferencias.style.color = '#dc3545';
@@ -3150,28 +3124,22 @@
                 return;
             }
             
-            const { data: existente, error: checkError } = await supabaseClient
+            var { data: existente, error: checkError } = await supabaseClient
                 .from('preferencias_notificaciones')
                 .select('id')
                 .eq('usuario_id', user.id)
                 .single();
                 
-            let result;
+            var result;
             if (existente) {
                 result = await supabaseClient
                     .from('preferencias_notificaciones')
-                    .update({ 
-                        empresas_seleccionadas: empresasSeleccionadas, 
-                        updated_at: new Date() 
-                    })
+                    .update({ empresas_seleccionadas: empresasSeleccionadas, updated_at: new Date() })
                     .eq('usuario_id', user.id);
             } else {
                 result = await supabaseClient
                     .from('preferencias_notificaciones')
-                    .insert({ 
-                        usuario_id: user.id, 
-                        empresas_seleccionadas: empresasSeleccionadas 
-                    });
+                    .insert({ usuario_id: user.id, empresas_seleccionadas: empresasSeleccionadas });
             }
             
             if (result.error) throw result.error;
@@ -3179,7 +3147,7 @@
             mensajePreferencias.textContent = '✅ Preferencias guardadas correctamente';
             mensajePreferencias.style.color = '#1e7e34';
             cargarMisEmpresas();
-            setTimeout(() => {
+            setTimeout(function() {
                 modalNotificaciones.style.display = 'none';
             }, 1500);
             
@@ -3191,20 +3159,20 @@
     });
 
     // ============================================================
-    // MIS EMPRESAS (mostrar en barra)
+    // MIS EMPRESAS
     // ============================================================
     
     async function cargarMisEmpresas() {
         try {
-            const { data: { user } } = await supabaseClient.auth.getUser();
-            const container = document.getElementById('misEmpresasTags');
+            var { data: { user } } = await supabaseClient.auth.getUser();
+            var container = document.getElementById('misEmpresasTags');
             
             if (!user || !esUsuarioAutenticado) {
-                container.innerHTML = '<span class="tag-empty">🔒 Regístrate para configurar</span>';
+                container.innerHTML = '<span class="tag-empty">🔒 Registro para configurar</span>';
                 return;
             }
             
-            const { data, error } = await supabaseClient
+            var { data, error } = await supabaseClient
                 .from('preferencias_notificaciones')
                 .select('empresas_seleccionadas')
                 .eq('usuario_id', user.id)
@@ -3212,29 +3180,30 @@
                 
             if (error && error.code !== 'PGRST116') throw error;
             
-            const seleccionadas = data?.empresas_seleccionadas || [];
+            var seleccionadas = data?.empresas_seleccionadas || [];
             
             if (seleccionadas.length === 0) {
                 container.innerHTML = '<span class="tag-empty">⚙️ Configura tus empresas</span>';
                 return;
             }
             
-            // Obtener nombres
-            const { data: empresasData } = await supabaseClient
+            var { data: empresasData } = await supabaseClient
                 .from('recomendaciones_ibex')
                 .select('ticker, nombre_empresa')
                 .in('ticker', seleccionadas)
                 .range(0, 99999);
                 
-            const nombresMap = {};
-            for (const item of empresasData || []) {
+            var nombresMap = {};
+            for (var i = 0; i < (empresasData || []).length; i++) {
+                var item = empresasData[i];
                 nombresMap[item.ticker] = item.nombre_empresa || item.ticker;
             }
             
-            let html = '';
-            for (const ticker of seleccionadas) {
-                const nombre = nombresMap[ticker] || ticker;
-                html += `<span class="tag">${nombre}</span>`;
+            var html = '';
+            for (var j = 0; j < seleccionadas.length; j++) {
+                var ticker = seleccionadas[j];
+                var nombre = nombresMap[ticker] || ticker;
+                html += '<span class="tag">' + nombre + '</span>';
             }
             container.innerHTML = html;
             
@@ -3247,16 +3216,18 @@
     // GESTIÓN DE NOTIFICACIONES - LISTA
     // ============================================================
     
-    const modalListaNotificaciones = document.getElementById('modalListaNotificaciones');
-    const listaNotificacionesContainer = document.getElementById('listaNotificacionesContainer');
-    const btnCerrarListaNotificaciones = document.getElementById('btnCerrarListaNotificaciones');
-    const btnMarcarTodasLeidas = document.getElementById('btnMarcarTodasLeidas');
+    var modalListaNotificaciones = document.getElementById('modalListaNotificaciones');
+    var listaNotificacionesContainer = document.getElementById('listaNotificacionesContainer');
+    var btnCerrarListaNotificaciones = document.getElementById('btnCerrarListaNotificaciones');
+    var btnMarcarTodasLeidas = document.getElementById('btnMarcarTodasLeidas');
     
-    // Un clic en la campana → abre lista de notificaciones
-    notificationBell.addEventListener('click', async () => {
+    notificationBell.addEventListener('click', async function() {
         if (!esUsuarioAutenticado) {
             alert('🔒 Regístrate gratis para recibir notificaciones personalizadas de tus empresas.');
             showAuth();
+            setTimeout(function() {
+                document.getElementById('authContainer').scrollIntoView({ behavior: 'smooth' });
+            }, 300);
             return;
         }
         if (modalNotificaciones.style.display === 'flex') {
@@ -3266,11 +3237,11 @@
         modalListaNotificaciones.style.display = 'flex';
     });
     
-    btnCerrarListaNotificaciones.addEventListener('click', () => {
+    btnCerrarListaNotificaciones.addEventListener('click', function() {
         modalListaNotificaciones.style.display = 'none';
     });
     
-    modalListaNotificaciones.addEventListener('click', (e) => {
+    modalListaNotificaciones.addEventListener('click', function(e) {
         if (e.target === modalListaNotificaciones) {
             modalListaNotificaciones.style.display = 'none';
         }
@@ -3278,13 +3249,13 @@
     
     async function cargarListaNotificaciones() {
         try {
-            const { data: { user } } = await supabaseClient.auth.getUser();
+            var { data: { user } } = await supabaseClient.auth.getUser();
             if (!user) {
                 listaNotificacionesContainer.innerHTML = '<p style="text-align:center; color:#dc3545;">❌ Usuario no autenticado</p>';
                 return;
             }
             
-            const { data, error } = await supabaseClient
+            var { data, error } = await supabaseClient
                 .from('historial_notificaciones')
                 .select('*')
                 .eq('usuario_id', user.id)
@@ -3297,31 +3268,31 @@
                 return;
             }
             
-            const noLeidas = data.filter(n => !n.leido);
-            const leidas = data.filter(n => n.leido);
+            var noLeidas = data.filter(function(n) { return !n.leido; });
+            var leidas = data.filter(function(n) { return n.leido; });
             
-            let html = '';
+            var html = '';
             
             if (noLeidas.length > 0) {
-                html += `<div class="separador-notificaciones">🆕 Nuevas (${noLeidas.length})</div>`;
-                for (const notif of noLeidas) {
-                    html += crearHtmlNotificacion(notif, false);
+                html += '<div class="separador-notificaciones">🆕 Nuevas (' + noLeidas.length + ')</div>';
+                for (var i = 0; i < noLeidas.length; i++) {
+                    html += crearHtmlNotificacion(noLeidas[i], false);
                 }
             }
             
             if (leidas.length > 0) {
-                html += `<div class="separador-notificaciones">📖 Leídas (${leidas.length})</div>`;
-                for (const notif of leidas) {
-                    html += crearHtmlNotificacion(notif, true);
+                html += '<div class="separador-notificaciones">📖 Leídas (' + leidas.length + ')</div>';
+                for (var j = 0; j < leidas.length; j++) {
+                    html += crearHtmlNotificacion(leidas[j], true);
                 }
             }
             
             listaNotificacionesContainer.innerHTML = html;
             
-            document.querySelectorAll('.btn-marcar-leida').forEach(btn => {
-                btn.addEventListener('click', async (e) => {
+            document.querySelectorAll('.btn-marcar-leida').forEach(function(btn) {
+                btn.addEventListener('click', async function(e) {
                     e.stopPropagation();
-                    const id = btn.dataset.id;
+                    var id = this.dataset.id;
                     await marcarNotificacionLeida(id);
                     await cargarListaNotificaciones();
                     await cargarContadorNotificaciones();
@@ -3335,29 +3306,27 @@
     }
     
     function crearHtmlNotificacion(notif, esLeida) {
-        const tipoClass = notif.tipo_alerta === 'oportunidad' ? 'tipo-oportunidad' :
+        var tipoClass = notif.tipo_alerta === 'oportunidad' ? 'tipo-oportunidad' :
                           notif.tipo_alerta === 'peligro' ? 'tipo-peligro' : 'tipo-rebote';
-        const fecha = new Date(notif.fecha_envio).toLocaleString('es-ES');
-        const emoji = notif.tipo_alerta === 'oportunidad' ? '🟢' :
+        var fecha = new Date(notif.fecha_envio).toLocaleString('es-ES');
+        var emoji = notif.tipo_alerta === 'oportunidad' ? '🟢' :
                       notif.tipo_alerta === 'peligro' ? '🔴' : '🟡';
         
-        return `
-            <div class="notificacion-item ${tipoClass} ${esLeida ? 'leida' : ''}">
-                <div class="mensaje">
-                    <strong>${emoji} ${notif.nombre_empresa}</strong><br>
-                    <span style="font-size:0.8rem;">${notif.mensaje}</span>
-                </div>
-                <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
-                    <span class="fecha">${fecha}</span>
-                    ${!esLeida ? `<button class="btn-marcar-leida" data-id="${notif.id}">✓ Leer</button>` : ''}
-                </div>
-            </div>
-        `;
+        return '<div class="notificacion-item ' + tipoClass + (esLeida ? ' leida' : '') + '">' +
+            '<div class="mensaje">' +
+                '<strong>' + emoji + ' ' + notif.nombre_empresa + '</strong><br>' +
+                '<span style="font-size:0.8rem;">' + notif.mensaje + '</span>' +
+            '</div>' +
+            '<div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">' +
+                '<span class="fecha">' + fecha + '</span>' +
+                (!esLeida ? '<button class="btn-marcar-leida" data-id="' + notif.id + '">✓ Leer</button>' : '') +
+            '</div>' +
+        '</div>';
     }
     
     async function marcarNotificacionLeida(id) {
         try {
-            const { error } = await supabaseClient
+            var { error } = await supabaseClient
                 .from('historial_notificaciones')
                 .update({ leido: true })
                 .eq('id', id);
@@ -3368,12 +3337,12 @@
         }
     }
     
-    btnMarcarTodasLeidas.addEventListener('click', async () => {
+    btnMarcarTodasLeidas.addEventListener('click', async function() {
         try {
-            const { data: { user } } = await supabaseClient.auth.getUser();
+            var { data: { user } } = await supabaseClient.auth.getUser();
             if (!user) return;
             
-            const { error } = await supabaseClient
+            var { error } = await supabaseClient
                 .from('historial_notificaciones')
                 .update({ leido: true })
                 .eq('usuario_id', user.id)
@@ -3396,8 +3365,8 @@
     
     async function cargarContadorNotificaciones() {
         try {
-            const { data: { user } } = await supabaseClient.auth.getUser();
-            const badge = document.getElementById('notificationBadge');
+            var { data: { user } } = await supabaseClient.auth.getUser();
+            var badge = document.getElementById('notificationBadge');
             
             if (!user) {
                 badge.style.display = 'none';
@@ -3406,7 +3375,7 @@
                 return;
             }
             
-            const { count, error } = await supabaseClient
+            var { count, error } = await supabaseClient
                 .from('historial_notificaciones')
                 .select('*', { count: 'exact', head: true })
                 .eq('usuario_id', user.id)
@@ -3426,31 +3395,26 @@
             }
         } catch (error) {
             console.error('Error cargando contador:', error);
-            const badge = document.getElementById('notificationBadge');
+            var badge = document.getElementById('notificationBadge');
             badge.style.display = 'none';
         }
     }
     
-    // Ejecutar al cargar y cada 15 segundos
     cargarContadorNotificaciones();
     setInterval(cargarContadorNotificaciones, 15000);
     
-    // También actualizar al hacer clic en la campana
-    notificationBell.addEventListener('click', async () => {
+    notificationBell.addEventListener('click', async function() {
         setTimeout(cargarContadorNotificaciones, 500);
     });
     
-    // Actualizar después de guardar preferencias
-    btnGuardarPreferencias.addEventListener('click', () => {
+    btnGuardarPreferencias.addEventListener('click', function() {
         setTimeout(cargarContadorNotificaciones, 1000);
     });
     
-    // Actualizar después de marcar todas como leídas
-    btnMarcarTodasLeidas.addEventListener('click', () => {
+    btnMarcarTodasLeidas.addEventListener('click', function() {
         setTimeout(cargarContadorNotificaciones, 500);
     });
     
-    // Inicializar contador y actualizar cada 30 segundos
     cargarContadorNotificaciones();
     setInterval(cargarContadorNotificaciones, 30000);
 
@@ -3458,74 +3422,56 @@
     // TUTORIAL DE ONBOARDING
     // ================================================================
     (function() {
-        const TUTORIAL_KEY = 'backtesting_tutorial_visto';
-        const overlay = document.getElementById('tutorialOverlay');
-        const pasoIndicadores = document.querySelectorAll('.tutorial-paso-indicador');
-        const icono = document.getElementById('tutorialIcono');
-        const titulo = document.getElementById('tutorialTitulo');
-        const descripcion = document.getElementById('tutorialDescripcion');
-        const btnSiguiente = document.getElementById('tutorialBtnSiguiente');
-        const btnSaltar = document.getElementById('tutorialBtnSaltar');
-        const notificationBell = document.getElementById('notificationBell');
+        var TUTORIAL_KEY = 'backtesting_tutorial_visto';
+        var overlay = document.getElementById('tutorialOverlay');
+        var pasoIndicadores = document.querySelectorAll('.tutorial-paso-indicador');
+        var icono = document.getElementById('tutorialIcono');
+        var titulo = document.getElementById('tutorialTitulo');
+        var descripcion = document.getElementById('tutorialDescripcion');
+        var btnSiguiente = document.getElementById('tutorialBtnSiguiente');
+        var btnSaltar = document.getElementById('tutorialBtnSaltar');
+        var notificationBell = document.getElementById('notificationBell');
         
-        let pasoActual = 0;
-        const totalPasos = 4;
+        var pasoActual = 0;
+        var totalPasos = 4;
         
-        // Contenido de los pasos
-        const pasos = [
+        var pasos = [
             {
                 icono: '📊',
                 titulo: 'Datos actualizados varias veces al día',
-                descripcion: `La plataforma se actualiza <strong>varias veces al día</strong> con datos del IBEX 35. 
-                              Los precios, patrones y el indicador <strong>Price Wave (PW)</strong> siempre están al día. 
-                              <br><br>🔍 <strong>Busca</strong> cualquier empresa por nombre o ticker en la tabla principal.`
+                descripcion: 'La plataforma se actualiza <strong>varias veces al día</strong> con datos del IBEX 35. Los precios, patrones y el indicador <strong>Price Wave (PW)</strong> siempre están al día. <br><br>🔍 <strong>Busca</strong> cualquier empresa por nombre o ticker en la tabla principal.'
             },
             {
                 icono: '🎯',
                 titulo: 'Haz clic en una empresa y analiza',
-                descripcion: `Al hacer clic en una empresa, verás:
-                              <br>• <strong>📈 Gráfico interactivo</strong> con señales visuales (P7, sobrecompra)
-                              <br>• <strong>📜 Historial completo</strong> de todas las señales
-                              <br>• <strong>🧪 Simulador</strong> para probar compras pasadas
-                              <br><br>💡 Usa los <strong>filtros</strong> para encontrar rápidamente empresas con señales de activación.`
+                descripcion: 'Al hacer clic en una empresa, verás: <br>• <strong>📈 Gráfico interactivo</strong> con señales visuales (P7, sobrecompra) <br>• <strong>📜 Historial completo</strong> de todas las señales <br>• <strong>🧪 Simulador</strong> para probar compras pasadas <br><br>💡 Usa los <strong>filtros</strong> para encontrar rápidamente empresas con señales de activación.'
             },
             {
                 icono: '🧪',
                 titulo: 'Simula compras en el histórico',
-                descripcion: `En el historial de la empresa, <strong>haz clic en un precio</strong> para marcar el punto de entrada (🔵) 
-                              y otro precio <strong>más reciente</strong> para marcar la salida (🟠).
-                              <br><br>💰 Luego pulsa <strong>"Calcular resultado"</strong> y verás tu rentabilidad 
-                              <span class="destacar">con comisiones realistas</span> (11€ + 0,4%).
-                              <br><br>¡Ideal para hacer <strong>backtesting</strong> de tus estrategias!`
+                descripcion: 'En el historial de la empresa, <strong>haz clic en un precio</strong> para marcar el punto de entrada (🔵) y otro precio <strong>más reciente</strong> para marcar la salida (🟠). <br><br>💰 Luego pulsa <strong>"Calcular resultado"</strong> y verás tu rentabilidad <span class="destacar">con comisiones realistas</span> (11€ + 0,4%). <br><br>¡Ideal para hacer <strong>backtesting</strong> de tus estrategias!'
             },
             {
                 icono: '🔔',
                 titulo: 'Activa las notificaciones',
-                descripcion: `Haz clic en el icono <strong>⚙️ (configuración)</strong> para seleccionar hasta <strong>5 empresas</strong> 
-                              de tu interés.
-                              <br><br>Cuando una de ellas genere una señal, recibirás una <span class="destacar-rojo">🔔 notificación</span> 
-                              en la campana.
-                              <br><br>📬 <strong>No te pierdas ninguna oportunidad</strong> de compra o alerta de riesgo.`
+                descripcion: 'Haz clic en el icono <strong>⚙️ (configuración)</strong> para seleccionar hasta <strong>5 empresas</strong> de tu interés. <br><br>Cuando una de ellas genere una señal, recibirás una <span class="destacar-rojo">🔔 notificación</span> en la campana. <br><br>📬 <strong>No te pierdas ninguna oportunidad</strong> de compra o alerta de riesgo.'
             }
         ];
         
-        // Función para mostrar un paso
         function mostrarPaso(index) {
             pasoActual = index;
-            const paso = pasos[index];
+            var paso = pasos[index];
             
             icono.textContent = paso.icono;
             titulo.textContent = paso.titulo;
             descripcion.innerHTML = paso.descripcion;
             
-            // Actualizar indicadores
-            pasoIndicadores.forEach((ind, i) => {
+            pasoIndicadores.forEach(function(ind, i) {
                 ind.classList.remove('activo', 'completado');
                 if (i < index) ind.classList.add('completado');
                 else if (i === index) ind.classList.add('activo');
             });
             
-            // Actualizar botón
             if (index === totalPasos - 1) {
                 btnSiguiente.textContent = '🎉 ¡Entendido!';
                 btnSiguiente.className = 'tutorial-btn tutorial-btn-primary';
@@ -3534,33 +3480,32 @@
                 btnSiguiente.className = 'tutorial-btn tutorial-btn-primary';
             }
             
-            // Highlight visual para ciertos pasos
             eliminarHighlights();
             
             if (index === 1) {
-                const tabla = document.querySelector('.panel-principal');
+                var tabla = document.querySelector('.panel-principal');
                 if (tabla) {
                     tabla.classList.add('tutorial-highlight', 'tutorial-highlight-pulse');
                 }
-                const filtro = document.querySelector('.filtros-barra');
+                var filtro = document.querySelector('.filtros-barra');
                 if (filtro) {
                     filtro.classList.add('tutorial-highlight', 'tutorial-highlight-pulse');
                 }
             }
             
             if (index === 2) {
-                const simulador = document.getElementById('simuladorPanel');
+                var simulador = document.getElementById('simuladorPanel');
                 if (simulador) {
                     simulador.classList.add('tutorial-highlight', 'tutorial-highlight-pulse');
                 }
             }
             
             if (index === 3) {
-                const bell = document.getElementById('notificationBell');
+                var bell = document.getElementById('notificationBell');
                 if (bell) {
                     bell.classList.add('tutorial-highlight', 'tutorial-highlight-pulse');
                 }
-                const settings = document.getElementById('settingsBtn');
+                var settings = document.getElementById('settingsBtn');
                 if (settings) {
                     settings.classList.add('tutorial-highlight', 'tutorial-highlight-pulse');
                 }
@@ -3571,7 +3516,7 @@
         }
         
         function eliminarHighlights() {
-            document.querySelectorAll('.tutorial-highlight').forEach(el => {
+            document.querySelectorAll('.tutorial-highlight').forEach(function(el) {
                 el.classList.remove('tutorial-highlight', 'tutorial-highlight-pulse');
             });
             if (notificationBell) {
@@ -3597,40 +3542,36 @@
             }
         }
         
-        // Eventos
         btnSiguiente.addEventListener('click', avanzarPaso);
         btnSaltar.addEventListener('click', cerrarTutorial);
         
-        pasoIndicadores.forEach((ind, i) => {
-            ind.addEventListener('click', () => {
+        pasoIndicadores.forEach(function(ind, i) {
+            ind.addEventListener('click', function() {
                 if (i <= pasoActual) {
                     mostrarPaso(i);
                 }
             });
         });
         
-        document.addEventListener('keydown', (e) => {
+        document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape' && overlay.classList.contains('activo')) {
                 cerrarTutorial();
             }
         });
         
-        overlay.addEventListener('click', (e) => {
+        overlay.addEventListener('click', function(e) {
             if (e.target === overlay) {
                 cerrarTutorial();
             }
         });
         
-        // ============================================================
-        // INICIALIZACIÓN: Mostrar tutorial si es primera vez
-        // ============================================================
         function iniciarTutorial() {
-            const yaVisto = localStorage.getItem(TUTORIAL_KEY);
+            var yaVisto = localStorage.getItem(TUTORIAL_KEY);
             if (!yaVisto) {
-                const checkAppVisible = setInterval(() => {
+                var checkAppVisible = setInterval(function() {
                     if (appContainer.classList.contains('visible')) {
                         clearInterval(checkAppVisible);
-                        setTimeout(() => {
+                        setTimeout(function() {
                             overlay.classList.add('activo');
                             mostrarPaso(0);
                             if (notificationBell) {
@@ -3640,7 +3581,7 @@
                     }
                 }, 300);
                 
-                setTimeout(() => {
+                setTimeout(function() {
                     clearInterval(checkAppVisible);
                 }, 10000);
             } else {
@@ -3652,17 +3593,11 @@
         
         window.iniciarTutorial = iniciarTutorial;
         
-        // ============================================================
-        // Sobrescribir showApp para incluir el tutorial
-        // ============================================================
-        // ============================================================
-        // Sobrescribir showApp para incluir el tutorial
-        // ============================================================
-        const showAppOriginal = window.showApp;
+        var showAppOriginal = window.showApp;
         if (showAppOriginal) {
             window.showApp = function(autenticado) {
                 showAppOriginal(autenticado);
-                const yaVisto = localStorage.getItem(TUTORIAL_KEY);
+                var yaVisto = localStorage.getItem(TUTORIAL_KEY);
                 if (!yaVisto) {
                     setTimeout(function() {
                         if (overlay) {
