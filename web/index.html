@@ -3641,13 +3641,16 @@
         // ============================================================
         // Sobrescribir showApp para incluir el tutorial
         // ============================================================
+        // ============================================================
+        // Sobrescribir showApp para incluir el tutorial
+        // ============================================================
         const showAppOriginal = window.showApp;
         if (showAppOriginal) {
             window.showApp = function(autenticado) {
                 showAppOriginal(autenticado);
                 const yaVisto = localStorage.getItem(TUTORIAL_KEY);
                 if (!yaVisto) {
-                    setTimeout(() => {
+                    setTimeout(function() {
                         if (overlay) {
                             overlay.classList.add('activo');
                             mostrarPaso(0);
