@@ -160,7 +160,6 @@
             border: 1px solid rgba(255, 255, 255, 0.04);
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
             display: none;
-            /* se muestra solo cuando NO está autenticado */
         }
         .hero-section.visible {
             display: block;
@@ -1452,9 +1451,11 @@
             }
         }
     </style>
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LVV061GCPF"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LVV061GCPF">
+    </script>
     <script>
         window.dataLayer = window.dataLayer || [];
+
         function gtag() { dataLayer.push(arguments); }
         gtag('js', new Date());
         gtag('config', 'G-LVV061GCPF');
@@ -1467,7 +1468,7 @@
 <body>
     <div class="container">
 
-        <!-- ===== NAV FIJA (siempre visible) ===== -->
+        <!-- ===== NAV FIJA ===== -->
         <nav class="top-nav" id="topNav">
             <div class="brand">
                 📈 Backtesting
@@ -1684,7 +1685,7 @@
                         <li><strong>🟢 Verde:</strong> Oportunidad de compra (PW bajo).</li>
                         <li><strong>🟡 Amarillo:</strong> Interés moderado.</li>
                         <li><strong>🔴 Rojo:</strong> Sobrecompra / riesgo.</li>
-                        <li><strong>🔵 Azul:</strong> Neutro.</li>
+                        <li><strong>🔵 Blanco:</strong> Neutro / sin señal.</li>
                     </ul>
 
                     <h4>🧪 Simulador de inversión</h4>
@@ -1909,7 +1910,6 @@
                         showApp(true);
                         return;
                     } else {
-                        // Crear perfil automático
                         const { data: userData } = await supabaseClient.auth.getUser();
                         const email = userData.user.email || 'usuario@email.com';
                         const nombre = email.split('@')[0] || 'Usuario';
@@ -1926,7 +1926,6 @@
                     console.log('Intento ' + (i + 1) + ' con error:', error);
                 }
             }
-            // Fallback
             const { data: userData } = await supabaseClient.auth.getUser();
             if (userData && userData.user) {
                 userNameDisplay.textContent = userData.user.email.split('@')[0] || 'Usuario';
@@ -2003,7 +2002,6 @@
                 document.getElementById('misEmpresasTags').innerHTML = '<span class="tag-empty">🔒 Registro para configurar</span>';
             }
 
-            // Forzar filtro "oportunidad" y cargar datos
             document.getElementById('filtroOportunidad').value = 'oportunidad';
             if (typeof cargarCatalogoEmpresas === 'function') {
                 cargarCatalogoEmpresas();
@@ -2018,14 +2016,12 @@
             authContainer.style.display = 'block';
             appContainer.classList.remove('visible');
             setAuthMode('login');
-            // Scroll suave al hero
             setTimeout(() => {
                 authContainer.scrollIntoView({ behavior: 'smooth' });
             }, 100);
         }
 
         async function handleLogout() {
-            // Eliminar preferencias de notificaciones (dar de baja)
             try {
                 const { data: { user } } = await supabaseClient.auth.getUser();
                 if (user) {
@@ -2043,7 +2039,6 @@
             if (typeof limpiarSeleccionEmpresa === 'function') {
                 limpiarSeleccionEmpresa();
             }
-            // Recargar notificaciones
             cargarContadorNotificaciones();
             cargarMisEmpresas();
         }
@@ -2070,7 +2065,6 @@
             setAuthMode('register');
         });
 
-        // Scroll top
         scrollTopBtn.addEventListener('click', function() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
@@ -2090,7 +2084,6 @@
             if (data && data.session) {
                 await loadUserProfile(data.session.user.id);
             } else {
-                // Mostrar hero + app en modo demo
                 authContainer.style.display = 'block';
                 appContainer.classList.add('visible');
                 esUsuarioAutenticado = false;
@@ -2134,7 +2127,7 @@
         let filaSalidaIndex = -1;
         let chartInstance = null;
 
-        const DEMO_LIMIT = 1; // Solo 1 empresa visible en demo
+        const DEMO_LIMIT = 1;
 
         function getDescripcionPatron(patron) {
             const descripciones = {
@@ -2377,7 +2370,6 @@
                 return;
             }
 
-            // En demo, solo mostrar la primera empresa
             let empresasMostrar = empresas;
             if (!esUsuarioAutenticado) {
                 empresasMostrar = empresas.slice(0, DEMO_LIMIT);
@@ -2419,7 +2411,6 @@
             tbody.innerHTML = html;
 
             if (empresas.length > empresasMostrar.length && !esUsuarioAutenticado) {
-                // Mostrar mensaje de demo
                 const row = document.createElement('tr');
                 row.innerHTML =
                     `<td colspan="7" style="text-align:center; color:#5a7a92; font-size:0.7rem; padding:12px;">🔓 <strong>${empresas.length - DEMO_LIMIT} empresas más</strong> disponibles para usuarios registrados. <span style="color:#6cb4e4;cursor:pointer;" onclick="document.getElementById('btnMostrarLogin').click()">Regístrate gratis</span></td>`;
@@ -2428,7 +2419,7 @@
         }
 
         // ============================================================
-        // GRÁFICO CON LÍNEA DE COLOR SEGÚN ESTADO (SIN PELOTAS)
+        // GRÁFICO CON LÍNEA DE COLOR SEGÚN ESTADO (CORREGIDO)
         // ============================================================
         function renderizarGrafico(historialCompleto) {
             if (!historialCompleto || historialCompleto.length === 0 || !document.getElementById('graficaCanvas')) return;
@@ -2442,18 +2433,26 @@
             const colores = datosOrdenados.map((reg, idx) => {
                 const pw = reg.smi_diario;
                 const patron = reg.caso_numero;
-                if (pw !== null && pw > 40) return '#e07b7b'; // rojo sobrecompra
-                if (patron === 7) return '#28a745'; // verde oportunidad
-                if (patron === 3) return '#5aaa6a'; // verde claro rebote
-                if (patron === 6) return '#f1c40f'; // amarillo interés
-                if (pw !== null && pw < -40) return '#28a745'; // verde sobreventa
-                return '#6cb4e4'; // azul neutro
+                // Oportunidad fuerte (verde)
+                if (patron === 7) return '#28a745';
+                // Rebote (verde claro)
+                if (patron === 3) return '#5aaa6a';
+                // Interés (amarillo)
+                if (patron === 6 || patron === 1 || patron === 2) return '#f1c40f';
+                // Agotamiento (naranja-rojo)
+                if (patron === 5) return '#e67e22';
+                // Riesgo / sobrecompra (rojo)
+                if (pw !== null && pw > 40) return '#e07b7b';
+                // Sobreventa (verde)
+                if (pw !== null && pw < -40) return '#28a745';
+                // Neutro (blanco)
+                return '#b0c8dd';
             });
 
             // Construir dataset segmentado
             const segmentos = [];
             let inicio = 0;
-            let colorActual = colores[0] || '#6cb4e4';
+            let colorActual = colores[0] || '#b0c8dd';
 
             for (let i = 1; i < colores.length; i++) {
                 if (colores[i] !== colorActual) {
@@ -2493,7 +2492,7 @@
                 };
             });
 
-            // Añadir también el dataset completo con puntos invisibles para tooltips
+            // Dataset completo con puntos invisibles para tooltips (UN SOLO PRECIO)
             const fullData = precios.map((p, i) => ({ x: labels[i], y: p }));
 
             chartInstance = new Chart(ctx, {
@@ -2513,6 +2512,10 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'nearest',
+                    },
                     scales: {
                         x: {
                             ticks: { maxRotation: 45, autoSkip: true, maxTicksLimit: 8, color: '#8aaec9' },
@@ -2526,19 +2529,36 @@
                     plugins: {
                         legend: { display: false },
                         tooltip: {
+                            intersect: false,
+                            mode: 'nearest',
                             callbacks: {
                                 label: function(ctx) {
                                     if (ctx.datasetIndex === datasets.length) {
-                                        return 'Precio: ' + ctx.parsed.y + '€';
+                                        const idx = ctx.dataIndex;
+                                        const reg = datosOrdenados[idx];
+                                        if (!reg) return 'Precio: ' + ctx.parsed.y + '€';
+                                        let estado = getPatronNombre(reg.caso_numero) || 'Neutro';
+                                        if (reg.smi_diario !== null && reg.smi_diario > 40) estado = 'Riesgo';
+                                        if (reg.smi_diario !== null && reg.smi_diario < -40) estado = 'Oportunidad';
+                                        return estado + ' · ' + ctx.parsed.y + '€';
                                     }
                                     return 'Precio: ' + ctx.parsed.y + '€';
+                                },
+                                title: function(items) {
+                                    if (items && items.length > 0) {
+                                        const idx = items[0].dataIndex;
+                                        const reg = datosOrdenados[idx];
+                                        if (reg) {
+                                            const fecha = new Date(reg.fecha).toLocaleString('es-ES', { day: '2-digit',
+                                                month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                                            return fecha;
+                                        }
+                                        return items[0].label;
+                                    }
+                                    return '';
                                 }
                             }
                         }
-                    },
-                    interaction: {
-                        intersect: false,
-                        mode: 'index'
                     }
                 }
             });
@@ -2552,9 +2572,7 @@
                 const primeraFila = document.querySelector('#empresasBody tr');
                 const primerTicker = primeraFila ? primeraFila.getAttribute('data-ticker') : null;
 
-                if (ticker === primerTicker || !primerTicker) {
-                    // Permitir
-                } else {
+                if (ticker === primerTicker || !primerTicker) {} else {
                     mostrarMensajeFlotante('🔓 Regístrate gratis para ver el gráfico de ' + ticker + ' y recibir alertas personalizadas.');
                     return;
                 }
@@ -2985,7 +3003,6 @@
                     return;
                 }
 
-                // Si no hay empresas seleccionadas, eliminar preferencias (dar de baja)
                 if (empresasSeleccionadas.length === 0) {
                     const { error } = await supabaseClient
                         .from('preferencias_notificaciones')
