@@ -2423,42 +2423,34 @@
         // ============================================================
         function renderizarGrafico(historialCompleto) {
             if (!historialCompleto || historialCompleto.length === 0 || !document.getElementById('graficaCanvas')) return;
-
+        
             const datosOrdenados = [...historialCompleto].sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
-            const labels = datosOrdenados.map(reg => new Date(reg.fecha).toLocaleString('es-ES', { day: '2-digit',
-                month: '2-digit', hour: '2-digit', minute: '2-digit' }));
+            const labels = datosOrdenados.map(reg => new Date(reg.fecha).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }));
             const precios = datosOrdenados.map(reg => reg.precio_cierre);
-
-            // Determinar colores por segmento según PW y patrones
-            const colores = datosOrdenados.map((reg, idx) => {
+        
+            // Determinar color para cada punto
+            const colores = datosOrdenados.map((reg) => {
                 const pw = reg.smi_diario;
                 const patron = reg.caso_numero;
-                // Oportunidad fuerte (verde)
-                if (patron === 7) return '#0C942A';
-                // Rebote (verde claro)
-                if (patron === 3) return '#0C8294';
-                // Interés (amarillo)
-                if (patron === 6 || patron === 1 || patron === 2) return '#7CD154';
-                // Agotamiento (naranja-rojo)
-                if (patron === 5) return '#e67e22';
-                // Riesgo / sobrecompra (rojo)
-                if (pw !== null && pw > 40) return '#EB1515';
-                // Sobreventa (verde)
-                if (pw !== null && pw < -40) return '#28a745';
-                // Neutro (blanco)
-                return '#b0c8dd';
+                if (patron === 7) return '#28a745';        // Oportunidad fuerte - verde
+                if (patron === 3) return '#5aaa6a';        // Rebote - verde claro
+                if (patron === 6 || patron === 1 || patron === 2) return '#f1c40f'; // Interés - amarillo
+                if (patron === 5) return '#e67e22';        // Agotamiento - naranja
+                if (pw !== null && pw > 40) return '#e07b7b'; // Riesgo - rojo
+                if (pw !== null && pw < -40) return '#28a745'; // Sobreventa - verde
+                return '#b0c8dd'; // Neutro - blanco/gris
             });
-
-            // Construir dataset segmentado
+        
+            // Construir segmentos para el dataset (usando la API de segmentos de Chart.js v4)
             const segmentos = [];
             let inicio = 0;
             let colorActual = colores[0] || '#b0c8dd';
-
+        
             for (let i = 1; i < colores.length; i++) {
                 if (colores[i] !== colorActual) {
                     segmentos.push({
-                        desde: inicio,
-                        hasta: i - 1,
+                        start: inicio,
+                        end: i - 1,
                         color: colorActual
                     });
                     inicio = i;
@@ -2466,47 +2458,40 @@
                 }
             }
             segmentos.push({
-                desde: inicio,
-                hasta: colores.length - 1,
+                start: inicio,
+                end: colores.length - 1,
                 color: colorActual
             });
-
+        
             const ctx = document.getElementById('graficaCanvas').getContext('2d');
             if (chartInstance) chartInstance.destroy();
-
-            // Crear datasets segmentados
-            const datasets = segmentos.map(seg => {
-                const data = [];
-                for (let i = seg.desde; i <= seg.hasta; i++) {
-                    data.push({ x: labels[i], y: precios[i] });
-                }
-                return {
-                    label: '',
-                    data: data,
-                    borderColor: seg.color,
-                    borderWidth: 3,
-                    tension: 0.1,
-                    pointRadius: 0,
-                    fill: false,
-                    spanGaps: false,
-                };
-            });
-
-            // Dataset completo con puntos invisibles para tooltips (UN SOLO PRECIO)
-            const fullData = precios.map((p, i) => ({ x: labels[i], y: p }));
-
+        
+            // Crear un único dataset con segmentación
             chartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    datasets: [...datasets, {
+                    labels: labels,
+                    datasets: [{
                         label: 'Precio',
-                        data: fullData,
-                        borderColor: 'rgba(0,0,0,0)',
-                        borderWidth: 0,
+                        data: precios,
+                        borderColor: '#b0c8dd', // Color por defecto (se sobrescribe con segmentos)
+                        borderWidth: 3,
+                        tension: 0.15,
                         pointRadius: 0,
                         fill: false,
-                        tension: 0.1,
-                        backgroundColor: 'rgba(0,0,0,0)',
+                        segment: {
+                            borderColor: function(context) {
+                                // Obtener el índice del punto actual
+                                const idx = context.p0DataIndex;
+                                // Buscar en qué segmento cae este índice
+                                for (let seg of segmentos) {
+                                    if (idx >= seg.start && idx <= seg.end) {
+                                        return seg.color;
+                                    }
+                                }
+                                return '#b0c8dd';
+                            }
+                        }
                     }]
                 },
                 options: {
@@ -2533,24 +2518,20 @@
                             mode: 'nearest',
                             callbacks: {
                                 label: function(ctx) {
-                                    if (ctx.datasetIndex === datasets.length) {
-                                        const idx = ctx.dataIndex;
-                                        const reg = datosOrdenados[idx];
-                                        if (!reg) return 'Precio: ' + ctx.parsed.y + '€';
-                                        let estado = getPatronNombre(reg.caso_numero) || 'Neutro';
-                                        if (reg.smi_diario !== null && reg.smi_diario > 40) estado = 'Riesgo';
-                                        if (reg.smi_diario !== null && reg.smi_diario < -40) estado = 'Oportunidad';
-                                        return estado + ' · ' + ctx.parsed.y + '€';
-                                    }
-                                    return 'Precio: ' + ctx.parsed.y + '€';
+                                    const idx = ctx.dataIndex;
+                                    const reg = datosOrdenados[idx];
+                                    if (!reg) return 'Precio: ' + ctx.parsed.y + '€';
+                                    let estado = getPatronNombre(reg.caso_numero) || 'Neutro';
+                                    if (reg.smi_diario !== null && reg.smi_diario > 40) estado = 'Riesgo';
+                                    if (reg.smi_diario !== null && reg.smi_diario < -40) estado = 'Oportunidad';
+                                    return estado + ' · ' + ctx.parsed.y + '€';
                                 },
                                 title: function(items) {
                                     if (items && items.length > 0) {
                                         const idx = items[0].dataIndex;
                                         const reg = datosOrdenados[idx];
                                         if (reg) {
-                                            const fecha = new Date(reg.fecha).toLocaleString('es-ES', { day: '2-digit',
-                                                month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                                            const fecha = new Date(reg.fecha).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
                                             return fecha;
                                         }
                                         return items[0].label;
