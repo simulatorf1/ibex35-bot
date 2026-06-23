@@ -1746,30 +1746,7 @@
             </div>
         </div>
 
-        <!-- CASOS DE ÉXITO -->
-        <div class="casos-exito">
-            <div class="header">
-                <h3>⭐ Casos de éxito reales</h3>
-                <span>📊 Beneficio simulado con 10.000€ de inversión</span>
-            </div>
-            <div id="casosExitoContainer">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Empresa</th>
-                            <th>Fecha entrada</th>
-                            <th>Precio entrada</th>
-                            <th>Precio salida</th>
-                            <th>Beneficio (€)</th>
-                            <th>Rentabilidad</th>
-                        </tr>
-                    </thead>
-                    <tbody id="casosExitoBody">
-                        <tr><td colspan="6" class="cargando-texto">Cargando casos de éxito...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+
 
         <div id="seccionDetalle" class="seccion-detalle">
             <div class="detalle-header">
@@ -2388,93 +2365,7 @@
         }
     }
 
-    // --- CASOS DE ÉXITO (CORREGIDOS) ---
-    async function cargarCasosExito() {
-        try {
-            // 1. Obtener TODOS los datos de recomendaciones_ibex
-            const { data, error } = await supabaseClient
-                .from('recomendaciones_ibex')
-                .select('ticker, nombre_empresa, precio_cierre, fecha, caso_numero, smi_diario, pendiente_diaria')
-                .order('fecha', { ascending: false });
-            
-            if (error) throw error;
-            
-            // 2. Agrupar por ticker (igual que en cargarCatalogoEmpresas)
-            const empresasMap = new Map();
-            for (const item of data) {
-                if (!empresasMap.has(item.ticker)) {
-                    empresasMap.set(item.ticker, {
-                        ticker: item.ticker,
-                        nombre: item.nombre_empresa || item.ticker,
-                        registros: [item]
-                    });
-                } else {
-                    empresasMap.get(item.ticker).registros.push(item);
-                }
-            }
-            
-            // 3. Procesar cada empresa (MISMA LÓGICA que en la tabla principal)
-            const casosExito = [];
-            
-            for (const [ticker, emp] of empresasMap) {
-                // Ordenar registros por fecha ascendente
-                const registros = emp.registros.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
-                const ultimo = registros[registros.length - 1];
-                
-                // Calcular último patrón (USA LA MISMA FUNCIÓN que tu tabla)
-                const tieneInteres = PATRONES_INTERES.includes(ultimo.caso_numero);
-                const ultimoPatronInfo = calcularUltimoPatron(registros, tieneInteres);
-                
-                let subida = null;
-                if (ultimoPatronInfo && ultimoPatronInfo.precioPatron && ultimo.precio_cierre) {
-                    subida = ((ultimo.precio_cierre - ultimoPatronInfo.precioPatron) / ultimoPatronInfo.precioPatron) * 100;
-                }
-                
-                // APLICAR EL MISMO FILTRO QUE TU FILTRO "CASOS DE ÉXITO"
-                if (subida !== null && subida > 2) {
-                    const beneficioEuros = (subida / 100) * 10000;
-                    casosExito.push({
-                        ticker: ticker,
-                        nombre: emp.nombre,
-                        fechaEntrada: ultimoPatronInfo ? new Date(ultimoPatronInfo.fecha).toLocaleDateString('es-ES') : '---',
-                        precioEntrada: ultimoPatronInfo ? ultimoPatronInfo.precioPatron : 0,
-                        precioSalida: ultimo.precio_cierre,
-                        beneficio: beneficioEuros,
-                        rentabilidad: subida
-                    });
-                }
-            }
-            
-            // 4. Ordenar por beneficio (mayor a menor)
-            casosExito.sort((a, b) => b.beneficio - a.beneficio);
-            
-            // 5. Renderizar (mostrar los 10 mejores)
-            const tbody = document.getElementById('casosExitoBody');
-            if (casosExito.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="sin-datos">No hay casos de éxito disponibles</td></tr>';
-                return;
-            }
-            
-            let html = '';
-            const topCasos = casosExito.slice(0, 10);
-            for (const caso of topCasos) {
-                const claseBeneficio = caso.beneficio >= 0 ? 'beneficio' : 'beneficio negativo';
-                html += `<tr>
-                    <td><strong>${caso.nombre}</strong><br><span style="font-size:0.6rem;color:#8ba0bc;">${caso.ticker}</span></td>
-                    <td>${caso.fechaEntrada}</td>
-                    <td>${caso.precioEntrada.toFixed(2)}€</td>
-                    <td>${caso.precioSalida.toFixed(2)}€</td>
-                    <td class="${claseBeneficio}">${caso.beneficio >= 0 ? '+' : ''}${caso.beneficio.toFixed(2)}€</td>
-                    <td class="${claseBeneficio}">${caso.rentabilidad >= 0 ? '+' : ''}${caso.rentabilidad.toFixed(2)}%</td>
-                </tr>`;
-            }
-            tbody.innerHTML = html;
-            
-        } catch (err) {
-            console.error('Error cargando casos de éxito:', err);
-            document.getElementById('casosExitoBody').innerHTML = '<tr><td colspan="6" class="sin-datos">Error al cargar casos de éxito</td></tr>';
-        }
-    }
+
 
 
 
