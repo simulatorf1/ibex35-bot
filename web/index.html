@@ -1390,6 +1390,219 @@
             0%, 100% { box-shadow: 0 0 0 4px #ffc107, 0 0 20px rgba(255, 193, 7, 0.3); }
             50% { box-shadow: 0 0 0 8px #ffc107, 0 0 40px rgba(255, 193, 7, 0.5); }
         }
+
+        /* --- NUEVOS ESTILOS PARA DEMO Y CASOS DE ÉXITO --- */
+        .demo-banner {
+            background: linear-gradient(135deg, #1e4668, #2c7da0);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 16px rgba(30, 70, 104, 0.3);
+        }
+        .demo-banner .demo-text {
+            font-size: 0.85rem;
+            font-weight: 400;
+        }
+        .demo-banner .demo-text strong {
+            font-weight: 700;
+            color: #ffc107;
+        }
+        .demo-banner .demo-btn {
+            background: #ffc107;
+            color: #1e4668;
+            border: none;
+            padding: 8px 24px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .demo-banner .demo-btn:hover {
+            transform: scale(1.05);
+            background: #ffca2c;
+        }
+        .demo-banner .demo-btn-registro {
+            background: #28a745;
+            color: white;
+        }
+        .demo-banner .demo-btn-registro:hover {
+            background: #34ce57;
+        }
+
+        .usuarios-activos {
+            background: white;
+            border-radius: 16px;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            border: 1px solid #e9ecef;
+        }
+        .usuarios-activos .avatar-group {
+            display: flex;
+            align-items: center;
+        }
+        .usuarios-activos .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #e3f2fd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #1e4668;
+            font-size: 0.8rem;
+            margin-right: -8px;
+            border: 2px solid white;
+        }
+        .usuarios-activos .avatar:first-child {
+            margin-left: 0;
+        }
+        .usuarios-activos .avatar-mas {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #1e4668;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            border: 2px solid white;
+        }
+        .usuarios-activos .info {
+            font-size: 0.8rem;
+            color: #4a627a;
+        }
+        .usuarios-activos .info strong {
+            color: #1e4668;
+        }
+        .usuarios-activos .info .numero {
+            font-weight: 800;
+            color: #28a745;
+            font-size: 1.1rem;
+        }
+
+        .casos-exito {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+            border: 1px solid #e9ecef;
+            margin-bottom: 20px;
+        }
+        .casos-exito .header {
+            background: #d4edda;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .casos-exito .header h3 {
+            font-size: 0.9rem;
+            color: #1e7e34;
+            margin: 0;
+        }
+        .casos-exito .header span {
+            font-size: 0.7rem;
+            color: #155724;
+        }
+        .casos-exito table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.75rem;
+        }
+        .casos-exito th {
+            background: #f8f9fa;
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #1e4668;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .casos-exito td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #f0f2f5;
+        }
+        .casos-exito .beneficio {
+            font-weight: 700;
+            color: #1e7e34;
+        }
+        .casos-exito .beneficio.negativo {
+            color: #dc3545;
+        }
+
+        .demo-bloqueado {
+            opacity: 0.6;
+            pointer-events: none;
+            position: relative;
+        }
+        .demo-bloqueado::after {
+            content: '🔒 Regístrate para ver más';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(30, 70, 104, 0.9);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            z-index: 10;
+            backdrop-filter: blur(4px);
+        }
+
+        .bloqueo-simulador {
+            position: relative;
+        }
+        .bloqueo-simulador .bloqueo-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(2px);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 5;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .bloqueo-simulador .bloqueo-overlay span {
+            font-size: 0.8rem;
+            color: #1e4668;
+            font-weight: 600;
+        }
+        .bloqueo-simulador .bloqueo-overlay .btn-registro {
+            background: #1e4668;
+            color: white;
+            border: none;
+            padding: 6px 20px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
     </style>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-LVV061GCPF"></script>
     <script>
@@ -1506,8 +1719,8 @@
             <div class="user-info">
                 <span>👋</span>
                 <div>
-                    <span class="user-name" id="userNameDisplay">Usuario</span>
-                    <span style="font-size:0.7rem; color:#8ba0bc; display:block;" id="userEmailDisplay"></span>
+                    <span class="user-name" id="userNameDisplay">Demo</span>
+                    <span style="font-size:0.7rem; color:#8ba0bc; display:block;" id="userEmailDisplay">Modo invitado</span>
                     <div class="mis-empresas" id="misEmpresasTags">
                         <span class="tag-empty">⚙️ Configura tus empresas</span>
                     </div>
@@ -1519,7 +1732,37 @@
                     <span class="badge" id="notificationBadge" style="display:none;">0</span>
                 </span>
                 <button class="settings-btn" id="settingsBtn" title="Configurar empresas">⚙️</button>
-                <button class="logout-btn" id="logoutBtn">Cerrar sesión</button>
+                <button class="logout-btn" id="logoutBtn" style="display:none;">Cerrar sesión</button>
+                <button class="logout-btn" id="btnMostrarLogin" style="background:#1e4668; color:white;">🔐 Acceder</button>
+            </div>
+        </div>
+
+        <!-- BANNER DEMO -->
+        <div class="demo-banner" id="demoBanner">
+            <div class="demo-text">
+                <span style="font-size:1.2rem;">👀</span> Estás viendo una <strong>demo</strong> con datos reales del IBEX35.
+                <span style="display:inline-block; background:rgba(255,255,255,0.15); padding:2px 12px; border-radius:40px; margin-left:8px; font-size:0.7rem;">
+                    ⚡ 2 de 35 empresas visibles
+                </span>
+            </div>
+            <div>
+                <button class="demo-btn demo-btn-registro" id="btnRegistroDesdeDemo">🔓 Regístrate gratis y desbloquea todo</button>
+            </div>
+        </div>
+
+        <!-- USUARIOS ACTIVOS -->
+        <div class="usuarios-activos">
+            <div class="avatar-group">
+                <div class="avatar">JD</div>
+                <div class="avatar">MC</div>
+                <div class="avatar">AR</div>
+                <div class="avatar">PL</div>
+                <div class="avatar">CM</div>
+                <div class="avatar-mas">+12</div>
+            </div>
+            <div class="info">
+                <strong><span class="numero">17</span> usuarios activos</strong> analizando el IBEX35 ahora mismo.
+                <span style="font-size:0.7rem; color:#6c86a3;">· Última señal hace 12 min</span>
             </div>
         </div>
 
@@ -1543,6 +1786,31 @@
                     </thead>
                     <tbody id="empresasBody">
                         <tr><td colspan="7" class="mensaje-inicial">🔍 Empieza a escribir para buscar empresas...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- CASOS DE ÉXITO (REALES) -->
+        <div class="casos-exito">
+            <div class="header">
+                <h3>⭐ Casos de éxito reales</h3>
+                <span>📊 Beneficio simulado con 10.000€ de inversión</span>
+            </div>
+            <div id="casosExitoContainer">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Empresa</th>
+                            <th>Fecha entrada</th>
+                            <th>Precio entrada</th>
+                            <th>Precio salida</th>
+                            <th>Beneficio (€)</th>
+                            <th>Rentabilidad</th>
+                        </tr>
+                    </thead>
+                    <tbody id="casosExitoBody">
+                        <tr><td colspan="6" class="cargando-texto">Cargando casos de éxito...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -1760,9 +2028,7 @@
         </div>
     </div>
 
-    <!-- ============================================================ -->
-    <!-- TUTORIAL DE ONBOARDING                                        -->
-    <!-- ============================================================ -->
+    <!-- TUTORIAL DE ONBOARDING -->
     <div class="tutorial-overlay" id="tutorialOverlay">
         <div class="tutorial-card">
             <div class="tutorial-pasos" id="tutorialPasos">
@@ -1807,13 +2073,16 @@
     const userNameDisplay = document.getElementById('userNameDisplay');
     const userEmailDisplay = document.getElementById('userEmailDisplay');
     const logoutBtn = document.getElementById('logoutBtn');
+    const btnMostrarLogin = document.getElementById('btnMostrarLogin');
     const notificationBell = document.getElementById('notificationBell');
     const settingsBtn = document.getElementById('settingsBtn');
     const registerFields = document.getElementById('registerFields');
     const authFormTitle = document.getElementById('authFormTitle');
     const authFormSubtitle = document.getElementById('authFormSubtitle');
+    const btnRegistroDesdeDemo = document.getElementById('btnRegistroDesdeDemo');
 
     let isLoginMode = true;
+    let esUsuarioAutenticado = false;
 
     // --- FUNCIONES DE AUTENTICACIÓN ---
     function setAuthMode(mode) {
@@ -1910,7 +2179,8 @@
                         
                         userNameDisplay.textContent = nombre;
                         userEmailDisplay.textContent = 'No especificada';
-                        showApp();
+                        esUsuarioAutenticado = true;
+                        showApp(true);
                         return;
                     }
                     
@@ -1921,7 +2191,8 @@
                 if (data) {
                     userNameDisplay.textContent = data.nombre || 'Usuario';
                     userEmailDisplay.textContent = data.ciudad || '';
-                    showApp();
+                    esUsuarioAutenticado = true;
+                    showApp(true);
                     return;
                 }
             } catch (error) {
@@ -1934,7 +2205,8 @@
             if (userData?.user) {
                 userNameDisplay.textContent = userData.user.email?.split('@')[0] || 'Usuario';
                 userEmailDisplay.textContent = userData.user.email || '';
-                showApp();
+                esUsuarioAutenticado = true;
+                showApp(true);
             }
         } catch {
             authError.textContent = 'Error al cargar el perfil. Intenta iniciar sesión.';
@@ -1965,27 +2237,31 @@
                         console.error('Error creando perfil automático:', insertError);
                         userNameDisplay.textContent = nombre;
                         userEmailDisplay.textContent = email;
-                        showApp();
+                        esUsuarioAutenticado = true;
+                        showApp(true);
                         return;
                     }
                     
                     userNameDisplay.textContent = nombre;
                     userEmailDisplay.textContent = 'No especificada';
-                    showApp();
+                    esUsuarioAutenticado = true;
+                    showApp(true);
                     return;
                 }
                 
                 const { data: userData } = await supabaseClient.auth.getUser();
                 userNameDisplay.textContent = userData.user.email?.split('@')[0] || 'Usuario';
                 userEmailDisplay.textContent = userData.user.email || '';
-                showApp();
+                esUsuarioAutenticado = true;
+                showApp(true);
                 return;
             }
             
             if (data) {
                 userNameDisplay.textContent = data.nombre || 'Usuario';
                 userEmailDisplay.textContent = data.ciudad || '';
-                showApp();
+                esUsuarioAutenticado = true;
+                showApp(true);
             }
         } catch (error) {
             console.error('Error cargando perfil:', error);
@@ -1993,18 +2269,39 @@
                 const { data: userData } = await supabaseClient.auth.getUser();
                 userNameDisplay.textContent = userData.user.email?.split('@')[0] || 'Usuario';
                 userEmailDisplay.textContent = userData.user.email || '';
-                showApp();
+                esUsuarioAutenticado = true;
+                showApp(true);
             } catch {
                 showAuth();
             }
         }
     }
 
-    function showApp() {
+    function showApp(autenticado = false) {
         authContainer.style.display = 'none';
         appContainer.classList.add('visible');
+        esUsuarioAutenticado = autenticado;
+        
+        // Actualizar UI según autenticación
+        if (autenticado) {
+            logoutBtn.style.display = 'inline-block';
+            btnMostrarLogin.style.display = 'none';
+            document.getElementById('demoBanner').style.display = 'none';
+            document.getElementById('userEmailDisplay').textContent = '✅ Usuario registrado';
+            document.querySelector('.user-name').textContent = userNameDisplay.textContent;
+        } else {
+            logoutBtn.style.display = 'none';
+            btnMostrarLogin.style.display = 'inline-block';
+            document.getElementById('demoBanner').style.display = 'flex';
+            document.getElementById('userEmailDisplay').textContent = '🔓 Modo demo - Regístrate para más';
+            document.querySelector('.user-name').textContent = '👤 Demo';
+        }
+        
         if (typeof cargarCatalogoEmpresas === 'function') {
             cargarCatalogoEmpresas();
+        }
+        if (typeof cargarCasosExito === 'function') {
+            cargarCasosExito();
         }
         cargarContadorNotificaciones();
         cargarMisEmpresas();
@@ -2020,24 +2317,39 @@
 
     async function handleLogout() {
         await supabaseClient.auth.signOut();
+        esUsuarioAutenticado = false;
         showAuth();
         if (typeof limpiarSeleccionEmpresa === 'function') {
             limpiarSeleccionEmpresa();
         }
     }
 
+    // --- EVENTOS ---
     authForm.addEventListener('submit', handleAuthSubmit);
     authToggleLink.addEventListener('click', () => {
         setAuthMode(isLoginMode ? 'register' : 'login');
     });
     logoutBtn.addEventListener('click', handleLogout);
+    
+    btnMostrarLogin.addEventListener('click', () => {
+        showAuth();
+    });
+    
+    btnRegistroDesdeDemo.addEventListener('click', () => {
+        showAuth();
+        setAuthMode('register');
+    });
 
+    // --- SESIÓN ---
     (async function checkSession() {
         const { data: { session } } = await supabaseClient.auth.getSession();
         if (session) {
             await loadUserProfile(session.user.id);
         } else {
-            showAuth();
+            // Modo demo: mostrar app sin autenticación
+            setTimeout(() => {
+                showApp(false);
+            }, 300);
         }
     })();
 
@@ -2066,6 +2378,9 @@
     let filaSalidaIndex = -1;
     let chartInstance = null;
 
+    // --- DEMO: LIMITAR EMPRESAS VISIBLES ---
+    const DEMO_LIMIT = 2; // Solo 2 empresas en modo demo
+
     function getDescripcionPatron(patron) {
         const descripciones = { 1: "🔴 Señal de interés con impulso alcista", 2: "🟡 Señal anticipada", 3: "⚫ Rebote corto plazo", 4: "⚪ Fase de consolidación", 5: "🔴 Agotamiento alcista", 6: "🟢 Señal de interés directa", 7: "🔷 Pre-señal" };
         return descripciones[patron] || "Sin patrón";
@@ -2091,9 +2406,16 @@
             }
             catalogoEmpresas = Array.from(uniqueMap.values()).sort((a,b) => a.nombre.localeCompare(b.nombre));
             
+            // En modo demo, limitar a 2 empresas
+            if (!esUsuarioAutenticado && catalogoEmpresas.length > DEMO_LIMIT) {
+                catalogoEmpresas = catalogoEmpresas.slice(0, DEMO_LIMIT);
+            }
+            
             const tbody = document.getElementById('empresasBody');
             if (catalogoEmpresas.length > 0) {
                 tbody.innerHTML = '<tr><td colspan="7" class="mensaje-inicial">🔍 Escribe para buscar empresas...</td></tr>';
+            } else {
+                tbody.innerHTML = '<tr><td colspan="7" class="mensaje-inicial">❌ No se encontraron empresas</td></tr>';
             }
         } catch (err) {
             console.error('Error cargando catálogo:', err);
@@ -2101,6 +2423,82 @@
         }
     }
 
+    // --- CASOS DE ÉXITO ---
+    async function cargarCasosExito() {
+        try {
+            // Obtener casos de éxito de la base de datos
+            const { data, error } = await supabaseClient
+                .from('recomendaciones_ibex')
+                .select('ticker, nombre_empresa, precio_cierre, fecha, caso_numero')
+                .in('caso_numero', [7, 3])
+                .order('fecha', { ascending: false })
+                .limit(20);
+            
+            if (error) throw error;
+            
+            // Procesar casos de éxito
+            const casos = [];
+            const tickersVistos = new Set();
+            
+            for (const item of data) {
+                if (tickersVistos.has(item.ticker)) continue;
+                tickersVistos.add(item.ticker);
+                
+                // Buscar precio de salida (precio actual más reciente)
+                const { data: precioActual } = await supabaseClient
+                    .from('recomendaciones_ibex')
+                    .select('precio_cierre')
+                    .eq('ticker', item.ticker)
+                    .order('fecha', { ascending: false })
+                    .limit(1);
+                
+                const precioSalida = precioActual && precioActual.length > 0 ? precioActual[0].precio_cierre : item.precio_cierre * 1.05;
+                const beneficio = ((precioSalida - item.precio_cierre) / item.precio_cierre) * 100;
+                const beneficioEuros = (beneficio / 100) * 10000;
+                
+                casos.push({
+                    ticker: item.ticker,
+                    nombre: item.nombre_empresa,
+                    fechaEntrada: new Date(item.fecha).toLocaleDateString('es-ES'),
+                    precioEntrada: item.precio_cierre,
+                    precioSalida: precioSalida,
+                    beneficio: beneficioEuros,
+                    rentabilidad: beneficio
+                });
+            }
+            
+            // Ordenar por beneficio (mejores primero)
+            casos.sort((a, b) => b.beneficio - a.beneficio);
+            
+            // Renderizar
+            const tbody = document.getElementById('casosExitoBody');
+            if (casos.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="sin-datos">No hay casos de éxito disponibles</td></tr>';
+                return;
+            }
+            
+            let html = '';
+            const topCasos = casos.slice(0, 5);
+            for (const caso of topCasos) {
+                const claseBeneficio = caso.beneficio >= 0 ? 'beneficio' : 'beneficio negativo';
+                html += `<tr>
+                    <td><strong>${caso.nombre}</strong><br><span style="font-size:0.6rem;color:#8ba0bc;">${caso.ticker}</span></td>
+                    <td>${caso.fechaEntrada}</td>
+                    <td>${caso.precioEntrada.toFixed(2)}€</td>
+                    <td>${caso.precioSalida.toFixed(2)}€</td>
+                    <td class="${claseBeneficio}">${caso.beneficio >= 0 ? '+' : ''}${caso.beneficio.toFixed(2)}€</td>
+                    <td class="${claseBeneficio}">${caso.rentabilidad >= 0 ? '+' : ''}${caso.rentabilidad.toFixed(2)}%</td>
+                </tr>`;
+            }
+            tbody.innerHTML = html;
+            
+        } catch (err) {
+            console.error('Error cargando casos de éxito:', err);
+            document.getElementById('casosExitoBody').innerHTML = '<tr><td colspan="6" class="sin-datos">Error al cargar casos de éxito</td></tr>';
+        }
+    }
+
+    // --- RESTO DE FUNCIONES EXISTENTES (adaptadas para demo) ---
     async function cargarDatosCompletos(ticker) {
         if (datosCompletosCache.has(ticker)) {
             return datosCompletosCache.get(ticker);
@@ -2356,6 +2754,12 @@
             
             document.getElementById('detalleTituloEmpresa').innerHTML = `📊 ${empresaCompleta.nombre} (${ticker})`;
             historialActual = [...empresaCompleta.registros].sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+            
+            // En modo demo, limitar historial
+            if (!esUsuarioAutenticado && historialActual.length > 10) {
+                historialActual = historialActual.slice(0, 10);
+            }
+            
             renderizarHistorialCompleto(historialActual);
             renderizarGrafico(empresaCompleta.registros);
             
@@ -2415,7 +2819,6 @@
         tbody.innerHTML = html;
         document.querySelectorAll('#tablaHistorial td.precio-clickeable').forEach(cell => {
             cell.addEventListener('click', (e) => { e.stopPropagation(); const idx = parseInt(cell.getAttribute('data-idx')); const precio = parseFloat(cell.getAttribute('data-precio')); const fecha = cell.getAttribute('data-fecha'); seleccionarPrecioEnHistorial(idx, precio, fecha); });
-        });
     }
 
     function seleccionarPrecioEnHistorial(idx, precio, fecha) {
@@ -2516,6 +2919,11 @@
     
     // Abrir modal de configuración desde el botón de ajustes
     settingsBtn.addEventListener('click', async () => {
+        if (!esUsuarioAutenticado) {
+            alert('🔒 Regístrate gratis para configurar tus empresas y recibir alertas personalizadas.');
+            showAuth();
+            return;
+        }
         await cargarPreferenciasUsuario();
         await cargarListaEmpresasCheckboxes();
         actualizarContador();
@@ -2527,6 +2935,11 @@
     
     // Abrir configuración desde el botón dentro de la lista
     btnAbrirConfiguracion.addEventListener('click', async () => {
+        if (!esUsuarioAutenticado) {
+            alert('🔒 Regístrate gratis para configurar tus empresas y recibir alertas personalizadas.');
+            showAuth();
+            return;
+        }
         modalListaNotificaciones.style.display = 'none';
         await cargarPreferenciasUsuario();
         await cargarListaEmpresasCheckboxes();
@@ -2703,6 +3116,12 @@
     }
     
     btnGuardarPreferencias.addEventListener('click', async () => {
+        if (!esUsuarioAutenticado) {
+            alert('🔒 Regístrate gratis para guardar tus preferencias y recibir alertas.');
+            showAuth();
+            return;
+        }
+        
         try {
             const { data: { user } } = await supabaseClient.auth.getUser();
             if (!user) {
@@ -2764,8 +3183,10 @@
     async function cargarMisEmpresas() {
         try {
             const { data: { user } } = await supabaseClient.auth.getUser();
-            if (!user) {
-                document.getElementById('misEmpresasTags').innerHTML = '<span class="tag-empty">⚙️ Configura tus empresas</span>';
+            const container = document.getElementById('misEmpresasTags');
+            
+            if (!user || !esUsuarioAutenticado) {
+                container.innerHTML = '<span class="tag-empty">🔒 Regístrate para configurar</span>';
                 return;
             }
             
@@ -2778,7 +3199,6 @@
             if (error && error.code !== 'PGRST116') throw error;
             
             const seleccionadas = data?.empresas_seleccionadas || [];
-            const container = document.getElementById('misEmpresasTags');
             
             if (seleccionadas.length === 0) {
                 container.innerHTML = '<span class="tag-empty">⚙️ Configura tus empresas</span>';
@@ -2820,6 +3240,11 @@
     
     // Un clic en la campana → abre lista de notificaciones
     notificationBell.addEventListener('click', async () => {
+        if (!esUsuarioAutenticado) {
+            alert('🔒 Regístrate gratis para recibir notificaciones personalizadas de tus empresas.');
+            showAuth();
+            return;
+        }
         if (modalNotificaciones.style.display === 'flex') {
             modalNotificaciones.style.display = 'none';
         }
@@ -3218,8 +3643,8 @@
         // ============================================================
         const showAppOriginal = window.showApp;
         if (showAppOriginal) {
-            window.showApp = function() {
-                showAppOriginal();
+            window.showApp = function(autenticado) {
+                showAppOriginal(autenticado);
                 const yaVisto = localStorage.getItem(TUTORIAL_KEY);
                 if (!yaVisto) {
                     setTimeout(() => {
