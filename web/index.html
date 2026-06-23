@@ -1702,9 +1702,9 @@
 
                     <h4>🎨 Colores y significado</h4>
                     <div class="grid-colores">
-                        <span style="background:rgba(40,167,69,0.2); color:#28a745;">🟢 Oportunidad</span>
-                        <span style="background:rgba(40,167,69,0.1); color:#5aaa6a;">🟢 Rebote</span>
-                        <span style="background:rgba(192,57,43,0.2); color:#e07b7b;">🔴 Riesgo</span>
+                        <span style="background:rgba(40,167,69,0.2); color:#009C23;">🟢 Oportunidad</span>
+                        <span style="background:rgba(40,167,69,0.1); color:#5AAAA2;">🟢 Rebote</span>
+                        <span style="background:rgba(192,57,43,0.2); color:#E01212;">🔴 Riesgo</span>
                         <span style="background:rgba(44,125,160,0.2); color:#6cb4e4;">🔵 Seleccionada</span>
                         <span style="background:rgba(241,196,15,0.2); color:#f1c40f;">🟡 Precio seleccionado</span>
                     </div>
@@ -2434,15 +2434,15 @@
                 const pw = reg.smi_diario;
                 const patron = reg.caso_numero;
                 // Oportunidad fuerte (verde)
-                if (patron === 7) return '#28a745';
+                if (patron === 7) return '#0C942A';
                 // Rebote (verde claro)
-                if (patron === 3) return '#5aaa6a';
+                if (patron === 3) return '#0C8294';
                 // Interés (amarillo)
-                if (patron === 6 || patron === 1 || patron === 2) return '#f1c40f';
+                if (patron === 6 || patron === 1 || patron === 2) return '#7CD154';
                 // Agotamiento (naranja-rojo)
                 if (patron === 5) return '#e67e22';
                 // Riesgo / sobrecompra (rojo)
-                if (pw !== null && pw > 40) return '#e07b7b';
+                if (pw !== null && pw > 40) return '#EB1515';
                 // Sobreventa (verde)
                 if (pw !== null && pw < -40) return '#28a745';
                 // Neutro (blanco)
