@@ -2211,6 +2211,8 @@
     }
 
     function showApp(autenticado) {
+        // Forzar filtro "oportunidad"
+        document.getElementById('filtroOportunidad').value = 'oportunidad';        
         if (autenticado === undefined) autenticado = false;
         authContainer.style.display = 'none';
         appContainer.classList.add('visible');
@@ -2284,6 +2286,8 @@
         if (data && data.session) {
             await loadUserProfile(data.session.user.id);
         } else {
+            // Forzar filtro oportunidad en demo
+            document.getElementById('filtroOportunidad').value = 'oportunidad';
             setTimeout(function() {
                 showApp(false);
             }, 300);
@@ -2352,10 +2356,13 @@
             var tbody = document.getElementById('empresasBody');
             if (catalogoEmpresas.length > 0) {
                 tbody.innerHTML = '<tr><td colspan="7" class="mensaje-inicial">🔍 Escribe para buscar empresas...</td></tr>';
-                // Cargar primera empresa automáticamente
+                // Cargar primera empresa automáticamente con retraso
                 if (catalogoEmpresas.length > 0 && !tickerSeleccionado) {
-                    seleccionarEmpresa(catalogoEmpresas[0].ticker);
+                    setTimeout(function() {
+                        seleccionarEmpresa(catalogoEmpresas[0].ticker);
+                    }, 300);
                 }
+            }
             } else {
                 tbody.innerHTML = '<tr><td colspan="7" class="mensaje-inicial">❌ No se encontraron empresas</td></tr>';
             }
@@ -2542,7 +2549,13 @@
             else if (emp.ultimoPatron === 7) filaClass = 'interes-alcista-7';
             else if (emp.ultimoPatron === 3) filaClass = 'interes-alcista-3';
             var seleccionadaClass = tickerSeleccionado === emp.ticker ? 'seleccionada' : '';
-            html += '<tr class="' + filaClass + ' ' + seleccionadaClass + '" data-ticker="' + emp.ticker + '" onclick="seleccionarEmpresa(\'' + emp.ticker + '\')">';
+            // Solo permitir clic en la primera empresa si es demo
+            var esClicable = esUsuarioAutenticado || i === 0;
+            var onclickAttr = esClicable ? 'onclick="seleccionarEmpresa(\'' + emp.ticker + '\')"' : '';
+            var cursorStyle = esClicable ? '' : 'style="cursor:default;"';
+            var etiquetaDemo = (!esUsuarioAutenticado && !esClicable) ? '<br><span style="font-size:0.55rem;color:#dc3545;font-weight:600;">🔒 Regístrate para ver</span>' : '';
+            
+            html += '<tr class="' + filaClass + ' ' + seleccionadaClass + '" data-ticker="' + emp.ticker + '" ' + onclickAttr + ' ' + cursorStyle + '>';
             html += '<td><strong>' + emp.nombre + '</strong><br><span style="font-size:0.6rem;color:#8ba0bc;">' + emp.ticker + '</span></td>';
             html += '<td>' + precioText + '</td>';
             html += '<td style="font-size:0.7rem;">' + fechaText + '</td>';
@@ -2611,6 +2624,21 @@
     }
 
     window.seleccionarEmpresa = async function(ticker) {
+    // --- BLOQUEO DEMO ---
+    if (!esUsuarioAutenticado) {
+        var primeraFila = document.querySelector('#empresasBody tr');
+        var primerTicker = primeraFila ? primeraFila.getAttribute('data-ticker') : null;
+        
+        if (ticker !== primerTicker) {
+            alert('🔓 Regístrate gratis para ver el gráfico de ' + ticker + ' y recibir alertas personalizadas.');
+            showAuth();
+            setTimeout(function() {
+                document.getElementById('authContainer').scrollIntoView({ behavior: 'smooth' });
+            }, 300);
+            return;
+        }
+    }
+    // --- FIN BLOQUEO ---        
         tickerSeleccionado = ticker;
         
         var detalleDiv = document.getElementById('seccionDetalle');
