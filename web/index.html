@@ -1557,6 +1557,31 @@
             color: #28a745;
             font-size: 1.1rem;
         }
+        /* Mensaje flotante */
+        @keyframes slideUpFade {
+            from { opacity: 0; transform: translateX(-50%) translateY(30px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+        
+        .mensaje-flotante-demo {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e4668;
+            color: white;
+            padding: 14px 24px;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            z-index: 9999;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            max-width: 90%;
+            text-align: center;
+            animation: slideUpFade 0.4s ease;
+        }
+
+        
     </style>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-LVV061GCPF"></script>
     <script>
@@ -2969,10 +2994,9 @@
         var div = document.createElement('div');
         div.className = 'mensaje-flotante-demo';
         div.textContent = mensaje;
-        div.style.cssText = 'position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#1e4668; color:white; padding:14px 24px; border-radius:40px; font-size:0.9rem; font-weight:600; z-index:9999; box-shadow:0 4px 20px rgba(0,0,0,0.3); max-width:90%; text-align:center; animation:slideUpFade 0.4s ease;';
         document.body.appendChild(div);
         
-        // Desaparecer solo después de 4 segundos
+        // Desaparecer después de 4 segundos
         setTimeout(function() {
             div.style.opacity = '0';
             div.style.transition = 'opacity 0.5s';
