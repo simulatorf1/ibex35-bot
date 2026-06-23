@@ -2370,9 +2370,7 @@
                 return a.nombre.localeCompare(b.nombre);
             });
             
-            if (!esUsuarioAutenticado && catalogoEmpresas.length > DEMO_LIMIT) {
-                catalogoEmpresas = catalogoEmpresas.slice(0, DEMO_LIMIT);
-            }
+
             
             var tbody = document.getElementById('empresasBody');
             if (catalogoEmpresas.length > 0) {
@@ -2739,9 +2737,7 @@
             document.getElementById('detalleTituloEmpresa').innerHTML = '📊 ' + empresaCompleta.nombre + ' (' + ticker + ')';
             historialActual = [...empresaCompleta.registros].sort(function(a,b) { return new Date(b.fecha) - new Date(a.fecha); });
             
-            if (!esUsuarioAutenticado && historialActual.length > 10) {
-                historialActual = historialActual.slice(0, 10);
-            }
+
             
             renderizarHistorialCompleto(historialActual);
             renderizarGrafico(empresaCompleta.registros);
