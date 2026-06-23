@@ -2236,8 +2236,6 @@
     }
 
     function showApp(autenticado) {
-        // Forzar filtro "oportunidad"
-        document.getElementById('filtroOportunidad').value = 'oportunidad';      
         if (autenticado === undefined) autenticado = false;
         authContainer.style.display = 'none';
         appContainer.classList.add('visible');
@@ -2257,16 +2255,17 @@
             document.querySelector('.user-name').textContent = '👤 Demo';
         }
         
+        // --- NUEVO: Forzar filtro "oportunidad" y cargar datos ---
+        document.getElementById('filtroOportunidad').value = 'oportunidad';
+        
+        // Cargar empresas directamente (NO esperar a cargarCatalogoEmpresas)
         if (typeof cargarCatalogoEmpresas === 'function') {
             cargarCatalogoEmpresas();
         }
-        if (typeof cargarCasosExito === 'function') {
-            cargarCasosExito();
-        }
+        
         cargarContadorNotificaciones();
         cargarMisEmpresas();
         iniciarTutorial();
-        // Iniciar simulación de usuarios
         iniciarSimulacionUsuarios();
     }
 
@@ -2382,13 +2381,22 @@
             
             var tbody = document.getElementById('empresasBody');
             if (catalogoEmpresas.length > 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="mensaje-inicial">🔍 Escribe para buscar empresas...</td></tr>';
-                // Cargar primera empresa automáticamente con retraso
+                tbody.innerHTML = '<tr><td colspan="7" class="cargando-texto"><div class="loading-spinner"></div> Aplicando filtros...</td></tr>';
+                
+                // Ejecutar búsqueda con el filtro actual (que es "oportunidad")
+                await buscarYMostrarEmpresas();
+                
+                // Después de mostrar las empresas, cargar la primera
                 if (catalogoEmpresas.length > 0 && !tickerSeleccionado) {
                     setTimeout(function() {
-                        seleccionarEmpresa(catalogoEmpresas[0].ticker);
-                    }, 300);
+                        var primeraFila = document.querySelector('#empresasBody tr');
+                        if (primeraFila) {
+                            var ticker = primeraFila.getAttribute('data-ticker');
+                            if (ticker) seleccionarEmpresa(ticker);
+                        }
+                    }, 500);
                 }
+
 
             } else {
                 tbody.innerHTML = '<tr><td colspan="7" class="mensaje-inicial">❌ No se encontraron empresas</td></tr>';
