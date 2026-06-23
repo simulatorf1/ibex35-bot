@@ -1738,11 +1738,11 @@
                 <div class="avatar">AR</div>
                 <div class="avatar">PL</div>
                 <div class="avatar">CM</div>
-                <div class="avatar-mas">+12</div>
+                <div class="avatar-mas" id="avatarMas">+12</div>
             </div>
             <div class="info">
-                <strong><span class="numero">17</span> usuarios activos</strong> analizando el IBEX35 ahora mismo.
-                <span style="font-size:0.7rem; color:#6c86a3;">· Última señal hace 12 min</span>
+                <strong><span class="numero" id="usuariosActivosNumero">17</span> usuarios activos</strong> analizando el IBEX35 ahora mismo.
+                <span style="font-size:0.7rem; color:#6c86a3;">· Última señal hace <span id="ultimaSeñalMinutos">12</span> min</span>
             </div>
         </div>
 
@@ -2237,7 +2237,7 @@
 
     function showApp(autenticado) {
         // Forzar filtro "oportunidad"
-        document.getElementById('filtroOportunidad').value = 'oportunidad';        
+        document.getElementById('filtroOportunidad').value = 'oportunidad';      
         if (autenticado === undefined) autenticado = false;
         authContainer.style.display = 'none';
         appContainer.classList.add('visible');
@@ -2266,6 +2266,8 @@
         cargarContadorNotificaciones();
         cargarMisEmpresas();
         iniciarTutorial();
+        // Iniciar simulación de usuarios
+        iniciarSimulacionUsuarios();
     }
 
     function showAuth() {
@@ -2419,7 +2421,59 @@
         datosCompletosCache.set(ticker, empresaCompleta);
         return empresaCompleta;
     }
-
+    // ============================================================
+    // SIMULADOR DE USUARIOS ACTIVOS (creíble)
+    // ============================================================
+    
+    var usuariosActuales = 17; // Valor inicial
+    var intervalUsuarios = null;
+    
+    function simularUsuariosActivos() {
+        var numeroElement = document.getElementById('usuariosActivosNumero');
+        var avatarMasElement = document.getElementById('avatarMas');
+        
+        if (!numeroElement) return;
+        
+        // Cambio aleatorio entre -3 y +3 (sin llegar a 0 ni pasar de 27)
+        var cambio = Math.floor(Math.random() * 7) - 3; // -3 a +3
+        
+        var nuevoValor = usuariosActuales + cambio;
+        
+        // Limitar entre 2 y 27
+        if (nuevoValor < 2) nuevoValor = 2 + Math.floor(Math.random() * 3);
+        if (nuevoValor > 27) nuevoValor = 27 - Math.floor(Math.random() * 3);
+        
+        usuariosActuales = nuevoValor;
+        
+        // Actualizar número
+        numeroElement.textContent = usuariosActuales;
+        
+        // Actualizar avatar "+X" (mostrar los que sobran de 5)
+        var extras = usuariosActuales - 5;
+        if (extras > 0) {
+            avatarMasElement.textContent = '+' + extras;
+            avatarMasElement.style.display = 'flex';
+        } else {
+            avatarMasElement.style.display = 'none';
+        }
+        
+        // Actualizar el tiempo de la última señal (entre 2 y 45 minutos)
+        var minutos = Math.floor(Math.random() * 43) + 2;
+        document.getElementById('ultimaSeñalMinutos').textContent = minutos;
+    }
+    
+    // Iniciar la simulación (cambia cada 8-15 segundos)
+    function iniciarSimulacionUsuarios() {
+        simularUsuariosActivos(); // Ejecutar inmediatamente
+        clearInterval(intervalUsuarios);
+        intervalUsuarios = setInterval(function() {
+            simularUsuariosActivos();
+        }, Math.floor(Math.random() * 7000) + 8000); // 8-15 segundos
+    }
+    
+    // Llamar a esta función cuando la app esté visible
+    // (ponerlo dentro de showApp o al final del script)
+    iniciarSimulacionUsuarios();
     function procesarRegistrosEmpresa(registros, ticker) {
         if (!registros || registros.length === 0) return null;
         
