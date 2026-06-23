@@ -2624,21 +2624,21 @@
     }
 
     window.seleccionarEmpresa = async function(ticker) {
-    // --- BLOQUEO DEMO ---
+    // --- BLOQUEO DEMO (sin alert automático) ---
     if (!esUsuarioAutenticado) {
         var primeraFila = document.querySelector('#empresasBody tr');
         var primerTicker = primeraFila ? primeraFila.getAttribute('data-ticker') : null;
         
-        if (ticker !== primerTicker) {
-            alert('🔓 Regístrate gratis para ver el gráfico de ' + ticker + ' y recibir alertas personalizadas.');
-            showAuth();
-            setTimeout(function() {
-                document.getElementById('authContainer').scrollIntoView({ behavior: 'smooth' });
-            }, 300);
+        // Si es la primera empresa, permitir (incluso si primerTicker es null por carga)
+        if (ticker === primerTicker || !primerTicker) {
+            // Permitir carga de la primera empresa
+        } else {
+            // Mostrar mensaje flotante (NO alert)
+            mostrarMensajeFlotante('🔓 Regístrate gratis para ver el gráfico de ' + ticker + ' y recibir alertas personalizadas.');
             return;
         }
     }
-    // --- FIN BLOQUEO ---        
+    // --- FIN BLOQUEO ---   
         tickerSeleccionado = ticker;
         
         var detalleDiv = document.getElementById('seccionDetalle');
@@ -2961,7 +2961,34 @@
             empresasCheckboxContainer.innerHTML = '<p style="color:red;">Error cargando empresas</p>';
         }
     }
+    function mostrarMensajeFlotante(mensaje) {
+        // Eliminar mensajes anteriores
+        var existente = document.querySelector('.mensaje-flotante-demo');
+        if (existente) existente.remove();
+        
+        var div = document.createElement('div');
+        div.className = 'mensaje-flotante-demo';
+        div.textContent = mensaje;
+        div.style.cssText = 'position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#1e4668; color:white; padding:14px 24px; border-radius:40px; font-size:0.9rem; font-weight:600; z-index:9999; box-shadow:0 4px 20px rgba(0,0,0,0.3); max-width:90%; text-align:center; animation:slideUpFade 0.4s ease;';
+        document.body.appendChild(div);
+        
+        // Desaparecer solo después de 4 segundos
+        setTimeout(function() {
+            div.style.opacity = '0';
+            div.style.transition = 'opacity 0.5s';
+            setTimeout(function() { div.remove(); }, 500);
+        }, 4000);
+    }
     
+    // Añadir animación CSS (puedes ponerlo en el <style>)
+    var style = document.createElement('style');
+    style.textContent = `
+    @keyframes slideUpFade {
+        from { opacity:0; transform:translateX(-50%) translateY(30px); }
+        to { opacity:1; transform:translateX(-50%) translateY(0); }
+    }
+    `;
+    document.head.appendChild(style);    
     function manejarCambioCheckbox(ticker, checked, div) {
         if (checked) {
             if (empresasSeleccionadas.length >= 5) {
