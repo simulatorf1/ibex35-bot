@@ -1683,7 +1683,6 @@
                     <p>Al hacer clic en una empresa, se muestra su gráfico de precios. La línea cambia de color según el estado:</p>
                     <ul>
                         <li><strong>🟢 Verde:</strong> Oportunidad de compra (PW bajo).</li>
-                        <li><strong>🟡 Amarillo:</strong> Interés moderado.</li>
                         <li><strong>🔴 Rojo:</strong> Sobrecompra / riesgo.</li>
                         <li><strong>🔵 Blanco:</strong> Neutro / sin señal.</li>
                     </ul>
@@ -1700,14 +1699,7 @@
                     <p>Haz clic en <strong>⚙️</strong> para seleccionar hasta <strong>5 empresas</strong>. Cuando generen una señal, recibirás una notificación en la campana.</p>
                     <p style="font-size:0.7rem; color:#5a7a92;">💡 Puedes darte de baja en cualquier momento deseleccionando todas las empresas.</p>
 
-                    <h4>🎨 Colores y significado</h4>
-                    <div class="grid-colores">
-                        <span style="background:rgba(40,167,69,0.2); color:#009C23;">🟢 Oportunidad</span>
-                        <span style="background:rgba(40,167,69,0.1); color:#5AAAA2;">🟢 Rebote</span>
-                        <span style="background:rgba(192,57,43,0.2); color:#E01212;">🔴 Riesgo</span>
-                        <span style="background:rgba(44,125,160,0.2); color:#6cb4e4;">🔵 Seleccionada</span>
-                        <span style="background:rgba(241,196,15,0.2); color:#f1c40f;">🟡 Precio seleccionado</span>
-                    </div>
+
                     <div style="background:rgba(44,125,160,0.08); border-left:3px solid #2c7da0; padding:12px 16px; border-radius:8px; margin-top:12px;">
                         <p style="font-size:0.75rem; color:#b0c8dd; margin:0;">💡 <strong>Consejo:</strong> Explora los filtros, selecciona una empresa, analiza el gráfico y prueba el simulador con capital virtual.</p>
                     </div>
@@ -2432,12 +2424,12 @@
             const colores = datosOrdenados.map((reg) => {
                 const pw = reg.smi_diario;
                 const patron = reg.caso_numero;
-                if (patron === 7) return '#28a745';        // Oportunidad fuerte - verde
-                if (patron === 3) return '#5aaa6a';        // Rebote - verde claro
-                if (patron === 6 || patron === 1 || patron === 2) return '#f1c40f'; // Interés - amarillo
-                if (patron === 5) return '#e67e22';        // Agotamiento - naranja
-                if (pw !== null && pw > 40) return '#e07b7b'; // Riesgo - rojo
-                if (pw !== null && pw < -40) return '#28a745'; // Sobreventa - verde
+                if (patron === 7) return '#0CB031';        // Oportunidad fuerte - verde
+                if (patron === 3) return '#0CB0A0';        // Rebote - verde claro
+                if (patron === 6 || patron === 1 || patron === 2) return '#b0c8dd'; // Interés - amarillo
+                if (patron === 5) return '#D95D0B';        // Agotamiento - naranja
+                if (pw !== null && pw > 40) return '#D90B0B'; // Riesgo - rojo
+                if (pw !== null && pw < -40) return '#b0c8dd'; // Sobreventa - verde
                 return '#b0c8dd'; // Neutro - blanco/gris
             });
         
