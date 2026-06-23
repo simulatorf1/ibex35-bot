@@ -2415,11 +2415,11 @@
                 const patron = reg.caso_numero;
                 if (patron === 7) return '#0CB031';        // Oportunidad fuerte - verde
                 if (patron === 3) return '#0CB0A0';        // Rebote - verde claro
-                if (patron === 6 || patron === 1 || patron === 2) return '#3F5461'; // Interés - amarillo
+                if (patron === 6 || patron === 1 || patron === 2) return '#35414A'; // Interés - amarillo
                 if (patron === 5) return '#D95D0B';        // Agotamiento - naranja
                 if (pw !== null && pw > 40) return '#D90B0B'; // Riesgo - rojo
-                if (pw !== null && pw < -40) return '#3F5461'; // Sobreventa - verde
-                return '#3F5461'; // Neutro - blanco/gris
+                if (pw !== null && pw < -40) return '#35414A'; // Sobreventa - verde
+                return '#35414A'; // Neutro - blanco/gris
             });
         
             // Construir segmentos para el dataset (usando la API de segmentos de Chart.js v4)
