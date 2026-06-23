@@ -2393,7 +2393,7 @@
     // --- CASOS DE ÉXITO (CORREGIDOS) ---
     async function cargarCasosExito() {
         try {
-            // 1. Obtener TODOS los datos de todas las empresas
+            // 1. Obtener TODOS los datos de recomendaciones_ibex
             const { data, error } = await supabaseClient
                 .from('recomendaciones_ibex')
                 .select('ticker, nombre_empresa, precio_cierre, fecha, caso_numero, smi_diario, pendiente_diaria')
@@ -2401,7 +2401,7 @@
             
             if (error) throw error;
             
-            // 2. Procesar cada empresa IGUAL que en la tabla principal
+            // 2. Agrupar por ticker (igual que en cargarCatalogoEmpresas)
             const empresasMap = new Map();
             for (const item of data) {
                 if (!empresasMap.has(item.ticker)) {
@@ -2415,15 +2415,15 @@
                 }
             }
             
-            // 3. Calcular subida para cada empresa (MISMA LÓGICA)
+            // 3. Procesar cada empresa (MISMA LÓGICA que en la tabla principal)
             const casosExito = [];
             
             for (const [ticker, emp] of empresasMap) {
-                // Ordenar registros por fecha (ascendente para calcular patrones)
+                // Ordenar registros por fecha ascendente
                 const registros = emp.registros.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
                 const ultimo = registros[registros.length - 1];
                 
-                // Calcular el último patrón (usa la misma función que tu tabla)
+                // Calcular último patrón (USA LA MISMA FUNCIÓN que tu tabla)
                 const tieneInteres = PATRONES_INTERES.includes(ultimo.caso_numero);
                 const ultimoPatronInfo = calcularUltimoPatron(registros, tieneInteres);
                 
@@ -2432,7 +2432,7 @@
                     subida = ((ultimo.precio_cierre - ultimoPatronInfo.precioPatron) / ultimoPatronInfo.precioPatron) * 100;
                 }
                 
-                // APLICAR EL MISMO FILTRO QUE USAS EN "CASOS DE ÉXITO"
+                // APLICAR EL MISMO FILTRO QUE TU FILTRO "CASOS DE ÉXITO"
                 if (subida !== null && subida > 2) {
                     const beneficioEuros = (subida / 100) * 10000;
                     casosExito.push({
@@ -2450,7 +2450,7 @@
             // 4. Ordenar por beneficio (mayor a menor)
             casosExito.sort((a, b) => b.beneficio - a.beneficio);
             
-            // 5. Renderizar (máximo 10 casos)
+            // 5. Renderizar (mostrar los 10 mejores)
             const tbody = document.getElementById('casosExitoBody');
             if (casosExito.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="6" class="sin-datos">No hay casos de éxito disponibles</td></tr>';
@@ -2477,6 +2477,7 @@
             document.getElementById('casosExitoBody').innerHTML = '<tr><td colspan="6" class="sin-datos">Error al cargar casos de éxito</td></tr>';
         }
     }
+
 
 
     // --- RESTO DE FUNCIONES ---
