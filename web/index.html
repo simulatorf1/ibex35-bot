@@ -2808,17 +2808,31 @@
             if (reg.resistencias) resistenciaText = reg.resistencias.split('\n')[0]?.substring(0,30) || '---';
             const isEntrada = (entradaSeleccionada && entradaSeleccionada.idx === i);
             const isSalida = (salidaSeleccionada && salidaSeleccionada.idx === i);
-            html += `<tr class="${patronClass}" data-idx="${i}">
-                        <td style="font-size:0.7rem;">${fecha}</td>
-                        <td class="precio-clickeable" data-idx="${i}" data-precio="${reg.precio_cierre}" data-fecha="${reg.fecha}">${isEntrada ? '<span class="precio-seleccionado">🔵 '+precio+'</span>' : (isSalida ? '<span class="precio-seleccionado">🟠 '+precio+'</span>' : precio)}</td>
-                        <td class="patron-tooltip">${reg.caso_numero || '---'}<span class="tooltip-text">${getDescripcionPatron(reg.caso_numero)}</span></td>
-                        <td>${pw4h}</td><td>${pwDiario}</td><td>${pendiente}</td>
-                        <td style="font-size:0.65rem;">${soporteText}</td><td style="font-size:0.65rem;">${resistenciaText}</td>
-                      </tr>`;
+            let precioHtml = precio;
+            if (isEntrada) {
+                precioHtml = '<span class="precio-seleccionado">🔵 ' + precio + '</span>';
+            } else if (isSalida) {
+                precioHtml = '<span class="precio-seleccionado">🟠 ' + precio + '</span>';
+            }
+            html += '<tr class="' + patronClass + '" data-idx="' + i + '">';
+            html += '<td style="font-size:0.7rem;">' + fecha + '</td>';
+            html += '<td class="precio-clickeable" data-idx="' + i + '" data-precio="' + reg.precio_cierre + '" data-fecha="' + reg.fecha + '">' + precioHtml + '</td>';
+            html += '<td class="patron-tooltip">' + (reg.caso_numero || '---') + '<span class="tooltip-text">' + getDescripcionPatron(reg.caso_numero) + '</span></td>';
+            html += '<td>' + pw4h + '</td><td>' + pwDiario + '</td><td>' + pendiente + '</td>';
+            html += '<td style="font-size:0.65rem;">' + soporteText + '</td>';
+            html += '<td style="font-size:0.65rem;">' + resistenciaText + '</td>';
+            html += '</tr>';
         }
         tbody.innerHTML = html;
-        document.querySelectorAll('#tablaHistorial td.precio-clickeable').forEach(cell => {
-            cell.addEventListener('click', (e) => { e.stopPropagation(); const idx = parseInt(cell.getAttribute('data-idx')); const precio = parseFloat(cell.getAttribute('data-precio')); const fecha = cell.getAttribute('data-fecha'); seleccionarPrecioEnHistorial(idx, precio, fecha); });
+        document.querySelectorAll('#tablaHistorial td.precio-clickeable').forEach(function(cell) {
+            cell.addEventListener('click', function(e) {
+                e.stopPropagation();
+                var idx = parseInt(cell.getAttribute('data-idx'));
+                var precio = parseFloat(cell.getAttribute('data-precio'));
+                var fecha = cell.getAttribute('data-fecha');
+                seleccionarPrecioEnHistorial(idx, precio, fecha);
+            });
+        });
     }
 
     function seleccionarPrecioEnHistorial(idx, precio, fecha) {
