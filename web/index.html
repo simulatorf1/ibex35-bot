@@ -2409,31 +2409,20 @@
             const labels = datosOrdenados.map(reg => new Date(reg.fecha).toLocaleString('es-ES', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }));
             const precios = datosOrdenados.map(reg => reg.precio_cierre);
         
-            // ★★★ MANTENER TODOS LOS COLORES EXACTAMENTE COMO ESTÁN, SOLO CAMBIAR EL ROJO ★★★
+            // Determinar color para cada punto
             const colores = datosOrdenados.map((reg) => {
                 const pw = reg.smi_diario;
-                const pendiente = reg.pendiente_diaria;
                 const patron = reg.caso_numero;
-        
-                // 1. ROJO: AHORA usa la misma condición que la tabla (pw > 50 Y pendiente < 0)
-                //    ANTES era: pw > 40
-                const esExclusion = pw !== null && pendiente !== null && pw > 50 && pendiente < 0;
-                if (esExclusion) return '#D90B0B'; // 🔴 Rojo
-        
-                // 2. VERDE - oportunidad (sin cambios)
-                if (patron === 7) return '#0CB031';
-        
-                // 3. VERDE CLARO - rebote (sin cambios)
-                if (patron === 3) return '#0CB0A0';
-        
-                // 4. NARANJA - agotamiento (sin cambios)
-                if (patron === 5) return '#D95D0B';
-        
-                // 5. RESTO: oscuro/neutro (sin cambios)
-                return '#32383D';
+                if (patron === 7) return '#0CB031';        // Oportunidad fuerte - verde
+                if (patron === 3) return '#0CB0A0';        // Rebote - verde claro
+                if (patron === 6 || patron === 1 || patron === 2) return '#32383D'; // Interés - amarillo
+                if (patron === 5) return '#D95D0B';        // Agotamiento - naranja
+                if (pw !== null && pw > 40) return '#D90B0B'; // Riesgo - rojo
+                if (pw !== null && pw < -40) return '#32383D'; // Sobreventa - verde
+                return '#32383D'; // Neutro - blanco/gris
             });
         
-            // Construir segmentos para el dataset
+            // Construir segmentos para el dataset (usando la API de segmentos de Chart.js v4)
             const segmentos = [];
             let inicio = 0;
             let colorActual = colores[0] || '#b0c8dd';
@@ -2458,6 +2447,7 @@
             const ctx = document.getElementById('graficaCanvas').getContext('2d');
             if (chartInstance) chartInstance.destroy();
         
+            // Crear un único dataset con segmentación
             chartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -2465,14 +2455,16 @@
                     datasets: [{
                         label: 'Precio',
                         data: precios,
-                        borderColor: '#b0c8dd',
+                        borderColor: '#b0c8dd', // Color por defecto (se sobrescribe con segmentos)
                         borderWidth: 3,
                         tension: 0.15,
                         pointRadius: 0,
                         fill: false,
                         segment: {
                             borderColor: function(context) {
+                                // Obtener el índice del punto actual
                                 const idx = context.p0DataIndex;
+                                // Buscar en qué segmento cae este índice
                                 for (let seg of segmentos) {
                                     if (idx >= seg.start && idx <= seg.end) {
                                         return seg.color;
@@ -2510,12 +2502,9 @@
                                     const idx = ctx.dataIndex;
                                     const reg = datosOrdenados[idx];
                                     if (!reg) return 'Precio: ' + ctx.parsed.y + '€';
-                                    
                                     let estado = getPatronNombre(reg.caso_numero) || 'Neutro';
-                                    const esExclusion = reg.smi_diario !== null && reg.pendiente_diaria !== null &&
-                                        reg.smi_diario > 50 && reg.pendiente_diaria < 0;
-                                    if (esExclusion) estado = 'Riesgo (exclusión)';
-                                    else if (reg.smi_diario !== null && reg.smi_diario > 40) estado = 'Riesgo';
+                                    if (reg.smi_diario !== null && reg.smi_diario > 40) estado = 'Riesgo';
+                                    if (reg.smi_diario !== null && reg.smi_diario < -40) estado = 'Oportunidad';
                                     return estado + ' · ' + ctx.parsed.y + '€';
                                 },
                                 title: function(items) {
@@ -2536,7 +2525,6 @@
                 }
             });
         }
-
 
         // ============================================================
         // SELECCIÓN DE EMPRESA
