@@ -91,10 +91,11 @@ EMPRESAS = [
     ("BKY.MC", "Berkeley"),
     ("AMP.MC", "Amper"),
     ("IDR.MC", "Indra"),
-
-
-
-    
+    ("MDF.MC", "Duro Felguera"),
+    ("AI.MC", "Airtificial"),
+    ("SAI.MC", "Substrate"),
+    ("UBS.MC", "Urbas"),
+    ("BST.MC", "Biotechnology"),    
 ]
 
 def calcular_smi_rapido(high, low, close):
