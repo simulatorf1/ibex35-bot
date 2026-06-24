@@ -2138,16 +2138,35 @@
 
         async function cargarCatalogoEmpresas() {
             try {
-                const { data, error } = await supabaseClient
-                    .from('recomendaciones_ibex')
-                    .select('ticker, nombre_empresa')
-                    .range(0, 99999);
-
-                if (error) throw error;
-
+                let allData = [];
+                let start = 0;
+                const pageSize = 1000;
+                let hasMore = true;
+        
+                // ✅ BUCLE PARA OBTENER TODOS LOS REGISTROS
+                while (hasMore) {
+                    const { data, error } = await supabaseClient
+                        .from('recomendaciones_ibex')
+                        .select('ticker, nombre_empresa')
+                        .order('ticker', { ascending: true })
+                        .range(start, start + pageSize - 1);
+        
+                    if (error) throw error;
+        
+                    if (data && data.length > 0) {
+                        allData = allData.concat(data);
+                        start += pageSize;
+                    }
+        
+                    if (!data || data.length < pageSize) {
+                        hasMore = false;
+                    }
+                }
+        
+                // ✅ PROCESAR TODOS LOS DATOS
                 const uniqueMap = new Map();
-                for (let i = 0; i < data.length; i++) {
-                    const item = data[i];
+                for (let i = 0; i < allData.length; i++) {
+                    const item = allData[i];
                     if (!uniqueMap.has(item.ticker)) {
                         uniqueMap.set(item.ticker, {
                             ticker: item.ticker,
@@ -2155,13 +2174,20 @@
                         });
                     }
                 }
+                
                 catalogoEmpresas = Array.from(uniqueMap.values()).sort((a, b) => a.nombre.localeCompare(b.nombre));
-
+        
+                // ✅ MOSTRAR EN CONSOLA PARA VERIFICAR
+                console.log('📊 Catálogo cargado con éxito:');
+                console.log('Total de tickers únicos:', catalogoEmpresas.length);
+                console.log('Los 10 últimos:', catalogoEmpresas.slice(-10).map(e => e.ticker));
+        
+                // ✅ CONTINUAR CON EL RESTO DE LA FUNCIÓN (BUSCAR Y MOSTRAR)
                 const tbody = document.getElementById('empresasBody');
                 if (catalogoEmpresas.length > 0) {
                     tbody.innerHTML = '<tr><td colspan="7" class="cargando-texto"><div class="loading-spinner"></div> Aplicando filtros...</td></tr>';
                     await buscarYMostrarEmpresas();
-
+        
                     if (catalogoEmpresas.length > 0 && !tickerSeleccionado) {
                         setTimeout(() => {
                             const primeraFila = document.querySelector('#empresasBody tr');
@@ -2174,13 +2200,13 @@
                 } else {
                     tbody.innerHTML = '<tr><td colspan="7" class="mensaje-inicial">❌ No se encontraron empresas</td></tr>';
                 }
+        
             } catch (err) {
-                console.error('Error cargando catálogo:', err);
+                console.error('❌ Error cargando catálogo:', err);
                 document.getElementById('empresasBody').innerHTML =
                     '<tr><td colspan="7" class="mensaje-inicial">❌ Error al conectar con la base de datos</td></tr>';
             }
         }
-
         async function cargarDatosCompletos(ticker) {
             if (datosCompletosCache.has(ticker)) {
                 return datosCompletosCache.get(ticker);
