@@ -94,8 +94,17 @@ EMPRESAS = [
     ("MDF.MC", "Duro Felguera"),
     ("AI.MC", "Airtificial"),
     ("SAI.MC", "Substrate"),
-    ("UBS.MC", "Urbas"),
-    ("BST.MC", "Biotechnology"),    
+    ("BST.MC", "Biotechnology"),
+    ("NVDA", "NVIDIA Corporation"),
+    ("TSLA", "TESLA"),
+    ("AAPL", "APPLE"),
+    ("AMZN", "AMAZON"),
+    ("GOOGL", "ALPHABET"),
+    ("META", "META"),
+    ("JPM", "JPMorgan Chase"),
+    ("ASML", "ASML hOLDING"),
+    ("AIR.PA", "AIRBUS"),
+    
 ]
 
 def calcular_smi_rapido(high, low, close):
