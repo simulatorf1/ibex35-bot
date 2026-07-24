@@ -585,6 +585,90 @@
             height: 100%;
             position: relative;
         }
+
+        /* ===== ANÁLISIS EN TEXTO ===== */
+        .analisis-texto {
+            padding: 16px 24px;
+            background: rgba(0, 0, 0, 0.15);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .analisis-texto .analisis-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .analisis-texto .analisis-header h4 {
+            color: #b6d4e8;
+            font-weight: 400;
+            margin: 0;
+            font-size: 0.95rem;
+        }
+        .analisis-texto .analisis-header .badge-tecnico {
+            background: #1f4b6e;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 0.6rem;
+            color: #b6d4e8;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+        .analisis-texto #analisisContenido {
+            font-size: 0.85rem;
+            color: #d0dce8;
+            line-height: 1.8;
+            max-height: 280px;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+        .analisis-texto #analisisContenido::-webkit-scrollbar {
+            width: 4px;
+        }
+        .analisis-texto #analisisContenido::-webkit-scrollbar-thumb {
+            background: #2a4a62;
+            border-radius: 10px;
+        }
+        .analisis-texto #analisisContenido::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .analisis-texto .analisis-destacado {
+            margin-top: 10px;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 10px;
+            border-left: 3px solid #6cb4e4;
+        }
+        .analisis-texto .analisis-destacado strong {
+            color: #b6d4e8;
+        }
+        .analisis-texto .tag-alcista {
+            display: inline-block;
+            background: rgba(40, 167, 69, 0.15);
+            padding: 1px 10px;
+            border-radius: 12px;
+            color: #28a745;
+            font-weight: 600;
+            font-size: 0.7rem;
+        }
+        .analisis-texto .tag-bajista {
+            display: inline-block;
+            background: rgba(192, 57, 43, 0.15);
+            padding: 1px 10px;
+            border-radius: 12px;
+            color: #e07b7b;
+            font-weight: 600;
+            font-size: 0.7rem;
+        }
+        .analisis-texto .tag-neutral {
+            display: inline-block;
+            background: rgba(241, 196, 15, 0.1);
+            padding: 1px 10px;
+            border-radius: 12px;
+            color: #f1c40f;
+            font-weight: 600;
+            font-size: 0.7rem;
+        }
+
         .historial-completo {
             padding: 0 16px 16px 16px;
         }
@@ -1615,6 +1699,19 @@
                         <canvas id="graficaCanvas" style="width:100%; height:100%;"></canvas>
                     </div>
                 </div>
+
+                <!-- ===== ANÁLISIS EN TEXTO ===== -->
+                <div class="analisis-texto" id="analisisTexto">
+                    <div class="analisis-header">
+                        <span style="font-size:1.2rem;">📝</span>
+                        <h4>Análisis técnico detallado</h4>
+                        <span class="badge-tecnico">🔬 Price Wave + Patrones</span>
+                    </div>
+                    <div id="analisisContenido">
+                        <span style="color:#5a7a92;">Selecciona una empresa para ver el análisis técnico completo</span>
+                    </div>
+                </div>
+
                 <div class="historial-completo">
                     <h4>📜 Historial completo de señales <span style="font-size:0.6rem; color:#5a7a92;">(desplázate para ver más)</span></h4>
                     <div class="historial-wrapper" id="historialScrollWrapper">
@@ -2588,6 +2685,9 @@
                 renderizarHistorialCompleto(historialActual);
                 renderizarGrafico(empresaCompleta.registros);
 
+                // ===== GENERAR ANÁLISIS EN TEXTO =====
+                generarAnalisisTexto(empresaCompleta, historialActual);
+
                 entradaSeleccionada = null;
                 salidaSeleccionada = null;
                 document.getElementById('compraSeleccionada').innerHTML = '---';
@@ -2607,6 +2707,489 @@
                 document.getElementById('detalleTituloEmpresa').innerHTML = '📊 Error al cargar ' + ticker;
             }
         };
+
+        // ============================================================
+        // GENERADOR DE ANÁLISIS EN TEXTO (MÁS LARGO Y TÉCNICO)
+        // ============================================================
+
+        function generarAnalisisTexto(empresa, historial) {
+            const contenedor = document.getElementById('analisisContenido');
+            if (!empresa || !historial || historial.length < 5) {
+                contenedor.innerHTML = '<span style="color:#5a7a92;">No hay suficientes datos para generar un análisis técnico.</span>';
+                return;
+            }
+
+            const nombre = empresa.nombre || empresa.ticker;
+            const ticker = empresa.ticker;
+            const precioActual = empresa.precioActual;
+            const pwDiario = empresa.pwDiarioActual;
+            const pendiente = empresa.pendiente;
+            const ultimoPatron = empresa.ultimoPatron;
+            const subida = empresa.subida;
+            
+            // Obtener datos del último registro para soportes y resistencias
+            const ultimoRegistro = historial.length > 0 ? historial[0] : null;
+            const soportes = ultimoRegistro && ultimoRegistro.soportes ? 
+                ultimoRegistro.soportes.split('\n').filter(s => s.trim() !== '') : [];
+            const resistencias = ultimoRegistro && ultimoRegistro.resistencias ? 
+                ultimoRegistro.resistencias.split('\n').filter(r => r.trim() !== '') : [];
+            
+            // Gaps y pinchos
+            const gapsAlcistas = ultimoRegistro && ultimoRegistro.gaps_alcistas ? 
+                ultimoRegistro.gaps_alcistas.split('\n').filter(g => g.trim() !== '') : [];
+            const gapsBajistas = ultimoRegistro && ultimoRegistro.gaps_bajistas ? 
+                ultimoRegistro.gaps_bajistas.split('\n').filter(g => g.trim() !== '') : [];
+            const pinchosAlcistas = ultimoRegistro && ultimoRegistro.pinchos_alcistas ? 
+                ultimoRegistro.pinchos_alcistas.split('\n').filter(p => p.trim() !== '') : [];
+            const pinchosBajistas = ultimoRegistro && ultimoRegistro.pinchos_bajistas ? 
+                ultimoRegistro.pinchos_bajistas.split('\n').filter(p => p.trim() !== '') : [];
+
+            // ============================================
+            // CÁLCULOS TÉCNICOS ADICIONALES
+            // ============================================
+            
+            // Volatilidad (desviación estándar de los últimos 20 precios)
+            const preciosRecientes = historial.slice(0, Math.min(20, historial.length)).map(r => r.precio_cierre);
+            const volatilidad = preciosRecientes.length > 1 ? 
+                (Math.sqrt(preciosRecientes.reduce((sum, p) => sum + Math.pow(p - preciosRecientes.reduce((a,b) => a+b, 0)/preciosRecientes.length, 2), 0) / preciosRecientes.length) / (preciosRecientes.reduce((a,b) => a+b, 0)/preciosRecientes.length) * 100) : 0;
+            
+            // Tendencia de los últimos 30 registros
+            const tendencia30 = historial.slice(0, Math.min(30, historial.length));
+            const precios30 = tendencia30.map(r => r.precio_cierre);
+            const tendenciaPendiente = precios30.length > 2 ? 
+                (precios30[0] - precios30[precios30.length-1]) / precios30.length : 0;
+            
+            // Máximos y mínimos recientes
+            const max30 = Math.max(...precios30);
+            const min30 = Math.min(...precios30);
+            const rango30 = ((max30 - min30) / min30) * 100;
+            
+            // Patrones recientes
+            const patronesRecientes = historial.slice(0, 30).filter(r => r.caso_numero && r.caso_numero >= 1 && r.caso_numero <= 7);
+            const patrones7 = patronesRecientes.filter(r => r.caso_numero === 7).length;
+            const patrones3 = patronesRecientes.filter(r => r.caso_numero === 3).length;
+            const patrones5 = patronesRecientes.filter(r => r.caso_numero === 5).length;
+            const patrones1 = patronesRecientes.filter(r => r.caso_numero === 1).length;
+            const patrones2 = patronesRecientes.filter(r => r.caso_numero === 2).length;
+            const patrones4 = patronesRecientes.filter(r => r.caso_numero === 4).length;
+            const patrones6 = patronesRecientes.filter(r => r.caso_numero === 6).length;
+
+            // Señales de giro (cambios de patrón)
+            let giros = 0;
+            let ultimoPatronValido = null;
+            for (let i = 0; i < Math.min(20, historial.length); i++) {
+                const reg = historial[i];
+                if (reg.caso_numero && reg.caso_numero >= 1 && reg.caso_numero <= 7) {
+                    if (ultimoPatronValido !== null && reg.caso_numero !== ultimoPatronValido) {
+                        giros++;
+                    }
+                    ultimoPatronValido = reg.caso_numero;
+                }
+            }
+
+            // ============================================
+            // FRASES Y EXPRESIONES VARIADAS (MUCHO MÁS EXTENSAS)
+            // ============================================
+            
+            // INTRODUCCIONES
+            const introVariadas = [
+                `Realizando un análisis técnico exhaustivo de ${nombre} (${ticker}), observamos los siguientes factores clave que definen su comportamiento actual en el mercado.`,
+                `Tras examinar en profundidad la evolución de ${nombre} (${ticker}), encontramos un conjunto de señales que merecen un análisis detallado para comprender su situación actual.`,
+                `El análisis técnico de ${nombre} (${ticker}) revela una serie de patrones y niveles que nos ayudan a interpretar su momento actual y posibles escenarios futuros.`,
+                `Estudiando el comportamiento de ${nombre} (${ticker}) en las últimas sesiones, podemos extraer conclusiones relevantes sobre su estructura de precios y la dinámica de sus indicadores.`,
+                `Al desglosar los datos técnicos de ${nombre} (${ticker}), nos encontramos con un panorama que combina niveles clave, señales de sobrecompra/sobreventa y patrones de precio que definen su tendencia.`
+            ];
+
+            // PRECIO Y POSICIÓN ACTUAL
+            const precioVariadas = [];
+            if (precioActual !== null && precioActual !== undefined) {
+                const precioText = precioActual.toFixed(2);
+                if (precioActual < 5) {
+                    precioVariadas.push(
+                        `El precio actual se sitúa en ${precioText} €, un nivel relativamente bajo que podría atraer interés comprador por su valoración ajustada.`,
+                        `Cotiza a ${precioText} €, en la parte baja de su rango histórico reciente, lo que podría ofrecer oportunidades de entrada.`,
+                        `Con un precio de ${precioText} €, estamos ante un valor de bajo precio que suele presentar mayor volatilidad porcentual.`,
+                        `${precioText} € es su cotización actual, un nivel que ha mostrado ser un soporte en ocasiones anteriores.`
+                    );
+                } else if (precioActual >= 5 && precioActual < 20) {
+                    precioVariadas.push(
+                        `El precio actual es de ${precioText} €, situándose en una zona intermedia que requiere confirmación direccional.`,
+                        `Cotiza a ${precioText} €, un nivel que históricamente ha actuado como zona de equilibrio entre compradores y vendedores.`,
+                        `${precioText} € es el valor actual, en el rango medio de su canal de precios reciente.`,
+                        `El precio de ${precioText} € refleja un momento de indecisión en el mercado para este valor.`
+                    );
+                } else {
+                    precioVariadas.push(
+                        `El precio actual alcanza ${precioText} €, situándose en la parte alta de su rango, lo que sugiere cierta fortaleza.`,
+                        `Cotiza a ${precioText} €, un nivel elevado que podría estar cerca de resistencias importantes.`,
+                        `Con ${precioText} €, el valor se encuentra en zona de precios altos, donde la presión vendedora podría aumentar.`,
+                        `${precioText} € es su precio actual, reflejando un momento de fortaleza relativa en el mercado.`
+                    );
+                }
+            } else {
+                precioVariadas.push('El precio actual no está disponible en este momento.');
+            }
+
+            // PRICE WAVE (PW) - MÁS TÉCNICO Y VARIADO
+            const pwVariadas = [];
+            if (pwDiario !== null && pwDiario !== undefined) {
+                const pwText = pwDiario.toFixed(1);
+                if (pwDiario < -40) {
+                    pwVariadas.push(
+                        `El Price Wave diario se encuentra en ${pwText}, una lectura claramente en zona de sobreventa. Esto sugiere que el precio podría haber alcanzado un piso temporal, y que los vendedores podrían estar agotados. Históricamente, niveles inferiores a -40 han precedido rebotes de cierta entidad.`,
+                        `Con un PW de ${pwText}, el indicador nos habla de una situación de sobreventa extrema. Esta condición suele ser un prerequisito para giros alcistas, especialmente si se confirma con otros indicadores como la pendiente o los patrones de precio.`,
+                        `El PW diario marca ${pwText}, lo que técnicamente se interpreta como una condición de sobreventa. En este contexto, el riesgo de continuar bajando se reduce, mientras que aumenta la probabilidad de un rebote técnico.`,
+                        `El Price Wave en ${pwText} nos indica que el valor está siendo castigado en exceso. La sobreventa es una condición que, aunque no garantiza una subida inmediata, sí aumenta la relación riesgo/recompensa favorable para posiciones largas.`
+                    );
+                } else if (pwDiario > 40) {
+                    pwVariadas.push(
+                        `El Price Wave diario alcanza ${pwText}, situándose en zona de sobrecompra. Esto nos advierte de que el precio podría estar estirado al alza, con compradores posiblemente excesivamente optimistas. En estos niveles, es común que se produzcan correcciones o al menos una pausa en la subida.`,
+                        `Con ${pwText} de PW, estamos en territorio de sobrecompra. Este indicador sugiere que las subidas recientes podrían haber sido excesivas y que el mercado podría necesitar un ajuste a la baja para encontrar un nuevo equilibrio.`,
+                        `El PW en ${pwText} refleja una sobrecompra significativa. Técnicamente, esto implica que el precio ha subido demasiado rápido y que podría estar cerca de un techo temporal, con una mayor probabilidad de giro bajista.`,
+                        `Un Price Wave de ${pwText} es una señal de sobrecompra clara. En estos niveles, la prudencia es recomendable, especialmente si se confirma con otros indicadores de agotamiento.`
+                    );
+                } else {
+                    pwVariadas.push(
+                        `El Price Wave diario se sitúa en ${pwText}, una lectura neutral que indica que el precio se encuentra en equilibrio relativo. No hay excesos ni por arriba ni por abajo, lo que sugiere que el mercado está en fase de consolidación o esperando un catalizador.`,
+                        `Con un PW de ${pwText}, el indicador no muestra señales extremas. Este valor neutro suele acompañar a movimientos laterales o a la continuación de la tendencia previa si ésta estaba bien definida.`,
+                        `El PW en ${pwText} refleja una situación de equilibrio. En estos casos, es recomendable prestar atención a otros indicadores o a la ruptura de niveles clave para anticipar el próximo movimiento.`,
+                        `El Price Wave muestra ${pwText}, lo que técnicamente se interpreta como una fase de acumulación o distribución, sin una dirección clara dominante.`
+                    );
+                }
+            } else {
+                pwVariadas.push('El Price Wave diario no está disponible en este momento, lo que limita el análisis de momentum.');
+            }
+
+            // PENDIENTE
+            const pendienteVariadas = [];
+            if (pendiente !== null && pendiente !== undefined) {
+                const pendienteText = pendiente.toFixed(2);
+                if (pendiente > 0) {
+                    pendienteVariadas.push(
+                        `La pendiente del PW diario es positiva (${pendienteText}), lo que indica que el momentum está mejorando. Este dato refuerza la posibilidad de que el precio siga subiendo en el corto plazo, especialmente si se confirma con otros factores técnicos.`,
+                        `Con una pendiente de ${pendienteText}, el indicador nos muestra que la dinámica alcista está ganando fuerza. Los giros suelen ser más fiables cuando la pendiente acompaña a la dirección del precio.`,
+                        `El PW diario presenta una pendiente positiva (${pendienteText}), sugiriendo que la presión compradora está aumentando. Este es un dato favorable para quienes buscan entradas alcistas.`,
+                        `La pendiente del PW es de ${pendienteText}, lo que técnicamente se interpreta como una aceleración del momentum alcista. Es un dato que merece seguimiento.`
+                    );
+                } else if (pendiente < 0) {
+                    pendienteVariadas.push(
+                        `La pendiente del PW diario es negativa (${pendienteText}), lo que indica que el momentum está deteriorándose. Esto podría ser un aviso de que la tendencia bajista podría continuar o intensificarse.`,
+                        `Con una pendiente de ${pendienteText}, el indicador muestra que la dinámica bajista está ganando terreno. En estos casos, es recomendable ser prudente con posiciones largas.`,
+                        `El PW diario presenta una pendiente negativa (${pendienteText}), sugiriendo que la presión vendedora está aumentando. Este es un dato a tener en cuenta para quienes buscan entradas bajistas.`,
+                        `La pendiente del PW es de ${pendienteText}, lo que técnicamente se interpreta como una aceleración del momentum bajista. Es una señal de precaución.`
+                    );
+                } else {
+                    pendienteVariadas.push(
+                        `La pendiente del PW diario es cero (${pendienteText}), indicando que el momentum se ha detenido. Esto suele ocurrir en zonas de indecisión o antes de un cambio de tendencia.`,
+                        `Con una pendiente de ${pendienteText}, el indicador no muestra una dirección clara. El mercado está en pausa, esperando un nuevo impulso.`
+                    );
+                }
+            } else {
+                pendienteVariadas.push('La pendiente del PW diario no está disponible en este momento.');
+            }
+
+            // PATRONES - DESCRIPCIÓN MUY DETALLADA
+            const patronVariadas = [];
+            if (ultimoPatron !== null && ultimoPatron !== undefined) {
+                const patronNombre = getPatronNombre(ultimoPatron);
+                const descPatron = getDescripcionPatron(ultimoPatron);
+                
+                if (ultimoPatron === 7) {
+                    patronVariadas.push(
+                        `El último patrón identificado es el número 7, catalogado como "${patronNombre}". Este es uno de los patrones más alcistas del sistema, ya que combina una condición de sobreventa en diario con un giro positivo del PW. Históricamente, el patrón 7 ha precedido movimientos alcistas de cierta relevancia, especialmente cuando se confirma con volumen o ruptura de niveles.`,
+                        `Estamos ante un patrón 7, una señal de "oportunidad fuerte". Este patrón indica que el precio ha tocado un mínimo reciente y que el momentum está girando al alza. Es una de las señales más fiables del sistema para entradas alcistas.`,
+                        `El patrón 7 es la señal más destacada de nuestro sistema. Indica que el precio está en zona de sobreventa y que la pendiente del PW es positiva, lo que sugiere que el movimiento bajista podría estar agotándose y dando paso a una nueva fase alcista.`,
+                        `La aparición del patrón 7 es un evento relevante en el análisis técnico de ${nombre}. Este patrón sugiere que el valor podría estar formando un suelo y que los riesgos de seguir bajando se reducen significativamente.`
+                    );
+                } else if (ultimoPatron === 3) {
+                    patronVariadas.push(
+                        `El último patrón es el número 3, denominado "${patronNombre}". Este patrón suele aparecer cuando el precio está en una tendencia bajista pero el PW 4h entra en sobreventa, generando un rebote técnico de corto plazo. Es una señal de posible rebote, pero con menos fuerza que el patrón 7.`,
+                        `El patrón 3 es una señal de rebote a corto plazo. Indica que el precio podría estar listo para un rebote técnico, pero la tendencia general sigue siendo bajista. Es recomendable ser cauto y esperar confirmación antes de tomar decisiones.`,
+                        `Con el patrón 3, estamos ante un posible rebote de corto recorrido. Este patrón suele ser útil para traders de corto plazo que buscan aprovechar movimientos rápidos, pero no es una señal de cambio de tendencia.`,
+                        `El patrón 3 sugiere que el precio podría rebotar desde niveles de sobreventa en 4h. Es una señal menos potente que el patrón 7, pero que puede ofrecer oportunidades de trading a corto plazo.`
+                    );
+                } else if (ultimoPatron === 5) {
+                    patronVariadas.push(
+                        `El último patrón es el número 5, conocido como "${patronNombre}". Este patrón aparece cuando el PW diario entra en sobrecompra y es una señal de agotamiento comprador. Suele preceder a correcciones o al menos a una pausa en la subida.`,
+                        `El patrón 5 nos alerta de que la subida podría estar cerca de su fin. Es una señal de precaución, indicando que los compradores podrían estar exhaustos y que podría producirse una corrección a la baja.`,
+                        `Con el patrón 5, estamos en zona de sobrecompra. Este patrón sugiere que el precio ha subido demasiado y que podría necesitar un descanso o una corrección antes de continuar al alza.`,
+                        `El patrón 5 es una señal de agotamiento alcista. Indica que el momentum positivo está perdiendo fuerza y que podría estar cerca un giro bajista.`
+                    );
+                } else if (ultimoPatron === 1 || ultimoPatron === 2) {
+                    patronVariadas.push(
+                        `El último patrón es el número ${ultimoPatron}, catalogado como "${patronNombre}". Este patrón indica que hay interés en el valor, pero con matices. El patrón 1 sugiere una compra inmediata con riesgo, mientras que el patrón 2 es una señal anticipada de posible giro.`,
+                        `El patrón ${ultimoPatron} es una señal de interés, pero con condiciones. Indica que el precio está en zona de sobreventa y que hay movimiento, pero la pendiente del PW no es completamente favorable. Es una señal que requiere confirmación adicional.`,
+                        `Con el patrón ${ultimoPatron}, estamos en una fase de interés pero con incertidumbre. Es recomendable esperar a que se confirme con otros indicadores antes de tomar una decisión.`,
+                        `El patrón ${ultimoPatron} sugiere que hay movimiento en el valor, pero que la dirección no está clara. Es una señal de precaución y de espera.`
+                    );
+                } else if (ultimoPatron === 4) {
+                    patronVariadas.push(
+                        `El último patrón es el número 4, denominado "${patronNombre}". Este patrón indica que el precio está en una fase de consolidación, sin una dirección clara. Es una pausa en la tendencia, donde el mercado está acumulando o distribuyendo.`,
+                        `El patrón 4 nos muestra que el precio está en un rango lateral. Es una zona de indecisión, donde el mercado podría estar preparando el siguiente movimiento. Es recomendable esperar a que se rompa el rango para tomar una decisión.`,
+                        `Con el patrón 4, estamos en una fase de consolidación. Este patrón suele aparecer después de movimientos fuertes, tanto al alza como a la baja, y precede a la continuación de la tendencia o a su giro.`,
+                        `El patrón 4 es una señal de pausa. Indica que el mercado está descansando y que podría estar preparando el siguiente movimiento. Es una zona de indecisión.`
+                    );
+                } else {
+                    patronVariadas.push(
+                        `No hay un patrón definido en la última vela. Esto indica que el precio no está mostrando señales claras en este momento, lo que podría ser una fase de transición o de falta de interés.`,
+                        `La última señal no muestra un patrón claro, lo que sugiere que el mercado está indeciso. Es recomendable esperar a que se forme un patrón definido antes de tomar decisiones.`,
+                        `Estamos en zona sin patrón definido, lo que indica que el precio no está mostrando una dirección clara. Es un momento de espera y observación.`
+                    );
+                }
+            } else {
+                patronVariadas.push('No hay datos de patrón disponibles en este momento.');
+            }
+
+            // TENDENCIA RECIENTE
+            const tendenciaVariadas = [];
+            if (tendenciaPendiente !== null && !isNaN(tendenciaPendiente) && precios30.length > 2) {
+                const tendenciaText = tendenciaPendiente > 0 ? 'alcista' : tendenciaPendiente < 0 ? 'bajista' : 'lateral';
+                const fuerza = Math.abs(tendenciaPendiente) > 0.05 ? 'fuerte' : 'moderada';
+                
+                tendenciaVariadas.push(
+                    `La tendencia de los últimos 30 registros es ${tendenciaText} con una pendiente de ${tendenciaPendiente.toFixed(4)}. Esta ${fuerza} tendencia ${tendenciaText} nos indica que el precio está mostrando un comportamiento coherente en el medio plazo.`,
+                    `Analizando los últimos 30 datos, la tendencia general es ${tendenciaText}, con una pendiente de ${tendenciaPendiente.toFixed(4)}. Esto sugiere que el mercado está ${tendenciaText === 'alcista' ? 'ganando terreno gradualmente' : tendenciaText === 'bajista' ? 'perdiendo terreno gradualmente' : 'en un rango lateral'}.`,
+                    `La tendencia de medio plazo, medida sobre 30 sesiones, es ${tendenciaText} con una pendiente de ${tendenciaPendiente.toFixed(4)}. Esta información es relevante para entender el contexto en el que se producen las señales de corto plazo.`,
+                    `Los últimos 30 datos muestran una tendencia ${tendenciaText} con una pendiente de ${tendenciaPendiente.toFixed(4)}. Este dato nos ayuda a contextualizar las señales de corto plazo y a evaluar la probabilidad de que continúen.`
+                );
+            } else {
+                tendenciaVariadas.push('No hay suficientes datos para calcular la tendencia de medio plazo con precisión.');
+            }
+
+            // SOPORTES Y RESISTENCIAS - MUY DETALLADO
+            const soporteVariadas = [];
+            if (soportes.length > 0) {
+                const soportesText = soportes.slice(0, 3).join(', ');
+                soporteVariadas.push(
+                    `Los niveles de soporte más relevantes identificados en el análisis técnico son: ${soportesText}. Estos niveles representan zonas donde el precio ha encontrado compradores en el pasado, y donde podría volver a encontrar apoyo si el precio vuelve a caer.`,
+                    `El análisis de niveles clave muestra soportes en ${soportesText}. Estas zonas han actuado como suelo en ocasiones anteriores, y su mantenimiento es crucial para evitar caídas más profundas.`,
+                    `Los soportes técnicos se sitúan en ${soportesText}. Si el precio se acerca a estas zonas, es probable que encuentre una mayor demanda que frene su caída. La solidez de estos soportes dependerá del volumen y de la confirmación con otros indicadores.`,
+                    `En cuanto a soportes, los niveles a vigilar son ${soportesText}. La pérdida de estos niveles podría abrir la puerta a caídas más significativas, mientras que su mantenimiento reforzaría la zona de apoyo.`
+                );
+            } else {
+                soporteVariadas.push('No se han identificado soportes claros en el análisis técnico actual. Esto podría indicar que el precio está en zona de descubrimiento o que los niveles históricos han sido perforados.');
+            }
+
+            const resistenciaVariadas = [];
+            if (resistencias.length > 0) {
+                const resistenciasText = resistencias.slice(0, 3).join(', ');
+                resistenciaVariadas.push(
+                    `Las resistencias más destacadas se encuentran en ${resistenciasText}. Estos niveles representan zonas donde el precio ha encontrado vendedores en el pasado, y donde podría volver a encontrar presión vendedora si el precio sube.`,
+                    `El análisis de niveles clave muestra resistencias en ${resistenciasText}. Estas zonas han actuado como techo en ocasiones anteriores, y su superación es necesaria para que el precio pueda continuar subiendo.`,
+                    `Las resistencias técnicas se sitúan en ${resistenciasText}. Si el precio se acerca a estas zonas, es probable que encuentre una mayor oferta que frene su subida. La superación de estas resistencias con volumen sería una señal de fortaleza.`,
+                    `En cuanto a resistencias, los niveles a vigilar son ${resistenciasText}. La superación de estos niveles podría abrir la puerta a subidas más significativas, mientras que su mantenimiento reforzaría la zona de techo.`
+                );
+            } else {
+                resistenciaVariadas.push('No se han identificado resistencias claras en el análisis técnico actual. Esto podría indicar que el precio está en zona de descubrimiento o que los niveles históricos han sido superados.');
+            }
+
+            // VOLATILIDAD Y RANGO
+            const volatilidadVariadas = [];
+            if (volatilidad > 0 && !isNaN(volatilidad)) {
+                const volText = volatilidad.toFixed(2);
+                if (volatilidad > 3) {
+                    volatilidadVariadas.push(
+                        `La volatilidad actual es del ${volText}%, un nivel considerado elevado. Esto implica que el precio está experimentando movimientos bruscos, lo que puede ofrecer oportunidades de trading pero también aumenta el riesgo. Es recomendable ajustar el tamaño de la posición en consecuencia.`,
+                        `Con una volatilidad del ${volText}%, estamos ante un valor de alta volatilidad. Los movimientos del precio son amplios y rápidos, lo que puede ser atractivo para traders activos pero requiere una gestión de riesgo más estricta.`,
+                        `La volatilidad medida en los últimos 20 días es del ${volText}%, lo que indica que el valor se mueve con intensidad. Este dato es relevante para definir stops y objetivos de beneficio.`
+                    );
+                } else if (volatilidad > 1.5) {
+                    volatilidadVariadas.push(
+                        `La volatilidad actual es del ${volText}%, un nivel moderado. Los movimientos del precio son significativos pero no extremos, lo que ofrece un equilibrio entre oportunidad y riesgo.`,
+                        `Con una volatilidad del ${volText}%, el valor muestra movimientos considerables pero controlados. Es un entorno favorable para estrategias de seguimiento de tendencia.`,
+                        `La volatilidad medida es del ${volText}%, lo que indica que el precio se mueve con cierta intensidad pero sin llegar a ser extremo.`
+                    );
+                } else {
+                    volatilidadVariadas.push(
+                        `La volatilidad actual es del ${volText}%, un nivel bajo. Esto indica que el precio se está moviendo con poca intensidad, lo que sugiere un mercado tranquilo o en fase de acumulación. En estos entornos, las señales suelen ser más fiables.`,
+                        `Con una volatilidad del ${volText}%, el valor muestra movimientos reducidos. Es un entorno de baja volatilidad, donde los movimientos suelen ser más graduales y las señales técnicas tienden a ser más fiables.`,
+                        `La volatilidad medida es del ${volText}%, lo que indica un mercado calmado. Este entorno suele ser favorable para estrategias de inversión a medio plazo.`
+                    );
+                }
+            } else {
+                volatilidadVariadas.push('No hay datos suficientes para calcular la volatilidad con precisión.');
+            }
+
+            // RANGO DE PRECIOS
+            const rangoVariadas = [];
+            if (rango30 > 0 && !isNaN(rango30)) {
+                const rangoText = rango30.toFixed(2);
+                rangoVariadas.push(
+                    `El rango de precios de los últimos 30 días es del ${rangoText}%, lo que indica que el precio ha oscilado entre ${min30.toFixed(2)} € y ${max30.toFixed(2)} €. Este rango nos da una idea de la amplitud de los movimientos recientes y de los niveles clave a vigilar.`,
+                    `El precio ha oscilado en un rango del ${rangoText}% en las últimas 30 sesiones, con mínimos en ${min30.toFixed(2)} € y máximos en ${max30.toFixed(2)} €. Estos niveles son referencias importantes para entender la estructura del precio.`,
+                    `La amplitud de movimiento de los últimos 30 días es del ${rangoText}%, con el precio moviéndose entre ${min30.toFixed(2)} € y ${max30.toFixed(2)} €. Estos niveles actúan como referencias técnicas relevantes.`
+                );
+            } else {
+                rangoVariadas.push('No hay datos suficientes para calcular el rango de precios de los últimos 30 días.');
+            }
+
+            // ANÁLISIS DE PATRONES RECIENTES
+            const patronesAnalisis = [];
+            if (patrones7 > 0) {
+                patronesAnalisis.push(`Se han identificado ${patrones7} patrones de tipo 7 (oportunidad fuerte) en los últimos 30 registros. Esta acumulación de señales alcistas refuerza la posibilidad de un giro al alza, especialmente si el precio confirma la ruptura de niveles clave.`);
+            }
+            if (patrones3 > 0) {
+                patronesAnalisis.push(`Hay ${patrones3} patrones de rebote (tipo 3) en el período analizado. Estos patrones sugieren que el precio ha estado intentando rebotar en varias ocasiones, lo que podría indicar que la presión vendedora está disminuyendo.`);
+            }
+            if (patrones5 > 0) {
+                patronesAnalisis.push(`Se han detectado ${patrones5} patrones de agotamiento (tipo 5). Esto podría indicar que el mercado está mostrando signos de fatiga en las subidas y que podría estar cerca de una corrección.`);
+            }
+            if (patrones1 > 0) {
+                patronesAnalisis.push(`Aparecen ${patrones1} patrones de tipo 1 (interés con impulso), lo que sugiere que hay interés comprador pero con cierta cautela.`);
+            }
+            if (patrones2 > 0) {
+                patronesAnalisis.push(`Se han registrado ${patrones2} patrones de tipo 2 (señal anticipada), lo que indica que el mercado está preparando un posible movimiento.`);
+            }
+            if (patrones4 > 0) {
+                patronesAnalisis.push(`Hay ${patrones4} patrones de consolidación (tipo 4), lo que sugiere que el precio está en fase de descanso y podría estar preparando el siguiente movimiento.`);
+            }
+            if (patrones6 > 0) {
+                patronesAnalisis.push(`Se han identificado ${patrones6} patrones de tipo 6 (interés directo), lo que indica que hay un interés constante en el valor.`);
+            }
+            if (patronesAnalisis.length === 0) {
+                patronesAnalisis.push('En los últimos 30 registros, no se han identificado patrones destacables, lo que sugiere que el precio está en una fase de baja actividad o de transición.');
+            }
+
+            // GIROS Y CAMBIOS DE PATRÓN
+            const girosVariadas = [];
+            if (giros > 0) {
+                girosVariadas.push(
+                    `Se han producido ${giros} cambios de patrón en las últimas 20 velas, lo que indica que el precio está experimentando cierta inestabilidad en su estructura de patrones. Esta dinámica suele preceder a movimientos más definidos.`,
+                    `La presencia de ${giros} giros de patrón sugiere que el mercado está indeciso y que los participantes están cambiando de opinión con frecuencia. Esto puede ser un prerequisito para la formación de una nueva tendencia.`,
+                    `Con ${giros} cambios de patrón, el precio muestra una falta de dirección clara. Es un entorno de transición, donde las señales pueden ser menos fiables hasta que se establezca una nueva estructura.`
+                );
+            } else {
+                girosVariadas.push('No se han producido cambios de patrón en las últimas 20 velas, lo que indica que la estructura de patrones es estable. Esto suele ser positivo para la fiabilidad de las señales.');
+            }
+
+            // GAPS Y PINCHOS
+            const gapsVariadas = [];
+            if (gapsAlcistas.length > 0) {
+                gapsVariadas.push(`Se han detectado gaps alcistas en fechas recientes: ${gapsAlcistas.slice(0,2).join('; ')}. Estos gaps indican que ha habido saltos en el precio al alza, lo que sugiere una fuerte presión compradora.`);
+            } else if (gapsBajistas.length > 0) {
+                gapsVariadas.push(`Se han detectado gaps bajistas: ${gapsBajistas.slice(0,2).join('; ')}. Estos gaps indican que ha habido saltos en el precio a la baja, lo que sugiere una fuerte presión vendedora.`);
+            } else {
+                gapsVariadas.push('No se han detectado gaps significativos en el período analizado, lo que indica que el precio se está moviendo de forma continua y ordenada.');
+            }
+
+            const pinchosVariadas = [];
+            if (pinchosAlcistas.length > 0) {
+                pinchosVariadas.push(`Se han identificado pinchos alcistas: ${pinchosAlcistas.slice(0,2).join('; ')}. Estos rebotes desde mínimos intradía suelen indicar que los compradores están defendiendo esos niveles.`);
+            } else if (pinchosBajistas.length > 0) {
+                pinchosVariadas.push(`Se han identificado pinchos bajistas: ${pinchosBajistas.slice(0,2).join('; ')}. Estas caídas desde máximos intradía suelen indicar que los vendedores están defendiendo esos niveles.`);
+            } else {
+                pinchosVariadas.push('No se han identificado pinchos significativos en el período analizado.');
+            }
+
+            // ============================================
+            // PREVISIÓN Y ESCENARIOS (MUY VARIADOS)
+            // ============================================
+            
+            const previsionVariadas = [];
+            
+            // Evaluación combinada de múltiples factores
+            let puntuacionAlcista = 0;
+            let puntuacionBajista = 0;
+            
+            if (pwDiario !== null) {
+                if (pwDiario < -40) puntuacionAlcista += 2;
+                if (pwDiario > 40) puntuacionBajista += 2;
+            }
+            if (pendiente !== null) {
+                if (pendiente > 0) puntuacionAlcista += 1;
+                if (pendiente < 0) puntuacionBajista += 1;
+            }
+            if (ultimoPatron === 7) puntuacionAlcista += 3;
+            if (ultimoPatron === 5) puntuacionBajista += 2;
+            if (ultimoPatron === 3) puntuacionAlcista += 1;
+            if (patrones7 > 2) puntuacionAlcista += 2;
+            if (patrones5 > 2) puntuacionBajista += 2;
+            
+            if (puntuacionAlcista > puntuacionBajista + 2) {
+                previsionVariadas.push(
+                    `El escenario más probable, según la combinación de factores técnicos analizados, es un movimiento alcista en las próximas sesiones. La sobreventa, la pendiente positiva y la presencia de patrones de oportunidad (tipo 7) crean un entorno favorable para los compradores. El objetivo inicial podría estar en las resistencias de ${resistencias.length > 0 ? resistencias.slice(0,1) : 'niveles a definir'}, mientras que el soporte de ${soportes.length > 0 ? soportes.slice(0,1) : 'zona de control'} actuaría como nivel de protección.`,
+                    `La configuración técnica actual inclina la balanza hacia un escenario alcista. El PW en sobreventa, la pendiente positiva y la acumulación de patrones de oportunidad son señales coherentes que apuntan a una probable subida. El principal riesgo sería una perforación de los soportes identificados.`,
+                    `Los datos técnicos sugieren que el precio podría estar formando un suelo y que una subida es el escenario más probable. La combinación de sobreventa y señales de giro suele ser un antecedente de movimientos al alza de cierta entidad.`
+                );
+            } else if (puntuacionBajista > puntuacionAlcista + 2) {
+                previsionVariadas.push(
+                    `El escenario más probable, según el análisis técnico, es un movimiento bajista o de corrección en las próximas sesiones. La sobrecompra, la pendiente negativa y la presencia de patrones de agotamiento (tipo 5) sugieren que la presión vendedora podría aumentar. El soporte de ${soportes.length > 0 ? soportes.slice(0,1) : 'niveles a definir'} sería el primer objetivo a la baja.`,
+                    `La configuración técnica actual muestra un sesgo bajista. El PW en sobrecompra y los patrones de agotamiento son señales de que el precio podría estar cerca de un techo. La prudencia es recomendable, y sería conveniente esperar a que el precio se estabilice antes de tomar posiciones.`,
+                    `Los datos técnicos apuntan a una posible corrección a la baja. La combinación de sobrecompra y señales de agotamiento sugiere que los compradores están perdiendo fuerza.`
+                );
+            } else if (puntuacionAlcista >= puntuacionBajista) {
+                previsionVariadas.push(
+                    `El escenario más probable es una continuidad lateral o un movimiento alcista moderado. Los factores técnicos no muestran un sesgo claro, con señales tanto alcistas como bajistas que se equilibran. En estos casos, es recomendable esperar a que el precio confirme una dirección.`,
+                    `La situación técnica es de equilibrio. No hay señales claras que inclinen la balanza de forma definitiva. El precio podría continuar en el rango actual, entre los soportes de ${soportes.length > 0 ? soportes.slice(0,1) : 'zona inferior'} y las resistencias de ${resistencias.length > 0 ? resistencias.slice(0,1) : 'zona superior'}.`,
+                    `El análisis técnico muestra un empate entre señales alcistas y bajistas. El precio podría estar en una fase de consolidación, y la dirección se definirá cuando se rompa alguno de los niveles clave.`,
+                    `La configuración actual es de indecisión. El mercado está en pausa, y será la ruptura de algún nivel clave la que marque la siguiente dirección.`
+                );
+            } else {
+                previsionVariadas.push(
+                    `El escenario más probable es una corrección a la baja, pero con matices. Los factores técnicos muestran un sesgo bajista, pero la presencia de algunos soportes podría frenar la caída. Es un escenario de prudencia.`,
+                    `Los datos técnicos apuntan a un movimiento bajista, pero no de gran magnitud. La presencia de soportes cercanos podría limitar la caída.`,
+                    `El escenario bajista es el más probable, pero la intensidad de la caída podría ser limitada por la presencia de soportes técnicos.`
+                );
+            }
+
+            // ============================================
+            // CONSTRUIR EL TEXTO FINAL (MÁS LARGO Y ESTRUCTURADO)
+            // ============================================
+            
+            // Seleccionar frases aleatorias para cada sección
+            const intro = introVariadas[Math.floor(Math.random() * introVariadas.length)];
+            const precioText = precioVariadas[Math.floor(Math.random() * precioVariadas.length)];
+            const pwText = pwVariadas[Math.floor(Math.random() * pwVariadas.length)];
+            const pendienteText = pendienteVariadas[Math.floor(Math.random() * pendienteVariadas.length)];
+            const patronText = patronVariadas[Math.floor(Math.random() * patronVariadas.length)];
+            const tendenciaText = tendenciaVariadas[Math.floor(Math.random() * tendenciaVariadas.length)];
+            const soporteText = soporteVariadas[Math.floor(Math.random() * soporteVariadas.length)];
+            const resistenciaText = resistenciaVariadas[Math.floor(Math.random() * resistenciaVariadas.length)];
+            const volatilidadText = volatilidadVariadas[Math.floor(Math.random() * volatilidadVariadas.length)];
+            const rangoText = rangoVariadas[Math.floor(Math.random() * rangoVariadas.length)];
+            const patronesText = patronesAnalisis[Math.floor(Math.random() * patronesAnalisis.length)];
+            const girosText = girosVariadas[Math.floor(Math.random() * girosVariadas.length)];
+            const gapsText = gapsVariadas[Math.floor(Math.random() * gapsVariadas.length)];
+            const pinchosText = pinchosVariadas[Math.floor(Math.random() * pinchosVariadas.length)];
+            const previsionText = previsionVariadas[Math.floor(Math.random() * previsionVariadas.length)];
+
+            // Determinar tag de sentimiento general
+            let tagHtml = '';
+            if (puntuacionAlcista > puntuacionBajista + 2) {
+                tagHtml = '<span class="tag-alcista">🟢 SESGO ALCISTA</span>';
+            } else if (puntuacionBajista > puntuacionAlcista + 2) {
+                tagHtml = '<span class="tag-bajista">🔴 SESGO BAJISTA</span>';
+            } else {
+                tagHtml = '<span class="tag-neutral">🟡 SESGO NEUTRAL</span>';
+            }
+
+            // Montar el texto completo (mucho más largo)
+            const textoCompleto = `
+                <div style="margin-bottom:12px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                    ${tagHtml}
+                    <span style="font-size:0.7rem; color:#5a7a92;">Última actualización: ${new Date().toLocaleString('es-ES')}</span>
+                </div>
+                <div style="margin-bottom:12px;">${intro}</div>
+                <div style="margin-bottom:10px;"><strong>📊 Situación actual del precio</strong><br>${precioText}</div>
+                <div style="margin-bottom:10px;"><strong>📈 Price Wave y momentum</strong><br>${pwText} ${pendienteText}</div>
+                <div style="margin-bottom:10px;"><strong>🔍 Patrón técnico</strong><br>${patronText}</div>
+                <div style="margin-bottom:10px;"><strong>📉 Tendencia de medio plazo</strong><br>${tendenciaText}</div>
+                <div style="margin-bottom:10px;"><strong>🛡️ Niveles clave</strong><br>${soporteText}<br>${resistenciaText}</div>
+                <div style="margin-bottom:10px;"><strong>📊 Volatilidad y rango</strong><br>${volatilidadText}<br>${rangoText}</div>
+                <div style="margin-bottom:10px;"><strong>📋 Historial de patrones recientes</strong><br>${patronesText}<br>${girosText}</div>
+                <div style="margin-bottom:10px;"><strong>⚡ Gaps y pinchos detectados</strong><br>${gapsText}<br>${pinchosText}</div>
+                <div class="analisis-destacado">
+                    <strong>🔮 ${previsionText.includes('alcista') ? 'Escenario previsto' : previsionText.includes('bajista') ? 'Escenario previsto' : 'Escenario previsto'}</strong><br>
+                    ${previsionText}
+                </div>
+                <div style="margin-top:10px; font-size:0.7rem; color:#5a7a92; border-top:1px solid rgba(255,255,255,0.04); padding-top:8px;">
+                    ⚠️ Análisis técnico con fines educativos. No constituye asesoramiento financiero. 
+                    Las señales se basan en datos históricos y patrones estadísticos.
+                </div>
+            `;
+
+            contenedor.innerHTML = textoCompleto;
+        }
 
         function renderizarHistorialCompleto(historial) {
             const tbody = document.getElementById('historialBody');
